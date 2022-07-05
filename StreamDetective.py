@@ -53,12 +53,21 @@ class StreamDetective:
         self.HandleGames()
         self.SaveCacheFiles()
         
+    def TestConfig(self):
+        assert self.config.get('clientId')
+        assert self.config.get('accessToken')
+        assert self.config.get('DiscordWebhookUser')
+        assert self.config.get('Games')
+        for game in self.config['Games']:
+            assert game.get('GameName'), 'testing config for game: ' + repr(game)
+            #assert game.get('DiscordWebhook'), 'testing config for ' + game['GameName']
+
     def HandleConfigFile(self):
         configFileFullPath = os.path.join(path,configFileName)
         if os.path.exists(configFileFullPath):
             with open(configFileFullPath, 'r') as f:
                 self.config = json.load(f)
-
+            self.TestConfig()
         else:
             print("Writing default config.json file")
             config = {}
