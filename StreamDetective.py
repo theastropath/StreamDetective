@@ -27,6 +27,7 @@ tempDir = os.path.join(tempfile.gettempdir(),"streams")
 
 configFileName="config.json"
 gameIdCacheFileName="GameIdCache.json"
+tagsCacheFileName="TagsCache.json"
 
 class StreamDetective:
     def __init__ (self):
@@ -41,13 +42,16 @@ class StreamDetective:
         self.tagsUrl='https://api.twitch.tv/helix/tags/streams?'
         
         self.gameIdCache={}
-        self.LoadGameIdCache()
+        self.tagsCache={}
+        self.LoadCacheFiles()
+        
+        
 
         if self.HandleConfigFile():
             print("Created default config.json file")
             exit(0)
         self.HandleGames()
-        self.SaveGameIdCache()
+        self.SaveCacheFiles()
         
     def HandleConfigFile(self):
         configFileFullPath = os.path.join(path,configFileName)
@@ -96,16 +100,27 @@ class StreamDetective:
             raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
         return result
 
-    def SaveGameIdCache(self):
-        gameIdCacheFileFullPath = os.path.join(path,gameIdCacheFileName)
+    def SaveCacheFiles(self):
+        gameIdCacheFileFullPath = os.path.join(tempDir,gameIdCacheFileName)
+        tagsCacheFileFullPath = os.path.join(tempDir,tagsCacheFileName)
+
         with open(gameIdCacheFileFullPath, 'w') as f:
             json.dump(self.gameIdCache,f,indent=4)
+            
+        with open(tagsCacheFileFullPath, 'w') as f:
+            json.dump(self.tagsCache,f,indent=4)
         
-    def LoadGameIdCache(self):
-        gameIdCacheFileFullPath = os.path.join(path,gameIdCacheFileName)
+    def LoadCacheFiles(self):
+        gameIdCacheFileFullPath = os.path.join(tempDir,gameIdCacheFileName)
+        tagsCacheFileFullPath = os.path.join(tempDir,tagsCacheFileName)
+        
         if os.path.exists(gameIdCacheFileFullPath):
             with open(gameIdCacheFileFullPath, 'r') as f:
                 self.gameIdCache = json.load(f)
+
+        if os.path.exists(tagsCacheFileFullPath):
+            with open(tagsCacheFileFullPath, 'r') as f:
+                self.tagsCache = json.load(f)
 
     def AddGameIdToCache(self,gameName,gameId):
         self.gameIdCache[gameName]=gameId    
@@ -124,7 +139,6 @@ class StreamDetective:
                 'Content-Type': 'application/json'
                   }
 
-        # TODO: cache gameIds so we can continue if this fails, or even skip this API call
         result = self.TwitchApiRequest(gameIdUrl,headers)
 
         if "data" in result and len(result["data"])==1:
@@ -315,9 +329,18 @@ class StreamDetective:
             return []
         tagNames=[]
         tagsUrl = self.tagsUrl
+        tagsToFind=0
         
         for tag in tags:
-            tagsUrl+="tag_id="+tag+"&"
+            if tag in self.tagsCache:
+                #print("Found tag "+tag+" as "+self.tagsCache[tag])
+                tagNames.append(self.tagsCache[tag])
+            else:               
+                tagsUrl+="tag_id="+tag+"&"
+                tagsToFind+=1
+                
+        if tagsToFind==0:
+            return tagNames
 
         headers = {
                 'Client-ID': self.config["clientId"],
@@ -332,9 +355,11 @@ class StreamDetective:
         if "data" in result:
             for tagResult in result["data"]:
                 #print(tagResult["localization_names"]["en-us"])
-                tagNames.append(tagResult["localization_names"]["en-us"])				
+                tagName = tagResult["localization_names"]["en-us"]
+                self.tagsCache[tagResult["tag_id"]]=tagName
+                tagNames.append(tagName)                
         return tagNames
-	    
+        
 
     def buildWebhookMsgs(self, webhookUrl, gameName, toSend, atUserId):
         content = ''
@@ -342,12 +367,15 @@ class StreamDetective:
         for stream in toSend:
             url="https://twitch.tv/"+stream["user_login"]
             content += url + ' is playing ' + gameName
-            content += ', VOD will probably be here '
-            content += 'https://www.twitch.tv/'+stream["user_login"]+'/videos?filter=archives&sort=time'
+            #content += ', VOD will probably be here '
+            #content += 'https://www.twitch.tv/'+stream["user_login"]+'/videos?filter=archives&sort=time'
             content += '\n'
 
             streamer = stream["user_name"]
+
             title = stream["title"]
+            title+="\n\n"
+            title+='['+stream["user_login"]+' VODs](https://www.twitch.tv/'+stream["user_login"]+'/videos?filter=archives&sort=time)'
                         
             image = self.GetUserProfilePicUrl(stream["user_id"])
             image = {"url":image}
