@@ -1,9 +1,9 @@
 import sys
 
 if sys.version_info[0] < 3:
-	raise ImportError('Python < 3 is unsupported.')
+    raise ImportError('Python < 3 is unsupported.')
 if sys.version_info[0] == 3 and sys.version_info[1] < 6:
-	raise ImportError('Python < 3.6 is unsupported.')
+    raise ImportError('Python < 3.6 is unsupported.')
 
 from urllib.parse import urlencode
 from requests import Session
@@ -26,6 +26,7 @@ path = os.path.realpath(os.path.dirname(__file__))
 tempDir = os.path.join(tempfile.gettempdir(),"streams")
 
 configFileName="config.json"
+gameIdCacheFileName="GameIdCache.json"
 
 class StreamDetective:
     def __init__ (self):
@@ -36,15 +37,18 @@ class StreamDetective:
 
         self.streamsUrl='https://api.twitch.tv/helix/streams?game_id='
         self.gameIdUrlBase='https://api.twitch.tv/helix/games?name='
+        
+        self.gameIdCache={}
+        self.LoadGameIdCache()
 
         if self.HandleConfigFile():
             print("Created default config.json file")
             exit(0)
         self.HandleGames()
+        self.SaveGameIdCache()
         
     def HandleConfigFile(self):
         configFileFullPath = os.path.join(path,configFileName)
-        print("Doing this")
         if os.path.exists(configFileFullPath):
             with open(configFileFullPath, 'r') as f:
                 self.config = json.load(f)
@@ -90,7 +94,25 @@ class StreamDetective:
             raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
         return result
 
+    def SaveGameIdCache(self):
+        gameIdCacheFileFullPath = os.path.join(path,gameIdCacheFileName)
+        with open(gameIdCacheFileFullPath, 'w') as f:
+            json.dump(self.gameIdCache,f,indent=4)
+        
+    def LoadGameIdCache(self):
+        gameIdCacheFileFullPath = os.path.join(path,gameIdCacheFileName)
+        if os.path.exists(gameIdCacheFileFullPath):
+            with open(gameIdCacheFileFullPath, 'r') as f:
+                self.gameIdCache = json.load(f)
+
+    def AddGameIdToCache(self,gameName,gameId):
+        self.gameIdCache[gameName]=gameId    
+
     def GetGameId(self, game):
+	
+        if game["GameName"] in self.gameIdCache:
+            return self.gameIdCache[game["GameName"]]
+	
         gameIdUrl = self.gameIdUrlBase+game["GameName"]
         gameId = 0
 
@@ -111,10 +133,12 @@ class StreamDetective:
         if not gameId:
             raise Exception('gameId is missing')
             
+        if gameId:
+            self.AddGameIdToCache(game["GameName"],gameId)
+            
         return gameId
 
     def GetAllStreams(self,game,gameId):
-        print("GetAllStreams")
         streamsUrl = self.streamsUrl+gameId
         
         allStreams = []
@@ -128,10 +152,10 @@ class StreamDetective:
                       }
                       
             url = streamsUrl+"&first=100" #Fetch 100 streams at a time
-			
+            
             if cursor!="":
                 url+="&after="+cursor
-			
+            
             result = None
             result = self.TwitchApiRequest(url,headers)
             if "pagination" in result and "cursor" in result["pagination"]:
@@ -145,7 +169,7 @@ class StreamDetective:
             for stream in result['data']:
                 allStreams.append(stream)
                 print(stream["user_login"])
-				
+                
             if keepGoing:
                 time.sleep(0.25) #pace yourself a little bit
             
