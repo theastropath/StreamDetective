@@ -239,11 +239,20 @@ class StreamDetective:
         f.close()
 
 
-    def sendWebhookMsg(self, webhookUrl, gameName, streamer, title, url):
+    def sendWebhookMsg(self, webhookUrl, gameName, toSend, streamer, title, url):
+        content = ''
+        embeds = []
+        for stream in toSend:
+            url="https://twitch.tv/"+stream["user_login"]
+            content += url + ' is playing ' + gameName + '\n'
+            streamer = stream["user_name"]
+            title = stream["title"]
+            embeds.push({"title":streamer,"url":url,"description":title})
+        
         data={
             "username":self.config["DiscordWebhookUser"],
-            "content":url + ' is playing ' + gameName,
-            "embeds":[{"title":streamer,"url":url,"description":title}]
+            "content": content,
+            "embeds": embeds
         }
         response = requests.post(webhookUrl,json=data)
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
@@ -252,6 +261,7 @@ class StreamDetective:
         if not webhookUrl:
             return
         IgnoreStreams = self.config.get('IgnoreStreams', [])
+        toSend = []
         for stream in newList:
             if stream["user_login"] in IgnoreStreams:
                 continue
@@ -263,8 +273,10 @@ class StreamDetective:
             stream['last_notified'] = now.isoformat()
             if (now - last_notified).total_seconds() < self.config['CooldownSeconds']:
                 continue
-            url="https://twitch.tv/"+stream["user_login"]
-            self.sendWebhookMsg(webhookUrl, gameName, stream["user_name"],stream["title"],url)
+            toSend.append(stream)
+        
+        if toSend:
+            self.sendWebhookMsg(webhookUrl, gameName, toSend)
 
 def logex(e, *args):
     estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
