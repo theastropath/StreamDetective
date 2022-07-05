@@ -9,6 +9,7 @@ import sys
 import tempfile
 import traceback
 from hashlib import sha1
+import datetime
 
 clientId=""
 accessToken=""
@@ -123,9 +124,11 @@ class StreamDetective:
                 streamer = stream['user_login']
                 title = stream['title']
                 tags = stream['tag_ids']
+                stream['last_seen'] = datetime.datetime.now().isoformat()
                 matched = self.CheckStream(game, streamer, title, tags)
                 if matched:
                     print("matched "+streamer)
+                    stream['last_matched'] = datetime.datetime.now().isoformat()
                     streamInfo.append(stream)
                     
             print("-------")
@@ -194,9 +197,11 @@ class StreamDetective:
     def genWebhookMsgs(self, webhookUrl, gameName, newList):
         if not webhookUrl:
             return
+        IgnoreStreams = self.config.get('IgnoreStreams', [])
         for stream in newList:
-            if 'IgnoreStreams' in self.config and stream["user_login"] in self.config['IgnoreStreams']:
+            if stream["user_login"] in IgnoreStreams:
                 continue
+            stream['last_notified'] = datetime.datetime.now().isoformat()
             url="https://twitch.tv/"+stream["user_login"]
             self.sendWebhookMsg(webhookUrl, gameName, stream["user_name"],stream["title"],url)
 
