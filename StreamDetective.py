@@ -36,7 +36,9 @@ class StreamDetective:
         self.session.mount('http://',retryAdapter)
 
         self.streamsUrl='https://api.twitch.tv/helix/streams?game_id='
+        self.usersUrl='https://api.twitch.tv/helix/users?id='
         self.gameIdUrlBase='https://api.twitch.tv/helix/games?name='
+        self.tagsUrl='https://api.twitch.tv/helix/tags/streams?'
         
         self.gameIdCache={}
         self.LoadGameIdCache()
@@ -109,10 +111,10 @@ class StreamDetective:
         self.gameIdCache[gameName]=gameId    
 
     def GetGameId(self, game):
-	
+    
         if game["GameName"] in self.gameIdCache:
             return self.gameIdCache[game["GameName"]]
-	
+    
         gameIdUrl = self.gameIdUrlBase+game["GameName"]
         gameId = 0
 
@@ -293,15 +295,71 @@ class StreamDetective:
         response = requests.post(webhookUrl,json=data)
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
+    def GetUserProfilePicUrl(self,userId):
+        userUrl = self.usersUrl+userId
+
+        headers = {
+                'Client-ID': self.config["clientId"],
+                'Authorization': 'Bearer '+self.config["accessToken"],
+                'Content-Type': 'application/json'
+                  }
+
+        result = self.TwitchApiRequest(userUrl,headers)
+        if "data" in result and "profile_image_url" in result["data"][0]:
+            return result["data"][0]["profile_image_url"]
+            
+        return ""
+
+    def GetTagNames(self,tags):
+        tagNames=[]
+        tagsUrl = self.tagsUrl
+        for tag in tags:
+            tagsUrl+="tag_id="+tag+"&"
+
+        headers = {
+                'Client-ID': self.config["clientId"],
+                'Authorization': 'Bearer '+self.config["accessToken"],
+                'Content-Type': 'application/json'
+                  }
+
+        result = self.TwitchApiRequest(tagsUrl,headers)
+        #print(str(result))
+        #if "data" in result and "profile_image_url" in result["data"][0]:
+        #    return result["data"][0]["profile_image_url"]
+        if "data" in result:
+            for tagResult in result["data"]:
+                #print(tagResult["localization_names"]["en-us"])
+                tagNames.append(tagResult["localization_names"]["en-us"])				
+        return tagNames
+	    
+
     def buildWebhookMsgs(self, webhookUrl, gameName, toSend, atUserId):
         content = ''
         embeds = []
         for stream in toSend:
             url="https://twitch.tv/"+stream["user_login"]
-            content += url + ' is playing ' + gameName + '\n'
+            content=" "
             streamer = stream["user_name"]
             title = stream["title"]
-            embeds.append({"title":streamer,"url":url,"description":title})
+                        
+            image = self.GetUserProfilePicUrl(stream["user_id"])
+            image = {"url":image}
+            
+            fields = []
+
+            gameField = {}
+            gameField["name"]="Game"
+            gameField["value"]=gameName
+            gameField["inline"]=True
+            fields.append(gameField)
+
+            tagsField={}
+            tagsField["name"]="Tags"
+            tagsField["value"]=", ".join(self.GetTagNames(stream["tag_ids"]))
+            tagsField["inline"]=True
+            fields.append(tagsField)
+            
+            embeds.append({"title":streamer,"url":url,"description":title,"image":image,"fields":fields})
             if len(content) >= 1700:
                 self.sendWebhookMsg(webhookUrl, content, embeds, atUserId)
                 content = ''
@@ -324,7 +382,7 @@ class StreamDetective:
             # this whole thing might be obsolete since we use the id of the stream instead of the streamer username?
             # cooldown should probably be per streamer not stream id
             stream['last_notified'] = now.isoformat()
-            if (now - last_notified).total_seconds() < self.config['CooldownSeconds']:
+            if (now - last_notified).total_seconds() < self.config.get('CooldownSeconds',0):
                 continue
             toSend.append(stream)
         
