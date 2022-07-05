@@ -1,0 +1,12 @@
+name: GitHub Actions
+on: [push]
+jobs:
+  Ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - run: cd ${{ github.workspace }}
+      - run: python -m compileall -q .
+

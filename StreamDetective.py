@@ -7,6 +7,8 @@ import json
 import os.path
 import sys
 import tempfile
+import traceback
+from hashlib import sha1
 
 clientId=""
 accessToken=""
@@ -15,11 +17,6 @@ path = os.path.realpath(os.path.dirname(__file__))
 tempDir = os.path.join(tempfile.gettempdir(),"streams")
 
 configFileName="config.json"
-
-
-#For all I know, this might change at some point?
-randoTagId = "2fd30cb8-f2e5-415d-9d42-1316cfa61367"
-
 
 class StreamDetective:
     def __init__ (self):
@@ -31,7 +28,9 @@ class StreamDetective:
         self.streamsUrl='https://api.twitch.tv/helix/streams?game_id='
         self.gameIdUrlBase='https://api.twitch.tv/helix/games?name='
 
-        self.HandleConfigFile()
+        if self.HandleConfigFile():
+            print("Created default config.json file")
+            exit(0)
         self.HandleGames()
         
     def HandleConfigFile(self):
@@ -42,24 +41,12 @@ class StreamDetective:
                 self.config = json.load(f)
 
         else:
+            print("Writing default config.json file")
             config = {}
-            config["clientId"]          = " "
-            config["accessToken"]       = " "
-            config["GameName"]          = " "
-            config["DiscordWebhookUrl"] = " "
-            config["DiscordWebhookUser"]= "Stream Detective"
-
-            game = {}
-            game["GameName"]=""
-            game["StorageFile"]=""
-            game["MatchTag"]=""
-            game["MatchString"]=""
-            game["DiscordWebhook"]=""
-            config["Games"] = [game]
-
+            exampleConfigFileFullPath = os.path.join(path,"config.example.json")
+            with open(exampleConfigFileFullPath, 'r') as f:
+                config = json.load(f)
             
-            
-            print("Writing default config file")
             with open(configFileFullPath, 'w') as f:
                 json.dump(config,f, indent=4)
 
@@ -67,76 +54,93 @@ class StreamDetective:
 
     def HandleGames(self):
         for game in self.config["Games"]:
-            self.HandleGame(game)
+            try:
+                self.HandleGame(game)
+            except Exception as e:
+                logex(e, 'error in', game)
+
+
+    def TwitchApiRequest(self, url):
+        response = None
+        try:
+            response = self.session.get( url, headers={
+                'Client-ID': self.config["clientId"],
+                'Authorization': 'Bearer '+self.config["accessToken"],
+                'Content-Type': 'application/json'
+            })
+            result = json.loads(response.text)
+        except Exception as e:
+            print('request for '+url+' failed: ', e)
+            raise
+
+        if not result:
+            print('request for '+url+' failed')
+            raise Exception('request failed')
+        if 'status' in result and result['status'] != 200:
+            print('request for '+url+' failed: ', result)
+            raise Exception('request failed', result)
+        return result
+
+
+    def CheckStream(self, filter, streamer, title, tags):
+        #print("-------")
+        #print("Name: "+streamer)
+        #print(title)
+
+        if filter.get("MatchTag","")=="" and filter.get("MatchString","")=="":
+            return True
+
+        if "MatchTag" in filter and filter["MatchTag"]!="":
+            if filter["MatchTag"] in tags:
+                return True
+        if "MatchString" in filter and filter["MatchString"]!="":
+            if filter["MatchString"].lower() in title.lower():
+                return True
+        return False
+
 
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
         gameIdUrl = self.gameIdUrlBase+game["GameName"]
 
-        response = self.session.get( gameIdUrl, headers={
-            'Client-ID': self.config["clientId"],
-            'Authorization': 'Bearer '+self.config["accessToken"],
-            'Content-Type': 'application/json'
-        })
-        try:
-            result = json.loads(response.text)
-        except:
-            result = None
+        # TODO: cache gameIds so we can continue if this fails, or even skip this API call
+        result = self.TwitchApiRequest(gameIdUrl)
 
-        if (result):
-            if "data" in result and len(result["data"])!=0:
-                gameId = result["data"][0]["id"]
+        if "data" in result and len(result["data"])==1:
+            gameId = result["data"][0]["id"]
+        else:
+            raise Exception(gameIdUrl+" response expected 1 game id: ", result)
 
-        if gameId!=None:
-            streamsUrl = self.streamsUrl+gameId
-            result = None
-            response = self.session.get( streamsUrl, headers={
-                'Client-ID': self.config["clientId"],
-                'Authorization': 'Bearer '+self.config["accessToken"],
-                'Content-Type': 'application/json'
-            })
-            try:
-                result = json.loads(response.text)
-                #print(response.headers)
+        if not gameId:
+            raise Exception('gameId is missing')
+        
+        streamsUrl = self.streamsUrl+gameId
+        result = self.TwitchApiRequest(streamsUrl)
 
-            except:
-                result = None
+        if result and 'data' in result:
+            streamInfo=[]
+            for stream in result["data"]:
+                streamer = stream['user_login']
+                title = stream['title']
+                tags = stream['tag_ids']
+                matched = self.CheckStream(game, streamer, title, tags)
+                if matched:
+                    print("matched "+streamer)
+                    streamInfo.append(stream)
+                    
+            print("-------")
+        
+        # All stream info now retrieved
+        # hash the game config so it can be used for the cache filename
+        hash = json.dumps(game, sort_keys=True)
+        hash = sha1(hash.encode()).hexdigest()
+        hash = '-' + str(hash)
 
-            if result:
-                #print(result)
-                if "data" in result:
-                    streamInfo=[]
-                    for stream in result["data"]:
-                        matched = False
-                        streamer = stream['user_login']
-                        title = stream['title']
-                        tags = stream['tag_ids']
-                        print("-------")
-                        print("Name: "+streamer)
-                        print(title)
-
-                        if game.get("MatchTag","")=="" and game.get("MatchString","")=="":
-                            matched=True
-                        else:
-                            if "MatchTag" in game and game["MatchTag"]!="":
-                                if game["MatchTag"] in tags:
-                                    matched=True
-                            if "MatchString" in game and game["MatchString"]!="":
-                                if game["MatchString"].lower() in title.lower():
-                                    matched=True
-
-                        if matched:
-                            streamInfo.append(stream)
-                            
-                    print("-------")
-                        
-        #All stream info now retrieved
-        saveLocation = os.path.join(tempDir,game["StorageFile"])
+        saveLocation = os.path.join(tempDir,game["GameName"] + hash)
         if os.path.exists(saveLocation):
             f = open(saveLocation,'r')
             streamInfoOld = json.load(f)
             f.close()
-
 
             newStreams=self.getNewStreams(streamInfoOld,streamInfo)
 
@@ -178,12 +182,14 @@ class StreamDetective:
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
     def genWebhookMsgs(self,webhookUrl,newList):
+        if not webhookUrl:
+            return
         for stream in newList:
             url="https://twitch.tv/"+stream["user_login"]
             self.sendWebhookMsg(webhookUrl,stream["user_name"],stream["title"],url)
 
-
+def logex(e, *args):
+    estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
+    print("ERROR: "+estr, *args)
 
 sd = StreamDetective()
-
-
