@@ -233,7 +233,7 @@ class StreamDetective:
         # All stream info now retrieved
         if hadCache:
             print("New Streams: "+str(newStreams))
-            self.genWebhookMsgs(game["DiscordWebhook"], game["GameName"], newStreams)
+            self.genWebhookMsgs(game["DiscordWebhook"], game["GameName"], newStreams, game.get('atUserId'))
             for stream in newStreams:
                 id = stream['id']
                 streamInfo[id] = stream
@@ -256,9 +256,11 @@ class StreamDetective:
         f.close()
 
 
-    def sendWebhookMsg(self, webhookUrl, content, embeds):
+    def sendWebhookMsg(self, webhookUrl, content, embeds, atUserId):
         if len(embeds) >= 10:
             embeds = [{"title": str(len(embeds))+' new streams!',"url":'https://twitch.tv',"description": str(len(embeds))+' new streams!'}]
+        if atUserId:
+            content += ' <@' + str(atUserId) + '>'
         data={
             "username":self.config["DiscordWebhookUser"],
             "content": content,
@@ -267,7 +269,7 @@ class StreamDetective:
         response = requests.post(webhookUrl,json=data)
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
-    def buildWebhookMsgs(self, webhookUrl, gameName, toSend):
+    def buildWebhookMsgs(self, webhookUrl, gameName, toSend, atUserId):
         content = ''
         embeds = []
         for stream in toSend:
@@ -277,14 +279,14 @@ class StreamDetective:
             title = stream["title"]
             embeds.append({"title":streamer,"url":url,"description":title})
             if len(content) >= 1700:
-                self.sendWebhookMsg(webhookUrl, content, embeds)
+                self.sendWebhookMsg(webhookUrl, content, embeds, atUserId)
                 content = ''
                 embeds = []
         
         if content:
-            self.sendWebhookMsg(webhookUrl, content, embeds)
+            self.sendWebhookMsg(webhookUrl, content, embeds, atUserId)
 
-    def genWebhookMsgs(self, webhookUrl, gameName, newList):
+    def genWebhookMsgs(self, webhookUrl, gameName, newList, atUserId):
         if not webhookUrl:
             return
         IgnoreStreams = self.config.get('IgnoreStreams', [])
@@ -303,7 +305,7 @@ class StreamDetective:
             toSend.append(stream)
         
         if toSend:
-            self.buildWebhookMsgs(webhookUrl, gameName, toSend)
+            self.buildWebhookMsgs(webhookUrl, gameName, toSend, atUserId)
 
 def logex(e, *args):
     estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
