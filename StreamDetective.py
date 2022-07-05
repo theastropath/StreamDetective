@@ -170,7 +170,7 @@ class StreamDetective:
                 
             for stream in result['data']:
                 allStreams.append(stream)
-                print(stream["user_login"])
+                #print(stream["user_login"])
                 
             if keepGoing:
                 time.sleep(0.25) #pace yourself a little bit
