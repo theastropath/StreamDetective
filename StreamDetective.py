@@ -239,7 +239,16 @@ class StreamDetective:
         f.close()
 
 
-    def sendWebhookMsg(self, webhookUrl, gameName, toSend):
+    def sendWebhookMsg(self, webhookUrl, content, embeds):
+        data={
+            "username":self.config["DiscordWebhookUser"],
+            "content": content,
+            "embeds": embeds
+        }
+        response = requests.post(webhookUrl,json=data)
+        print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
+
+    def buildWebhookMsgs(self, webhookUrl, gameName, toSend):
         content = ''
         embeds = []
         for stream in toSend:
@@ -248,14 +257,13 @@ class StreamDetective:
             streamer = stream["user_name"]
             title = stream["title"]
             embeds.append({"title":streamer,"url":url,"description":title})
+            if len(embeds) >= 10:
+                self.sendWebhookMsg(webhookUrl, content, embeds)
+                content = ''
+                embeds = []
         
-        data={
-            "username":self.config["DiscordWebhookUser"],
-            "content": content,
-            "embeds": embeds
-        }
-        response = requests.post(webhookUrl,json=data)
-        print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
+        if embeds:
+            self.sendWebhookMsg(webhookUrl, content, embeds)
 
     def genWebhookMsgs(self, webhookUrl, gameName, newList):
         if not webhookUrl:
@@ -276,7 +284,7 @@ class StreamDetective:
             toSend.append(stream)
         
         if toSend:
-            self.sendWebhookMsg(webhookUrl, gameName, toSend)
+            self.buildWebhookMsgs(webhookUrl, gameName, toSend)
 
 def logex(e, *args):
     estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
