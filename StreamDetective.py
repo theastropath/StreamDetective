@@ -255,7 +255,7 @@ class StreamDetective:
         for stream in newList:
             if stream["user_login"] in IgnoreStreams:
                 continue
-            last_notified = fromisoformat(stream.get('last_notified', '1970-01-01'))
+            last_notified = fromisoformat(stream.get('last_notified'))
             now = datetime.now()
             # update this timestamp so we don't just notify again later?
             # this whole thing might be obsolete since we use the id of the stream instead of the streamer username?
@@ -272,6 +272,8 @@ def logex(e, *args):
 
 def fromisoformat(iso):
     # for compatibility with python 3.6
+    if not iso:
+        return datetime(1970, 1, 1)
     return datetime.strptime(iso, "%Y-%m-%dT%H:%M:%S.%f")
 
 sd = StreamDetective()
