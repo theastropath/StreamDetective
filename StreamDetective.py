@@ -38,7 +38,7 @@ randoStreamInfo=[]
 oldStreamInfo=[]
 oldRandoInfo=[]
 
-webhookUserName = "Stream Detector"
+webhookUserName = "Stream Detective"
 webhookUrl = ""
 
 
@@ -98,10 +98,10 @@ def HandleConfigFile():
         config["accessToken"]       = " "
         config["GameName"]          = " "
         config["DiscordWebhookUrl"] = " "
-        config["DiscordWebhookUser"]= "Stream Detector"
+        config["DiscordWebhookUser"]= "Stream Detective"
         print("Writing default config file")
         with open(configFileFullPath, 'w') as f:
-            json.dump(config,f)
+            json.dump(config,f, indent=4)
 
         return True
 
