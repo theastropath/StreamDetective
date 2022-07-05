@@ -2,6 +2,7 @@
 	"clientId": "",
 	"accessToken": "",
 	"DiscordWebhookUser": "Stream Detective",
+	"IgnoreStreams": [],
 	"Games": [
 		{
 			"GameName": "Deus Ex",

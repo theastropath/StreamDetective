@@ -195,6 +195,8 @@ class StreamDetective:
         if not webhookUrl:
             return
         for stream in newList:
+            if 'IgnoreStreams' in self.config and stream["user_login"] in self.config['IgnoreStreams']:
+                continue
             url="https://twitch.tv/"+stream["user_login"]
             self.sendWebhookMsg(webhookUrl, gameName, stream["user_name"],stream["title"],url)
 
