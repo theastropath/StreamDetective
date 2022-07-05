@@ -9,7 +9,7 @@ import sys
 import tempfile
 import traceback
 from hashlib import sha1
-import datetime
+from datetime import datetime
 
 clientId=""
 accessToken=""
@@ -99,6 +99,17 @@ class StreamDetective:
                 return True
         return False
 
+    def ReadGameCache(self, game):
+        saveLocation = os.path.join(tempDir,game["GameName"])
+        if os.path.exists(saveLocation):
+            try:
+                f = open(saveLocation,'r')
+                streamInfoOld = json.load(f)
+                f.close()
+                return streamInfoOld
+            except Exception as e:
+                logex(e, 'ReadGameCache failed at:', saveLocation, ', with config:', game)
+        return None
 
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
@@ -114,76 +125,60 @@ class StreamDetective:
 
         if not gameId:
             raise Exception('gameId is missing')
+
+        streamInfo = self.ReadGameCache(game)
+        hadCache = True
+        if streamInfo is None:
+            streamInfo = {}
+            hadCache = False
+        newStreams = []
         
         streamsUrl = self.streamsUrl+gameId
         result = self.TwitchApiRequest(streamsUrl)
+        now = datetime.now()
 
         if result and 'data' in result:
-            streamInfo=[]
             for stream in result["data"]:
+                id = stream['id']
                 streamer = stream['user_login']
                 title = stream['title']
                 tags = stream['tag_ids']
-                stream['last_seen'] = datetime.datetime.now().isoformat()
+                stream['last_seen'] = now.isoformat()
                 matched = self.CheckStream(game, streamer, title, tags)
                 if matched:
                     print("matched "+streamer)
-                    stream['last_matched'] = datetime.datetime.now().isoformat()
-                    streamInfo.append(stream)
+                    stream['last_matched'] = now.isoformat()
+                    if id not in streamInfo:
+                        newStreams.append(stream)
+                streamInfo[id] = stream
                     
             print("-------")
         
         # All stream info now retrieved
-        # hash the game config so it can be used for the cache filename
-        hash = json.dumps(game, sort_keys=True)
-        hash = sha1(hash.encode()).hexdigest()
-        hash = '-' + str(hash)
-
-        saveLocation = os.path.join(tempDir,game["GameName"] + hash)
-        if os.path.exists(saveLocation):
-            streamInfoOld = []
-            try:
-                f = open(saveLocation,'r')
-                streamInfoOld = json.load(f)
-                f.close()
-            except Exception as e:
-                logex(e, 'failed to read old game cache at:', saveLocation, ', with config:', game)
-
-            newStreams=self.getNewStreams(streamInfoOld,streamInfo)
-
+        if hadCache:
             print("New Streams: "+str(newStreams))
-
             self.genWebhookMsgs(game["DiscordWebhook"], game["GameName"], newStreams)
+            for stream in newStreams:
+                id = stream['id']
+                streamInfo[id] = stream
         else:
+            newStreams = []
             print("Old streams cache not found, creating it now")
             
-            
+        # cleanup old entries in cache
+        for key, val in streamInfo.items():
+            last_seen = datetime.fromisoformat(val['last_seen'])
+            if (now - last_seen).total_seconds() > (3600*24):
+                del streamInfo[key]
+
         if not os.path.exists(tempDir):
             os.makedirs(tempDir)
 
+        saveLocation = os.path.join(tempDir,game["GameName"])
         f = open(saveLocation,'w')
         json.dump(streamInfo,f)
         f.close()
-        
-    def isStreamNew(self,old,name):
-        found=False
-        for stream in old:
-            if "user_login" in stream:
-                if name.lower()==stream["user_login"].lower():
-                    found=True
 
-        return not found
-                    
-
-    def getNewStreams(self,old,new):
-        newStreams=[]
-        for stream in new:
-            if "user_login" in stream:
-                if self.isStreamNew(old,stream["user_login"]):
-                    newStreams.append(stream)
-                    print(stream["user_login"]+" is new")
-
-        return newStreams
 
     def sendWebhookMsg(self, webhookUrl, gameName, streamer, title, url):
         data={
@@ -201,7 +196,14 @@ class StreamDetective:
         for stream in newList:
             if stream["user_login"] in IgnoreStreams:
                 continue
-            stream['last_notified'] = datetime.datetime.now().isoformat()
+            last_notified = datetime.fromisoformat(stream['last_notified'])
+            now = datetime.now()
+            # update this timestamp so we don't just notify again later?
+            # this whole thing might be obsolete since we use the id of the stream instead of the streamer username?
+            # cooldown should probably be per streamer not stream id
+            stream['last_notified'] = now.isoformat()
+            if (now - last_notified).total_seconds() < self.config['CooldownSeconds']:
+                continue
             url="https://twitch.tv/"+stream["user_login"]
             self.sendWebhookMsg(webhookUrl, gameName, stream["user_name"],stream["title"],url)
 

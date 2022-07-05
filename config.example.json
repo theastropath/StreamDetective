@@ -3,6 +3,7 @@
 	"accessToken": "",
 	"DiscordWebhookUser": "Stream Detective",
 	"IgnoreStreams": [],
+	"CooldownSeconds": 3600,
 	"Games": [
 		{
 			"GameName": "Deus Ex",
