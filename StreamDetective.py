@@ -10,6 +10,7 @@ import tempfile
 import traceback
 from hashlib import sha1
 from datetime import datetime
+import time
 
 clientId=""
 accessToken=""
@@ -61,14 +62,10 @@ class StreamDetective:
                 logex(e, 'error in', game)
 
 
-    def TwitchApiRequest(self, url):
+    def TwitchApiRequest(self, url, headers):
         response = None
         try:
-            response = self.session.get( url, headers={
-                'Client-ID': self.config["clientId"],
-                'Authorization': 'Bearer '+self.config["accessToken"],
-                'Content-Type': 'application/json'
-            })
+            response = self.session.get( url, headers=headers)
             result = json.loads(response.text)
         except Exception as e:
             print('request for '+url+' failed: ', e)
@@ -82,6 +79,68 @@ class StreamDetective:
             raise Exception('request failed', result)
         return result
 
+    def GetGameId(self, game):
+        gameIdUrl = self.gameIdUrlBase+game["GameName"]
+        gameId = 0
+
+        headers = {
+                'Client-ID': self.config["clientId"],
+                'Authorization': 'Bearer '+self.config["accessToken"],
+                'Content-Type': 'application/json'
+                  }
+
+        # TODO: cache gameIds so we can continue if this fails, or even skip this API call
+        result = self.TwitchApiRequest(gameIdUrl,headers)
+
+        if "data" in result and len(result["data"])==1:
+            gameId = result["data"][0]["id"]
+        else:
+            raise Exception(gameIdUrl+" response expected 1 game id: ", result)
+
+        if not gameId:
+            raise Exception('gameId is missing')
+            
+        return gameId
+
+    def GetAllStreams(self,game,gameId):
+        print("GetAllStreams")
+        streamsUrl = self.streamsUrl+gameId
+        
+        allStreams = []
+        keepGoing = True
+        cursor = ""
+        while keepGoing:
+            headers = {
+                    'Client-ID': self.config["clientId"],
+                    'Authorization': 'Bearer '+self.config["accessToken"],
+                    'Content-Type': 'application/json'
+                      }
+                      
+            url = streamsUrl+"&first=100" #Fetch 100 streams at a time
+			
+            if cursor!="":
+                url+="&after="+cursor
+			
+            result = None
+            result = self.TwitchApiRequest(url,headers)
+            if "pagination" in result and "cursor" in result["pagination"]:
+                keepGoing = True
+                cursor = result["pagination"]["cursor"]
+            else:
+                keepGoing = False
+                cursor = ""
+                
+                
+            for stream in result['data']:
+                allStreams.append(stream)
+                print(stream["user_login"])
+				
+            if keepGoing:
+                time.sleep(0.25) #pace yourself a little bit
+            
+        return allStreams
+        
+        
 
     def CheckStream(self, filter, streamer, title, tags):
         #print("-------")
@@ -113,18 +172,8 @@ class StreamDetective:
 
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
-        gameIdUrl = self.gameIdUrlBase+game["GameName"]
-
-        # TODO: cache gameIds so we can continue if this fails, or even skip this API call
-        result = self.TwitchApiRequest(gameIdUrl)
-
-        if "data" in result and len(result["data"])==1:
-            gameId = result["data"][0]["id"]
-        else:
-            raise Exception(gameIdUrl+" response expected 1 game id: ", result)
-
-        if not gameId:
-            raise Exception('gameId is missing')
+        
+        gameId = self.GetGameId(game)
 
         streamInfo = self.ReadGameCache(game)
         hadCache = True
@@ -133,26 +182,25 @@ class StreamDetective:
             hadCache = False
         newStreams = []
         
-        streamsUrl = self.streamsUrl+gameId
-        result = self.TwitchApiRequest(streamsUrl)
+        allStreams = self.GetAllStreams(game,gameId)
+
         now = datetime.now()
 
-        if result and 'data' in result:
-            for stream in result["data"]:
-                id = stream['id']
-                streamer = stream['user_login']
-                title = stream['title']
-                tags = stream['tag_ids']
-                stream['last_seen'] = now.isoformat()
-                matched = self.CheckStream(game, streamer, title, tags)
-                if matched:
-                    print("matched "+streamer)
-                    stream['last_matched'] = now.isoformat()
-                    if id not in streamInfo:
-                        newStreams.append(stream)
-                streamInfo[id] = stream
-                    
-            print("-------")
+        for stream in allStreams:
+            id = stream['id']
+            streamer = stream['user_login']
+            title = stream['title']
+            tags = stream['tag_ids']
+            stream['last_seen'] = now.isoformat()
+            matched = self.CheckStream(game, streamer, title, tags)
+            if matched:
+                print("matched "+streamer)
+                stream['last_matched'] = now.isoformat()
+                if id not in streamInfo:
+                    newStreams.append(stream)
+            streamInfo[id] = stream
+                
+        print("-------")
         
         # All stream info now retrieved
         if hadCache:
