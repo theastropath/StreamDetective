@@ -14,192 +14,177 @@ accessToken=""
 path = os.path.realpath(os.path.dirname(__file__))
 tempDir = os.path.join(tempfile.gettempdir(),"streams")
 
-session=Session()
-
-allInfoSaveFile="AllStreamsInfo"
-allInfoSaveLocation=os.path.join(tempDir,allInfoSaveFile)
-randoInfoSaveFile="RandoStreamsInfo"
-randoInfoSaveLocation=os.path.join(tempDir,randoInfoSaveFile)
-
 configFileName="config.json"
 
-streamsUrl='https://api.twitch.tv/helix/streams?game_id='
-gameIdUrl=''
-gameIdUrlBase='https://api.twitch.tv/helix/games?name='
-
-gameId = None
 
 #For all I know, this might change at some point?
 randoTagId = "2fd30cb8-f2e5-415d-9d42-1316cfa61367"
 
-allStreamInfo=[]
-randoStreamInfo=[]
 
-oldStreamInfo=[]
-oldRandoInfo=[]
+class StreamDetective:
+    def __init__ (self):
+        self.session=Session()
+        retryAdapter = HTTPAdapter(max_retries=2)
+        self.session.mount('https://',retryAdapter)
+        self.session.mount('http://',retryAdapter)
 
-webhookUserName = "Stream Detector"
-webhookUrl = ""
-
-
-retryAdapter = HTTPAdapter(max_retries=2)
-session.mount('https://',retryAdapter)
-session.mount('http://',retryAdapter)
+        self.streamsUrl='https://api.twitch.tv/helix/streams?game_id='
+        self.gameIdUrlBase='https://api.twitch.tv/helix/games?name='
 
 
-def isStreamNew(old,name):
-    found=False
-    for stream in old:
-        if "user_login" in stream:
-            if name.lower()==stream["user_login"].lower():
-                found=True
-
-    return not found
-                
-
-def getNewStreams(old,new):
-    newStreams=[]
-    for stream in new:
-        if "user_login" in stream:
-            if isStreamNew(old,stream["user_login"]):
-                newStreams.append(stream)
-                print(stream["user_login"]+" is new")
-
-    return newStreams
-
-def sendWebhookMsg(streamer,title,url):
-    data={"username":webhookUserName,"content":url,"embeds":[{"title":streamer,"url":url,"description":title}]}
-    response = requests.post(webhookUrl,json=data)
-    print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
-
-def genWebhookMsgs(newList):
-    for stream in newList:
-        url="https://twitch.tv/"+stream["user_login"]
-        sendWebhookMsg(stream["user_name"],stream["title"],url)
-
-def HandleConfigFile():
-    global gameIdUrl,clientId,accessToken,webhookUrl,webhookUserName
-
-    configFileFullPath = os.path.join(path,configFileName)
-    
-    if os.path.exists(configFileFullPath):
-        with open(configFileFullPath, 'r') as f:
-            config = json.load(f)
-
-        gameIdUrl = gameIdUrlBase+config["GameName"]
-        clientId = config["clientId"]
-        accessToken = config["accessToken"]
-        webhookUrl = config["DiscordWebhookUrl"]
-        webhookUserName = config["DiscordWebhookUser"]
-        return False
-    else:
-        config = {}
-        config["clientId"]          = " "
-        config["accessToken"]       = " "
-        config["GameName"]          = " "
-        config["DiscordWebhookUrl"] = " "
-        config["DiscordWebhookUser"]= "Stream Detector"
-        print("Writing default config file")
-        with open(configFileFullPath, 'w') as f:
-            json.dump(config,f)
-
-        return True
-
-
+        self.HandleConfigFile()
+        self.HandleGames()
         
+    def HandleConfigFile(self):
+        configFileFullPath = os.path.join(path,configFileName)
+        print("Doing this")
+        if os.path.exists(configFileFullPath):
+            with open(configFileFullPath, 'r') as f:
+                self.config = json.load(f)
 
-if HandleConfigFile():
-    sys.exit(0)
+        else:
+            config = {}
+            config["clientId"]          = " "
+            config["accessToken"]       = " "
+            config["GameName"]          = " "
+            config["DiscordWebhookUrl"] = " "
+            config["DiscordWebhookUser"]= "Stream Detective"
 
-response = session.get( gameIdUrl, headers={
-    'Client-ID': clientId,
-    'Authorization': 'Bearer '+accessToken,
-    'Content-Type': 'application/json'
-})
-try:
-    result = json.loads(response.text)
-    #print(response.headers)
-except:
-    result = None
+            game = {}
+            game["GameName"]=""
+            game["StorageFile"]=""
+            game["MatchTag"]=""
+            game["MatchString"]=""
+            game["DiscordWebhook"]=""
+            config["Games"] = [game]
 
-if (result):
-    #print(result)
-    if "data" in result and len(result["data"])!=0:
-        gameId = result["data"][0]["id"]
-        #print("Deus Ex ID: "+str(gameId))
+            
+            
+            print("Writing default config file")
+            with open(configFileFullPath, 'w') as f:
+                json.dump(config,f, indent=4)
 
-if gameId!=None:
-    streamsUrl+=gameId
-    result = None
-    response = session.get( streamsUrl, headers={
-        'Client-ID': clientId,
-        'Authorization': 'Bearer '+accessToken,
-        'Content-Type': 'application/json'
-    })
-    try:
-        result = json.loads(response.text)
-        #print(response.headers)
+            return True
 
-    except:
-        result = None
+    def HandleGames(self):
+        for game in self.config["Games"]:
+            self.HandleGame(game)
 
-    if result:
-        #print(result)
-        if "data" in result:
-            allStreamInfo=result["data"]
-            for stream in result["data"]:
-                isRando = False
-                streamer = stream['user_login']
-                title = stream['title']
-                tags = stream['tag_ids']
-                print("-------")
-                print("Name: "+streamer)
-                print(title)
-                if randoTagId in tags:
-                    print("Has Randomizer tag set!")
-                    isRando = True
-                if "rando" in title.lower():
-                    print("Title suggests it might be the rando")
-                    isRando = True
+    def HandleGame(self,game):
+        print("Handling "+game["GameName"])
+        gameIdUrl = self.gameIdUrlBase+game["GameName"]
 
-                if isRando:
-                    randoStreamInfo.append(stream)
+        response = self.session.get( gameIdUrl, headers={
+            'Client-ID': self.config["clientId"],
+            'Authorization': 'Bearer '+self.config["accessToken"],
+            'Content-Type': 'application/json'
+        })
+        try:
+            result = json.loads(response.text)
+        except:
+            result = None
+
+        if (result):
+            if "data" in result and len(result["data"])!=0:
+                gameId = result["data"][0]["id"]
+
+        if gameId!=None:
+            streamsUrl = self.streamsUrl+gameId
+            result = None
+            response = self.session.get( streamsUrl, headers={
+                'Client-ID': self.config["clientId"],
+                'Authorization': 'Bearer '+self.config["accessToken"],
+                'Content-Type': 'application/json'
+            })
+            try:
+                result = json.loads(response.text)
+                #print(response.headers)
+
+            except:
+                result = None
+
+            if result:
+                #print(result)
+                if "data" in result:
+                    streamInfo=[]
+                    for stream in result["data"]:
+                        matched = False
+                        streamer = stream['user_login']
+                        title = stream['title']
+                        tags = stream['tag_ids']
+                        print("-------")
+                        print("Name: "+streamer)
+                        print(title)
+
+                        if game.get("MatchTag","")=="" and game.get("MatchString","")=="":
+                            matched=True
+                        else:
+                            if "MatchTag" in game and game["MatchTag"]!="":
+                                if game["MatchTag"] in tags:
+                                    matched=True
+                            if "MatchString" in game and game["MatchString"]!="":
+                                if game["MatchString"].lower() in title.lower():
+                                    matched=True
+
+                        if matched:
+                            streamInfo.append(stream)
+                            
+                    print("-------")
+                        
+        #All stream info now retrieved
+        saveLocation = os.path.join(tempDir,game["StorageFile"])
+        if os.path.exists(saveLocation):
+            f = open(saveLocation,'r')
+            streamInfoOld = json.load(f)
+            f.close()
+
+
+            newStreams=self.getNewStreams(streamInfoOld,streamInfo)
+
+            print("New Streams: "+str(newStreams))
+
+            self.genWebhookMsgs(game["DiscordWebhook"],newStreams)
+            
+            
+        if not os.path.exists(tempDir):
+            os.makedirs(tempDir)
+
+        f = open(saveLocation,'w')
+        json.dump(streamInfo,f)
+        f.close()
+        
+    def isStreamNew(self,old,name):
+        found=False
+        for stream in old:
+            if "user_login" in stream:
+                if name.lower()==stream["user_login"].lower():
+                    found=True
+
+        return not found
                     
-            print("-------")
-                
-#All stream info now retrieved
-    
-if os.path.exists(allInfoSaveLocation) and os.path.exists(randoInfoSaveLocation):
-    f = open(allInfoSaveLocation,'r')
-    allInfoOld = json.load(f)
-    f.close()
 
-    f = open(randoInfoSaveLocation,'r')
-    randoInfoOld = json.load(f)
-    f.close()
+    def getNewStreams(self,old,new):
+        newStreams=[]
+        for stream in new:
+            if "user_login" in stream:
+                if self.isStreamNew(old,stream["user_login"]):
+                    newStreams.append(stream)
+                    print(stream["user_login"]+" is new")
 
+        return newStreams
 
+    def sendWebhookMsg(self,webhookUrl,streamer,title,url):
+        data={"username":self.config["DiscordWebhookUser"],"content":url,"embeds":[{"title":streamer,"url":url,"description":title}]}
+        response = requests.post(webhookUrl,json=data)
+        print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
-    newAllStreams=getNewStreams(allInfoOld,allStreamInfo)
-    newRandoStreams=getNewStreams(randoInfoOld,randoStreamInfo)
-
-    print("New Streams: "+str(newAllStreams))
-    print("New Rando Streams: "+str(newRandoStreams))
-
-    genWebhookMsgs(newRandoStreams)
-    
-    
-if not os.path.exists(tempDir):
-    os.makedirs(tempDir)
-
-f = open(allInfoSaveLocation,'w')
-json.dump(allStreamInfo,f)
-f.close()
-
-f = open(randoInfoSaveLocation,'w')
-json.dump(randoStreamInfo,f)
-f.close()
+    def genWebhookMsgs(self,webhookUrl,newList):
+        for stream in newList:
+            url="https://twitch.tv/"+stream["user_login"]
+            self.sendWebhookMsg(webhookUrl,stream["user_name"],stream["title"],url)
 
 
+
+sd = StreamDetective()
 
 
