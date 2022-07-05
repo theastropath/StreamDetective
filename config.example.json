@@ -7,8 +7,10 @@
 	"Games": [
 		{
 			"GameName": "Deus Ex",
-			"MatchTag": "2fd30cb8-f2e5-415d-9d42-1316cfa61367",
-			"MatchString": "rando",
+			"filters": [
+				{ "MatchTag": "2fd30cb8-f2e5-415d-9d42-1316cfa61367" },
+				{ "MatchString": "rando" }
+			],
 			"DiscordWebhook": ""
 		},
 		{

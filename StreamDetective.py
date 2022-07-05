@@ -151,21 +151,38 @@ class StreamDetective:
             
         return allStreams
         
-        
+    
+    def CheckStreamFilter(self, filter, streamer, title, tags):
+        if not filter.keys():
+            return True
 
-    def CheckStream(self, filter, streamer, title, tags):
+        if not tags:
+            tags = []
+
+        if filter.get('MatchTag'):
+            if filter["MatchTag"] not in tags:
+                return False
+        if filter.get('MatchString'):
+            if filter["MatchString"].lower() not in title.lower():
+                return False
+        if filter.get('DontMatchTag'):
+            if filter['DontMatchTag'] in tags:
+                return False
+        if filter.get('DontMatchString'):
+            if filter['DontMatchString'].lower() in title.lower():
+                return False
+        return True
+
+    def CheckStream(self, game, streamer, title, tags):
         #print("-------")
         #print("Name: "+streamer)
         #print(title)
-
-        if filter.get("MatchTag","")=="" and filter.get("MatchString","")=="":
+        if not game.get('filters'):
+            # return True if the filters array is empty, or the key is missing
             return True
-
-        if "MatchTag" in filter and filter["MatchTag"]!="":
-            if filter["MatchTag"] in tags:
-                return True
-        if "MatchString" in filter and filter["MatchString"]!="":
-            if filter["MatchString"].lower() in title.lower():
+        
+        for filter in game['filters']:
+            if self.CheckStreamFilter(filter, streamer, title, tags):
                 return True
         return False
 
