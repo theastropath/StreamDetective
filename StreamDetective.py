@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info[0] < 3:
+	raise ImportError('Python < 3 is unsupported.')
+if sys.version_info[0] == 3 and sys.version_info[1] < 7:
+	raise ImportError('Python < 3.7 is unsupported.')
+
 from urllib.parse import urlencode
 from requests import Session
 from requests.adapters import HTTPAdapter
