@@ -1,1 +1,1 @@
-Stream Detector
+Stream Detective

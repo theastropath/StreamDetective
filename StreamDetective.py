@@ -31,7 +31,6 @@ class StreamDetective:
         self.streamsUrl='https://api.twitch.tv/helix/streams?game_id='
         self.gameIdUrlBase='https://api.twitch.tv/helix/games?name='
 
-
         self.HandleConfigFile()
         self.HandleGames()
         
