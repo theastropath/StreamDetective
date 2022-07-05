@@ -18,6 +18,7 @@ import traceback
 from hashlib import sha1
 from datetime import datetime
 import time
+import tweepy
 
 clientId=""
 accessToken=""
@@ -283,6 +284,7 @@ class StreamDetective:
         if hadCache:
             print("New Streams: "+str(newStreams))
             self.genWebhookMsgs(game.get("DiscordWebhook"), game["GameName"], newStreams, game.get('atUserId'))
+            self.genTwitterMsgs(game.get("Twitter",""),allStreams)
             for stream in newStreams:
                 id = stream['id']
                 streamInfo[id] = stream
@@ -303,7 +305,43 @@ class StreamDetective:
         f = open(saveLocation,'w')
         json.dump(streamInfo,f)
         f.close()
+        
+    def GetTwitterProfile(self,profName):
+        if "TwitterAccounts" not in self.config:
+            return None
+        for profile in self.config["TwitterAccounts"]:
+            name = profile.get("AccountName","")
+            if name == profName:
+                return profile
+        return None
 
+    def sendTweet(self,profile,msg):
+        api = tweepy.Client( bearer_token=profile["BearerToken"], 
+                                    consumer_key=profile["ApiKey"], 
+                                    consumer_secret=profile["ApiKeySecret"], 
+                                    access_token=profile["AccessToken"], 
+                                    access_token_secret=profile["AccessTokenSecret"], 
+                                    return_type = requests.Response,
+                                    wait_on_rate_limit=True)
+        try:
+            response = api.create_tweet(text=msg)
+            print("Tweet sent")
+        except Exception as e:
+            print("Encountered an issue when attempting to tweet: "+str(e)+" "+str(e.args))
+        
+
+    def genTwitterMsgs(self,twitterProfile,streams):
+        profile = self.GetTwitterProfile(twitterProfile)
+        if twitterProfile!="" and profile!=None:
+            for stream in streams:
+                msg = stream["user_name"] #The capitalized version of the name
+                msg+="\n\n"
+                msg+= stream["title"]
+                msg+="\n\n"
+                msg+="https://twitch.tv/"+stream["user_login"]
+                #print(msg)
+                #print("Sending to "+str(profile))
+                self.sendTweet(profile,msg)
 
     def sendWebhookMsg(self, webhookUrl, content, embeds, atUserId):
         if len(embeds) >= 10:

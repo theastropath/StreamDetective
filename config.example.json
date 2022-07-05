@@ -15,7 +15,16 @@
 		},
 		{
 			"GameName": "Fall Guys",
-			"DiscordWebhook": ""
+			"DiscordWebhook": "",
+            "Twitter": ""
 		}
-	]
+	],
+	"TwitterAccounts":[{
+    	"AccountName":"",
+    	"BearerToken":"",
+    	"ApiKey":"",
+    	"ApiKeySecret":"",
+    	"AccessToken":"",
+    	"AccessTokenSecret":""
+}]
 }
