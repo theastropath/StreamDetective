@@ -138,15 +138,21 @@ class StreamDetective:
 
         saveLocation = os.path.join(tempDir,game["GameName"] + hash)
         if os.path.exists(saveLocation):
-            f = open(saveLocation,'r')
-            streamInfoOld = json.load(f)
-            f.close()
+            streamInfoOld = []
+            try:
+                f = open(saveLocation,'r')
+                streamInfoOld = json.load(f)
+                f.close()
+            except Exception as e:
+                logex(e, 'failed to read old game cache at:', saveLocation, ', with config:', game)
 
             newStreams=self.getNewStreams(streamInfoOld,streamInfo)
 
             print("New Streams: "+str(newStreams))
 
-            self.genWebhookMsgs(game["DiscordWebhook"],newStreams)
+            self.genWebhookMsgs(game["DiscordWebhook"], game["GameName"], newStreams)
+        else:
+            print("Old streams cache not found, creating it now")
             
             
         if not os.path.exists(tempDir):
@@ -176,20 +182,24 @@ class StreamDetective:
 
         return newStreams
 
-    def sendWebhookMsg(self,webhookUrl,streamer,title,url):
-        data={"username":self.config["DiscordWebhookUser"],"content":url,"embeds":[{"title":streamer,"url":url,"description":title}]}
+    def sendWebhookMsg(self, webhookUrl, gameName, streamer, title, url):
+        data={
+            "username":self.config["DiscordWebhookUser"],
+            "content":url + ' is playing ' + gameName,
+            "embeds":[{"title":streamer,"url":url,"description":title}]
+        }
         response = requests.post(webhookUrl,json=data)
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
-    def genWebhookMsgs(self,webhookUrl,newList):
+    def genWebhookMsgs(self, webhookUrl, gameName, newList):
         if not webhookUrl:
             return
         for stream in newList:
             url="https://twitch.tv/"+stream["user_login"]
-            self.sendWebhookMsg(webhookUrl,stream["user_name"],stream["title"],url)
+            self.sendWebhookMsg(webhookUrl, gameName, stream["user_name"],stream["title"],url)
 
 def logex(e, *args):
     estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
-    print("ERROR: "+estr, *args)
+    print("\nERROR: "+estr, *args, '\n')
 
 sd = StreamDetective()
