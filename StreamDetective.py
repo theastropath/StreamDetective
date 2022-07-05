@@ -259,7 +259,7 @@ class StreamDetective:
         # All stream info now retrieved
         if hadCache:
             print("New Streams: "+str(newStreams))
-            self.genWebhookMsgs(game["DiscordWebhook"], game["GameName"], newStreams, game.get('atUserId'))
+            self.genWebhookMsgs(game.get("DiscordWebhook"), game["GameName"], newStreams, game.get('atUserId'))
             for stream in newStreams:
                 id = stream['id']
                 streamInfo[id] = stream
@@ -311,8 +311,11 @@ class StreamDetective:
         return ""
 
     def GetTagNames(self,tags):
+        if not tags:
+            return []
         tagNames=[]
         tagsUrl = self.tagsUrl
+        
         for tag in tags:
             tagsUrl+="tag_id="+tag+"&"
 
@@ -338,7 +341,11 @@ class StreamDetective:
         embeds = []
         for stream in toSend:
             url="https://twitch.tv/"+stream["user_login"]
-            content=" "
+            content += url + ' is playing ' + gameName
+            content += ', VOD will probably be here '
+            content += 'https://www.twitch.tv/'+stream["user_login"]+'/videos?filter=archives&sort=time'
+            content += '\n'
+
             streamer = stream["user_name"]
             title = stream["title"]
                         
