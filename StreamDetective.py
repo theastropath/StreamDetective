@@ -247,7 +247,7 @@ class StreamDetective:
             content += url + ' is playing ' + gameName + '\n'
             streamer = stream["user_name"]
             title = stream["title"]
-            embeds.push({"title":streamer,"url":url,"description":title})
+            embeds.append({"title":streamer,"url":url,"description":title})
         
         data={
             "username":self.config["DiscordWebhookUser"],
