@@ -82,11 +82,15 @@ class StreamDetective:
             raise
 
         if not result:
+            if response and response.headers:
+                print(repr(response.headers))
             print('request for '+url+' failed')
             raise Exception('request failed')
         if 'status' in result and result['status'] != 200:
-            print('request for '+url+' failed: ', result)
-            raise Exception('request failed', result)
+            if response and response.headers:
+                print(repr(response.headers))
+            print('request for '+url+' failed with status:', result['status'], ', result: ', result)
+            raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
         return result
 
 
