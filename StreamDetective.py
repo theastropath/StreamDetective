@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info[0] < 3:
+	raise ImportError('Python < 3 is unsupported.')
+if sys.version_info[0] == 3 and sys.version_info[1] < 6:
+	raise ImportError('Python < 3.6 is unsupported.')
+
 from urllib.parse import urlencode
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -72,11 +79,15 @@ class StreamDetective:
             raise
 
         if not result:
+            if response and response.headers:
+                print(repr(response.headers))
             print('request for '+url+' failed')
             raise Exception('request failed')
         if 'status' in result and result['status'] != 200:
-            print('request for '+url+' failed: ', result)
-            raise Exception('request failed', result)
+            if response and response.headers:
+                print(repr(response.headers))
+            print('request for '+url+' failed with status:', result['status'], ', result: ', result)
+            raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
         return result
 
     def GetGameId(self, game):
@@ -215,7 +226,7 @@ class StreamDetective:
             
         # cleanup old entries in cache
         for key, val in streamInfo.items():
-            last_seen = datetime.fromisoformat(val['last_seen'])
+            last_seen = fromisoformat(val['last_seen'])
             if (now - last_seen).total_seconds() > (3600*24):
                 del streamInfo[key]
 
@@ -244,7 +255,7 @@ class StreamDetective:
         for stream in newList:
             if stream["user_login"] in IgnoreStreams:
                 continue
-            last_notified = datetime.fromisoformat(stream['last_notified'])
+            last_notified = fromisoformat(stream['last_notified'])
             now = datetime.now()
             # update this timestamp so we don't just notify again later?
             # this whole thing might be obsolete since we use the id of the stream instead of the streamer username?
@@ -258,5 +269,9 @@ class StreamDetective:
 def logex(e, *args):
     estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
     print("\nERROR: "+estr, *args, '\n')
+
+def fromisoformat(iso):
+    # for compatibility with python 3.6
+    return datetime.strptime(iso, "%Y-%m-%dT%H:%M:%S.%f")
 
 sd = StreamDetective()
