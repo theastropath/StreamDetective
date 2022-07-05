@@ -239,7 +239,7 @@ class StreamDetective:
         f.close()
 
 
-    def sendWebhookMsg(self, webhookUrl, gameName, toSend, streamer, title, url):
+    def sendWebhookMsg(self, webhookUrl, gameName, toSend):
         content = ''
         embeds = []
         for stream in toSend:
