@@ -240,6 +240,8 @@ class StreamDetective:
 
 
     def sendWebhookMsg(self, webhookUrl, content, embeds):
+        if len(embeds) >= 10:
+            embeds = [{"title": str(len(embeds))+' new streams!',"url":'https://twitch.tv',"description": str(len(embeds))+' new streams!'}]
         data={
             "username":self.config["DiscordWebhookUser"],
             "content": content,
@@ -257,12 +259,12 @@ class StreamDetective:
             streamer = stream["user_name"]
             title = stream["title"]
             embeds.append({"title":streamer,"url":url,"description":title})
-            if len(embeds) >= 10:
+            if len(content) >= 1700:
                 self.sendWebhookMsg(webhookUrl, content, embeds)
                 content = ''
                 embeds = []
         
-        if embeds:
+        if content:
             self.sendWebhookMsg(webhookUrl, content, embeds)
 
     def genWebhookMsgs(self, webhookUrl, gameName, newList):
