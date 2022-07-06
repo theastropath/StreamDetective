@@ -284,7 +284,7 @@ class StreamDetective:
         if hadCache:
             print("New Streams: "+str(newStreams))
             self.genWebhookMsgs(game.get("DiscordWebhook"), game["GameName"], newStreams, game.get('atUserId'))
-            self.genTwitterMsgs(game.get("Twitter",""),allStreams)
+            self.genTwitterMsgs(game.get("Twitter",""),newStreams)
             for stream in newStreams:
                 id = stream['id']
                 streamInfo[id] = stream
