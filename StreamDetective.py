@@ -353,21 +353,40 @@ class StreamDetective:
 
     def GetDiscordProfile(self,profileName):
         if "DiscordProfiles" not in self.config:
-            return None
+            return []
         
-        for profile in self.config["DiscordProfiles"]:
-            if profile["ProfileName"]==profileName:
-                return profile
-        return None
+        profileNames = []
+        profiles = []
+        
+        if type(profileName) is list:
+            profileNames=profileName
+        else:
+            profileNames.append(profileName)
+        
+        for profName in profileNames:
+            for profile in self.config["DiscordProfiles"]:
+                if profile["ProfileName"]==profName:
+                    profiles.append(profile)
+        return profiles
 
-    def GetTwitterProfile(self,profName):
+    def GetTwitterProfile(self,profileName):
         if "TwitterAccounts" not in self.config:
             return None
-        for profile in self.config["TwitterAccounts"]:
-            name = profile.get("AccountName","")
-            if name == profName:
-                return profile
-        return None
+
+        profileNames = []
+        profiles = []
+        
+        if type(profileName) is list:
+            profileNames=profileName
+        else:
+            profileNames.append(profileName)
+            
+        for profName in profileNames:
+            for profile in self.config["TwitterAccounts"]:
+                name = profile.get("AccountName","")
+                if name == profName:
+                    profiles.append(profile)
+        return profiles
 
     def sendTweet(self,profile,msg):
         api = tweepy.Client( bearer_token=profile["BearerToken"], 
@@ -386,20 +405,22 @@ class StreamDetective:
         
 
     def genTwitterMsgs(self,twitterProfile,streams):
-        profile = self.GetTwitterProfile(twitterProfile)
-        if twitterProfile!="" and profile!=None:
-            for stream in streams:
-                msg = stream["user_name"] #The capitalized version of the name
-                msg+=' is playing '+stream['game_name']+' on Twitch'
-                msg+="\n\n"
-                msg+= stream["title"]
-                link = "\n\nhttps://twitch.tv/"+stream["user_login"]
-                if len(msg)+len(link) >= 280:
-                    msg = msg[:280-len(link)-3] + '...'
-                msg+=link
-                #print(msg)
-                #print("Sending to "+str(profile))
-                self.sendTweet(profile,msg)
+        profiles = self.GetTwitterProfile(twitterProfile)
+        
+        for profile in profiles:
+            if profile!=None:
+                for stream in streams:
+                    msg = stream["user_name"] #The capitalized version of the name
+                    msg+=' is playing '+stream['game_name']+' on Twitch'
+                    msg+="\n\n"
+                    msg+= stream["title"]
+                    link = "\n\nhttps://twitch.tv/"+stream["user_login"]
+                    if len(msg)+len(link) >= 280:
+                        msg = msg[:280-len(link)-3] + '...'
+                    msg+=link
+                    #print(msg)
+                    #print("Sending to "+str(profile))
+                    self.sendTweet(profile,msg)
 
     def sendWebhookMsg(self, discordProfile, content, embeds, atUserId):
         if len(embeds) >= 10:
@@ -512,20 +533,21 @@ class StreamDetective:
     def genWebhookMsgs(self, discordProfile, gameName, newList, atUserId):
         if not discordProfile:
             return
+        
+        for profile in discordProfile:
+            webhookUrl = profile["Webhook"]
             
-        webhookUrl = discordProfile["Webhook"]
-        
-        IgnoreStreams = self.config.get('IgnoreStreams', [])
-        toSend = []
-        for stream in newList:
-            if stream["user_login"].lower() in IgnoreStreams:
-                continue
-            if self.checkIsOnCooldown(stream, webhookUrl):
-                continue
-            toSend.append(stream)
-        
-        if toSend:
-            self.buildWebhookMsgs(discordProfile, gameName, toSend, atUserId)
+            IgnoreStreams = self.config.get('IgnoreStreams', [])
+            toSend = []
+            for stream in newList:
+                if stream["user_login"].lower() in IgnoreStreams:
+                    continue
+                if self.checkIsOnCooldown(stream, webhookUrl):
+                    continue
+                toSend.append(stream)
+            
+            if toSend:
+                self.buildWebhookMsgs(profile, gameName, toSend, atUserId)
     
     def checkIsOnCooldown(self, stream, webhookUrl):
         user = stream["user_login"].lower()
