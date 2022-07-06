@@ -220,6 +220,9 @@ class StreamDetective:
         if filter.get('MatchTag'):
             if filter["MatchTag"] not in tags:
                 return False
+        if filter.get('MatchTagName'):
+            if filter["MatchTagName"] not in self.GetTagNames(tags):
+                return False
         if filter.get('MatchString'):
             if filter["MatchString"].lower() not in title.lower():
                 return False
@@ -229,6 +232,10 @@ class StreamDetective:
         if filter.get('DontMatchString'):
             if filter['DontMatchString'].lower() in title.lower():
                 return False
+        if filter.get('DontMatchTagName'):
+            if filter["DontMatchTagName"] in self.GetTagNames(tags):
+                return False
+
         return True
 
     def CheckStream(self, game, streamer, title, tags):
