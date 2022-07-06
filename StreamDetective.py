@@ -32,6 +32,7 @@ cacheFileName="cache.json"
 
 class StreamDetective:
     def __init__ (self):
+        print(datetime.now().isoformat()+': StreamDetective starting')
         self.session=Session()
         retryAdapter = HTTPAdapter(max_retries=2)
         self.session.mount('https://',retryAdapter)
