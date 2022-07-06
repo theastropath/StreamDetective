@@ -64,11 +64,26 @@ class StreamDetective:
             #assert game.get('DiscordWebhook'), 'testing config for ' + game['GameName']
         for twitter in self.config.get('TwitterAccounts', []):
             assert twitter.get("AccountName"), 'testing twitter config for: ' + repr(twitter)
+
             assert twitter.get("ApiKey"), 'testing twitter config for: ' + repr(twitter)
+            assert len(twitter.get("ApiKey")) == 25, 'testing twitter config for: ' + repr(twitter)
+            assert '-' not in twitter.get("ApiKey"), 'testing twitter config for: ' + repr(twitter)
+
             assert twitter.get("ApiKeySecret"), 'testing twitter config for: ' + repr(twitter)
+            assert len(twitter.get("ApiKeySecret")) == 50, 'testing twitter config for: ' + repr(twitter)
+            assert'-' not in twitter.get("ApiKeySecret"), 'testing twitter config for: ' + repr(twitter)
+
             assert twitter.get("AccessToken"), 'testing twitter config for: ' + repr(twitter)
+            assert len(twitter.get("AccessToken")) == 50, 'testing twitter config for: ' + repr(twitter)
+            assert '-' in twitter.get("AccessToken"), 'testing twitter config for: ' + repr(twitter)
+
             assert twitter.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(twitter)
+            assert len(twitter.get("AccessTokenSecret")) == 45, 'testing twitter config for: ' + repr(twitter)
+            assert '-' not in twitter.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(twitter)
+
             assert twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
+            assert len(twitter.get("BearerToken")) > 60, 'testing twitter config for: ' + repr(twitter)
+            assert '-' not in twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
 
 
     def HandleConfigFile(self):
