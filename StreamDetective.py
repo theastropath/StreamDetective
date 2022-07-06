@@ -269,7 +269,7 @@ class StreamDetective:
         return False
 
     def GetGameCachePath(self, gameName):
-        gameName = re.sub('[^\w\d ]', '_', gameName)
+        gameName = re.sub('[^\w\d ]', '-', gameName)
         return os.path.join(tempDir,gameName)
     
     def ReadGameCache(self, game):
