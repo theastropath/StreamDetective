@@ -56,11 +56,15 @@ class StreamDetective:
     def TestConfig(self):
         assert self.config.get('clientId')
         assert self.config.get('accessToken')
-        assert self.config.get('DiscordWebhookUser')
         assert self.config.get('Games')
         for game in self.config['Games']:
             assert game.get('GameName'), 'testing config for game: ' + repr(game)
             #assert game.get('DiscordWebhook'), 'testing config for ' + game['GameName']
+        for discord in self.config.get('DiscordProfiles', []):
+            assert discord.get("ProfileName"), 'testing discord config for: ' + repr(discord)
+            assert discord.get("Webhook"), 'testing discord config for: ' + repr(discord)
+            assert discord.get("UserName"), 'testing discord config for: ' + repr(discord)
+
         for twitter in self.config.get('TwitterAccounts', []):
             assert twitter.get("AccountName"), 'testing twitter config for: ' + repr(twitter)
 
@@ -318,7 +322,7 @@ class StreamDetective:
         # All stream info now retrieved
         if hadCache:
             print("  New Streams: "+str(newStreams))
-            self.genWebhookMsgs(game.get("DiscordWebhook"), game["GameName"], newStreams, game.get('atUserId'))
+            self.genWebhookMsgs(self.GetDiscordProfile(game.get("DiscordProfile")), game["GameName"], newStreams, game.get('atUserId'))
             self.genTwitterMsgs(game.get("Twitter",""),newStreams)
             for stream in newStreams:
                 id = stream['id']
@@ -344,7 +348,17 @@ class StreamDetective:
         f = open(saveLocation,'w')
         json.dump(streamInfo,f)
         f.close()
+        print("\n\n")
+
+    def GetDiscordProfile(self,profileName):
+        if "DiscordProfiles" not in self.config:
+            return None
         
+        for profile in self.config["DiscordProfiles"]:
+            if profile["ProfileName"]==profileName:
+                return profile
+        return None
+
     def GetTwitterProfile(self,profName):
         if "TwitterAccounts" not in self.config:
             return None
@@ -386,17 +400,18 @@ class StreamDetective:
                 #print("Sending to "+str(profile))
                 self.sendTweet(profile,msg)
 
-    def sendWebhookMsg(self, webhookUrl, content, embeds, atUserId):
+    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId):
         if len(embeds) >= 10:
             embeds = [{"title": str(len(embeds))+' new streams!',"url":'https://twitch.tv',"description": str(len(embeds))+' new streams!'}]
         if atUserId:
             content += ' <@' + str(atUserId) + '>'
         data={
-            "username":self.config["DiscordWebhookUser"],
+            "username":discordProfile["UserName"],
             "content": content,
             "embeds": embeds
         }
-        response = requests.post(webhookUrl,json=data)
+        print(data)
+        response = requests.post(discordProfile["Webhook"],json=data)
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
     def GetUserProfilePicUrl(self,userId):
@@ -451,7 +466,7 @@ class StreamDetective:
         return tagNames
         
 
-    def buildWebhookMsgs(self, webhookUrl, gameName, toSend, atUserId):
+    def buildWebhookMsgs(self, discordProfile, gameName, toSend, atUserId):
         content = ''
         embeds = []
         for stream in toSend:
@@ -486,16 +501,19 @@ class StreamDetective:
             
             embeds.append({"title":streamer,"url":url,"description":title,"image":image,"fields":fields})
             if len(content) >= 1700:
-                self.sendWebhookMsg(webhookUrl, content, embeds, atUserId)
+                self.sendWebhookMsg(discordProfile, content, embeds, atUserId)
                 content = ''
                 embeds = []
         
         if content:
-            self.sendWebhookMsg(webhookUrl, content, embeds, atUserId)
+            self.sendWebhookMsg(discordProfile, content, embeds, atUserId)
 
-    def genWebhookMsgs(self, webhookUrl, gameName, newList, atUserId):
-        if not webhookUrl:
+    def genWebhookMsgs(self, discordProfile, gameName, newList, atUserId):
+        if not discordProfile:
             return
+            
+        webhookUrl = discordProfile["Webhook"]
+        
         IgnoreStreams = self.config.get('IgnoreStreams', [])
         toSend = []
         for stream in newList:
@@ -506,7 +524,7 @@ class StreamDetective:
             toSend.append(stream)
         
         if toSend:
-            self.buildWebhookMsgs(webhookUrl, gameName, toSend, atUserId)
+            self.buildWebhookMsgs(discordProfile, gameName, toSend, atUserId)
     
     def checkIsOnCooldown(self, stream, webhookUrl):
         user = stream["user_login"].lower()

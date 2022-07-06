@@ -1,7 +1,6 @@
 {
 	"clientId": "",
 	"accessToken": "",
-	"DiscordWebhookUser": "Stream Detective",
 	"IgnoreStreams": [],
 	"CooldownSeconds": 3600,
 	"Games": [
@@ -11,7 +10,7 @@
 				{ "MatchTag": "2fd30cb8-f2e5-415d-9d42-1316cfa61367" },
 				{ "MatchString": "rando" }
 			],
-			"DiscordWebhook": ""
+			"DiscordProfile": "default"
 		},
 		{
 			"GameName": "Deus Ex",
@@ -19,20 +18,25 @@
 				{ "MatchTagName": "Randomizer" },
 				{ "MatchString": "rando" }
 			],
-			"DiscordWebhook": ""
+			"DiscordProfile": ""
 		},
 		{
 			"GameName": "Fall Guys",
-			"DiscordWebhook": "",
-            "Twitter": ""
+			"DiscordProfile": "default",
+            "Twitter": "default"
 		}
 	],
 	"TwitterAccounts":[{
-    	"AccountName":"",
+    	"AccountName":"default",
     	"BearerToken":"",
     	"ApiKey":"",
     	"ApiKeySecret":"",
     	"AccessToken":"",
     	"AccessTokenSecret":""
-}]
+    }],
+    "DiscordProfiles":[{
+        "ProfileName":"default",
+        "Webhook":"",
+        "UserName":"Stream Detective"
+    }]
 }
