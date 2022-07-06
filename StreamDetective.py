@@ -27,8 +27,7 @@ path = os.path.realpath(os.path.dirname(__file__))
 tempDir = os.path.join(tempfile.gettempdir(),"streams")
 
 configFileName="config.json"
-gameIdCacheFileName="GameIdCache.json"
-tagsCacheFileName="TagsCache.json"
+cacheFileName="cache.json"
 
 class StreamDetective:
     def __init__ (self):
@@ -44,10 +43,9 @@ class StreamDetective:
         
         self.gameIdCache={}
         self.tagsCache={}
+        self.cooldowns={}
         self.LoadCacheFiles()
         
-        
-
         if self.HandleConfigFile():
             print("Created default config.json file")
             exit(0)
@@ -84,6 +82,8 @@ class StreamDetective:
             assert twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
             assert len(twitter.get("BearerToken")) > 60, 'testing twitter config for: ' + repr(twitter)
             assert '-' not in twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
+        for i in range(len(self.config.get('IgnoreStreams', []))):
+            self.config['IgnoreStreams'][i] = self.config['IgnoreStreams'][i].lower()
 
 
     def HandleConfigFile(self):
@@ -134,29 +134,30 @@ class StreamDetective:
         return result
 
     def SaveCacheFiles(self):
-        gameIdCacheFileFullPath = os.path.join(tempDir,gameIdCacheFileName)
-        tagsCacheFileFullPath = os.path.join(tempDir,tagsCacheFileName)
+        cacheFileFullPath = os.path.join(tempDir,cacheFileName)
 
-        with open(gameIdCacheFileFullPath, 'w') as f:
-            json.dump(self.gameIdCache,f,indent=4)
-            
-        with open(tagsCacheFileFullPath, 'w') as f:
-            json.dump(self.tagsCache,f,indent=4)
+        if os.path.exists(cacheFileFullPath):
+            with open(cacheFileFullPath, 'w') as f:
+                cache = json.load(f)
+                cache = { 'gameIds': self.gameIdCache,
+                    'tags': self.tagsCache,
+                    'cooldowns': self.cooldowns
+                }
+                json.dump(cache,f,indent=4)
         
     def LoadCacheFiles(self):
-        gameIdCacheFileFullPath = os.path.join(tempDir,gameIdCacheFileName)
-        tagsCacheFileFullPath = os.path.join(tempDir,tagsCacheFileName)
-        
-        if os.path.exists(gameIdCacheFileFullPath):
-            with open(gameIdCacheFileFullPath, 'r') as f:
-                self.gameIdCache = json.load(f)
+        cacheFileFullPath = os.path.join(tempDir,cacheFileName)
 
-        if os.path.exists(tagsCacheFileFullPath):
-            with open(tagsCacheFileFullPath, 'r') as f:
-                self.tagsCache = json.load(f)
+        if os.path.exists(cacheFileFullPath):
+            with open(cacheFileFullPath, 'r') as f:
+                cache = json.load(f)
+                self.gameIdCache = cache.get('gameIds')
+                self.tagsCache = cache.get('tags')
+                self.cooldowns = cache.get('cooldowns')
+
 
     def AddGameIdToCache(self,gameName,gameId):
-        self.gameIdCache[gameName]=gameId    
+        self.gameIdCache[gameName]=gameId
 
     def GetGameId(self, game):
     
@@ -492,18 +493,27 @@ class StreamDetective:
         for stream in newList:
             if stream["user_login"].lower() in IgnoreStreams:
                 continue
-            last_notified = fromisoformat(stream.get('last_notified'))
-            now = datetime.now()
-            # update this timestamp so we don't just notify again later?
-            # this whole thing might be obsolete since we use the id of the stream instead of the streamer username?
-            # cooldown should probably be per streamer not stream id
-            stream['last_notified'] = now.isoformat()
-            if (now - last_notified).total_seconds() < self.config.get('CooldownSeconds',0):
+            if self.checkIsOnCooldown(stream, webhookUrl):
                 continue
             toSend.append(stream)
         
         if toSend:
             self.buildWebhookMsgs(webhookUrl, gameName, toSend, atUserId)
+    
+    def checkIsOnCooldown(self, stream, webhookUrl):
+        user = stream["user_login"].lower()
+        key = user + '-' + webhookUrl
+        now = datetime.now()
+        cooldown = self.cooldowns.get(key)
+        if not cooldown:
+            self.cooldowns[key] = { 'last_notified': now.isoformat() }
+            return False
+        last_notified = cooldown['last_notified']
+        last_notified = fromisoformat(last_notified)
+        if (now - last_notified).total_seconds() < self.config.get('CooldownSeconds',0):
+            return True
+        cooldown['last_notified'] = now.isoformat()
+        return False
 
 def logex(e, *args):
     estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
