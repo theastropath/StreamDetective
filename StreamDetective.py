@@ -359,6 +359,7 @@ class StreamDetective:
                                     return_type = requests.Response,
                                     wait_on_rate_limit=True)
         try:
+            msg = msg[:280]
             response = api.create_tweet(text=msg)
             print("Tweet sent")
         except Exception as e:
@@ -370,10 +371,13 @@ class StreamDetective:
         if twitterProfile!="" and profile!=None:
             for stream in streams:
                 msg = stream["user_name"] #The capitalized version of the name
+                msg+=' is playing '+stream['game_name']+' on Twitch'
                 msg+="\n\n"
                 msg+= stream["title"]
-                msg+="\n\n"
-                msg+="https://twitch.tv/"+stream["user_login"]
+                link = "\n\nhttps://twitch.tv/"+stream["user_login"]
+                if len(msg)+len(link) >= 280:
+                    msg = msg[:280-len(link)-3] + '...'
+                msg+=link
                 #print(msg)
                 #print("Sending to "+str(profile))
                 self.sendTweet(profile,msg)
