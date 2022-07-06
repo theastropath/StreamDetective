@@ -323,10 +323,14 @@ class StreamDetective:
             print("Old streams cache not found, creating it now")
             
         # cleanup old entries in cache
+        toDelete = []
         for key, val in streamInfo.items():
             last_seen = fromisoformat(val['last_seen'])
             if (now - last_seen).total_seconds() > (3600*24):
-                del streamInfo[key]
+                toDelete.append(key)
+
+        for key in toDelete:
+            del streamInfo[key]
 
         if not os.path.exists(tempDir):
             os.makedirs(tempDir)
@@ -486,7 +490,7 @@ class StreamDetective:
         IgnoreStreams = self.config.get('IgnoreStreams', [])
         toSend = []
         for stream in newList:
-            if stream["user_login"] in IgnoreStreams:
+            if stream["user_login"].lower() in IgnoreStreams:
                 continue
             last_notified = fromisoformat(stream.get('last_notified'))
             now = datetime.now()
