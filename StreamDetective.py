@@ -62,6 +62,14 @@ class StreamDetective:
         for game in self.config['Games']:
             assert game.get('GameName'), 'testing config for game: ' + repr(game)
             #assert game.get('DiscordWebhook'), 'testing config for ' + game['GameName']
+        for twitter in self.config.get('TwitterAccounts', []):
+            assert twitter.get("AccountName"), 'testing twitter config for: ' + repr(twitter)
+            assert twitter.get("ApiKey"), 'testing twitter config for: ' + repr(twitter)
+            assert twitter.get("ApiKeySecret"), 'testing twitter config for: ' + repr(twitter)
+            assert twitter.get("AccessToken"), 'testing twitter config for: ' + repr(twitter)
+            assert twitter.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(twitter)
+            assert twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
+
 
     def HandleConfigFile(self):
         configFileFullPath = os.path.join(path,configFileName)
