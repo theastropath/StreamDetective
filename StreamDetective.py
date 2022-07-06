@@ -136,24 +136,24 @@ class StreamDetective:
     def SaveCacheFiles(self):
         cacheFileFullPath = os.path.join(tempDir,cacheFileName)
 
-        if os.path.exists(cacheFileFullPath):
-            with open(cacheFileFullPath, 'w') as f:
-                cache = json.load(f)
-                cache = { 'gameIds': self.gameIdCache,
-                    'tags': self.tagsCache,
-                    'cooldowns': self.cooldowns
-                }
-                json.dump(cache,f,indent=4)
+        with open(cacheFileFullPath, 'w') as f:
+            cache = { 'gameIds': self.gameIdCache,
+                'tags': self.tagsCache,
+                'cooldowns': self.cooldowns
+            }
+            json.dump(cache,f,indent=4)
         
     def LoadCacheFiles(self):
         cacheFileFullPath = os.path.join(tempDir,cacheFileName)
-
-        if os.path.exists(cacheFileFullPath):
-            with open(cacheFileFullPath, 'r') as f:
-                cache = json.load(f)
-                self.gameIdCache = cache.get('gameIds')
-                self.tagsCache = cache.get('tags')
-                self.cooldowns = cache.get('cooldowns')
+        try:
+            if os.path.exists(cacheFileFullPath):
+                with open(cacheFileFullPath, 'r') as f:
+                    cache = json.load(f)
+                    self.gameIdCache = cache.get('gameIds')
+                    self.tagsCache = cache.get('tags')
+                    self.cooldowns = cache.get('cooldowns')
+        except Exception as e:
+            logex(e, 'error in LoadCacheFile ', cacheFileFullPath)
 
 
     def AddGameIdToCache(self,gameName,gameId):
