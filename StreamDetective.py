@@ -19,6 +19,7 @@ from hashlib import sha1
 from datetime import datetime
 import time
 import tweepy
+import re
 
 clientId=""
 accessToken=""
@@ -267,8 +268,12 @@ class StreamDetective:
                 return True
         return False
 
+    def GetGameCachePath(self, gameName):
+        gameName = re.sub('[^\w\d ]', '_', gameName)
+        return os.path.join(tempDir,gameName)
+    
     def ReadGameCache(self, game):
-        saveLocation = os.path.join(tempDir,game["GameName"])
+        saveLocation = self.GetGameCachePath(game["GameName"])
         if os.path.exists(saveLocation):
             try:
                 f = open(saveLocation,'r')
@@ -309,11 +314,10 @@ class StreamDetective:
                     newStreams.append(stream)
             streamInfo[id] = stream
                 
-        print("-------")
         
         # All stream info now retrieved
         if hadCache:
-            print("New Streams: "+str(newStreams))
+            print("  New Streams: "+str(newStreams))
             self.genWebhookMsgs(game.get("DiscordWebhook"), game["GameName"], newStreams, game.get('atUserId'))
             self.genTwitterMsgs(game.get("Twitter",""),newStreams)
             for stream in newStreams:
@@ -336,7 +340,7 @@ class StreamDetective:
         if not os.path.exists(tempDir):
             os.makedirs(tempDir)
 
-        saveLocation = os.path.join(tempDir,game["GameName"])
+        saveLocation = self.GetGameCachePath(game["GameName"])
         f = open(saveLocation,'w')
         json.dump(streamInfo,f)
         f.close()
