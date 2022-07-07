@@ -212,7 +212,7 @@ class StreamDetective:
                 #print(stream["user_login"])
                 
             if keepGoing:
-                time.sleep(0.25) #pace yourself a little bit
+                time.sleep(0.1) #pace yourself a little bit
             
         return allStreams
         
