@@ -118,7 +118,8 @@ class StreamDetective:
                 'Content-Type': 'application/json',
                 **headers
             }
-            response = self.session.get( url, headers=headers)
+            response = self.session.get(url, headers=headers)
+            trace(url, response.headers, response.text)
             result = json.loads(response.text)
         except Exception as e:
             logex(e, 'request for '+url+' failed: ')
@@ -246,9 +247,7 @@ class StreamDetective:
         return True
 
     def CheckStream(self, game, streamer, title, tags):
-        #print("-------")
-        #print("Name: "+streamer)
-        #print(title)
+        trace("Name: ", streamer, title)
         if not game.get('filters'):
             # return True if the filters array is empty, or the key is missing
             return True
@@ -304,7 +303,7 @@ class StreamDetective:
             stream['last_seen'] = now.isoformat()
             matched = self.CheckStream(game, streamer, title, tags)
             if matched:
-                print("matched "+streamer)
+                debug("matched "+streamer)
                 stream['last_matched'] = now.isoformat()
                 if id not in streamInfo:
                     newStreams.append(stream)
@@ -312,14 +311,14 @@ class StreamDetective:
                 
         
         # All stream info now retrieved
-        if hadCache:
+        if hadCache and newStreams:
             print("  New Streams: "+str(newStreams))
             self.genWebhookMsgs(self.GetDiscordProfile(game.get("DiscordProfile")), game["GameName"], newStreams, game.get('atUserId'))
             self.genTwitterMsgs(game.get("Twitter",""),newStreams)
             for stream in newStreams:
                 id = stream['id']
                 streamInfo[id] = stream
-        else:
+        elif not hadCache:
             newStreams = []
             print("Old streams cache not found, creating it now")
             
@@ -337,7 +336,7 @@ class StreamDetective:
             os.makedirs(tempDir)
 
         self.WriteGameCache(game, streamInfo)
-        print("\n\n")
+        debug("\n\n")
         return newStreams
 
     def GetDiscordProfile(self,profileName):
@@ -389,6 +388,7 @@ class StreamDetective:
         try:
             response = api.create_tweet(text=msg)
             print("Tweet sent")
+            debug(response)
         except Exception as e:
             logex(e, "Encountered an issue when attempting to tweet: ", msg)
         
@@ -421,7 +421,7 @@ class StreamDetective:
             "content": content,
             "embeds": embeds
         }
-        print(data)
+        debug(data)
         response = requests.post(discordProfile["Webhook"],json=data)
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
@@ -453,7 +453,7 @@ class StreamDetective:
             return tagNames
 
         result = self.TwitchApiRequest(tagsUrl)
-        #print(str(result))
+        #trace(str(result))
         #if "data" in result and "profile_image_url" in result["data"][0]:
         #    return result["data"][0]["profile_image_url"]
         if "data" in result:
@@ -518,6 +518,7 @@ class StreamDetective:
             toSend = []
             for stream in newList:
                 if stream["user_login"].lower() in IgnoreStreams:
+                    debug(stream["user_login"], 'is in IgnoreStreams')
                     continue
                 if self.checkIsOnCooldown(stream, webhookUrl):
                     continue
@@ -537,6 +538,7 @@ class StreamDetective:
         last_notified = cooldown['last_notified']
         last_notified = fromisoformat(last_notified)
         if (now - last_notified).total_seconds() < self.config.get('CooldownSeconds',0):
+            print(stream["user_login"], 'is on cooldown')
             return True
         cooldown['last_notified'] = now.isoformat()
         return False
@@ -550,3 +552,24 @@ def fromisoformat(iso):
     if not iso:
         return datetime(1970, 1, 1)
     return datetime.strptime(iso, "%Y-%m-%dT%H:%M:%S.%f")
+
+verbose = 1
+debug = print
+trace = print
+
+def setVerbose(v: int):
+    global debug, trace
+    verbose = v
+    if verbose:
+        debug = print
+        trace = print
+    else:
+        debug = lambda *a: None # do-nothing function
+        trace = debug
+    
+    if verbose >= 2:
+        trace = print
+    else:
+        trace = lambda *a: None # do-nothing function
+
+setVerbose(verbose)

@@ -154,4 +154,5 @@ class TestStreamDetective(StreamDetective):
         self.webhooksSent += 1
 
 
+setVerbose(9)
 unittest.main(verbosity=9, warnings="error")#, failfast=True)
