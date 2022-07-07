@@ -31,7 +31,25 @@ class TestStreamDetective(StreamDetective):
         if self.gameIdUrlBase in url:
             return {'data': [{'id': 'foobar'}]}
         elif self.streamsUrl in url:
-            return {'data': []}
+            return {'data': [
+                {
+                    "id": "123",
+                    "user_id": "123",
+                    "user_login": "userlogin",
+                    "user_name": "username",
+                    "game_id": "123",
+                    "game_name": "Deus Ex",
+                    "type": "live",
+                    "title": "Deus Ex Randomizer",
+                    "viewer_count": 2052,
+                    "started_at": "2020-06-22T00:00:00Z",
+                    "language": "en",
+                    "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
+                    "tag_ids": ["2fd30cb8-f2e5-415d-9d42-1316cfa61367"],
+                    "is_mature": True,
+                    "last_seen": "2020-06-22T00:00:00Z"
+                }
+            ]}
         return {}
     
     def SaveCacheFiles(self):
