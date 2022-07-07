@@ -283,6 +283,12 @@ class StreamDetective:
                 logex(e, 'ReadGameCache failed at:', saveLocation, ', with config:', game)
         return None
 
+    def WriteGameCache(self, game, streamInfo):
+        saveLocation = self.GetGameCachePath(game["GameName"])
+        f = open(saveLocation,'w')
+        json.dump(streamInfo,f)
+        f.close()
+
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
         
@@ -339,10 +345,7 @@ class StreamDetective:
         if not os.path.exists(tempDir):
             os.makedirs(tempDir)
 
-        saveLocation = self.GetGameCachePath(game["GameName"])
-        f = open(saveLocation,'w')
-        json.dump(streamInfo,f)
-        f.close()
+        self.WriteGameCache(game, streamInfo)
         print("\n\n")
 
     def GetDiscordProfile(self,profileName):
