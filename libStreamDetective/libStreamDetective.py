@@ -338,6 +338,7 @@ class StreamDetective:
 
         self.WriteGameCache(game, streamInfo)
         print("\n\n")
+        return newStreams
 
     def GetDiscordProfile(self,profileName):
         if "DiscordProfiles" not in self.config:

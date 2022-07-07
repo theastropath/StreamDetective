@@ -1,14 +1,81 @@
 from libStreamDetective.libStreamDetective import *
 import unittest
 
+failures = []
+
+class BetterAssertionError(AssertionError):
+    def __init__(self, *args):
+        global failures
+        AssertionError.__init__(self, *args)
+        failures.append(self)
+        logex(self)
+
+
+class BaseTestCase(unittest.TestCase):
+    def __init__(self, *args):
+        unittest.TestCase.__init__(self, *args)
+        self.failureException = BetterAssertionError
+
+    def setUp(self):
+        global failures
+        failures = []
+        super().setUp()
+    
+    def tearDown(self):
+        global failures
+        numDetectedErrors = 0
+        for error in self._outcome.errors:
+            if error[1]:
+                numDetectedErrors+=1
+        if numDetectedErrors==0:
+            for fail in failures:
+                logex(fail, 'caught failure')
+            self.assertEqual(len(failures), 0, 'caught exceptions')
+        
+        return super().tearDown()
+
+    def test_example(self):
+        sd = TestStreamDetective(self)
+
+
 class TestStreamDetective(StreamDetective):
-    def __init__(self, tester: unittest.TestCase):
+    def __init__(self, tester: BaseTestCase):
         self.tester = tester
+        self.totalTweetsSent = 0
+        self.totalWebhooksSent = 0
+        self.totalCooldownsCaught = 0
         StreamDetective.__init__(self)
+        self.tester.assertGreaterEqual(self.totalTweetsSent, 1, 'totalTweetsSent')
+        self.tester.assertGreaterEqual(self.totalWebhooksSent, 1, 'totalWebhooksSent')
+        self.tester.assertGreaterEqual(self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
 
     def HandleGames(self):# same thing as normal, but without the try/except
         for game in self.config["Games"]:
             self.HandleGame(game)
+
+    def HandleGame(self, game):
+        self.tweetsSent = 0
+        self.webhooksSent = 0
+        self.cooldownsCaught = 0
+        newStreams = super().HandleGame(game)
+        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
+
+        if game.get('Twitter'):
+            self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
+        else:
+            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
+        
+        if game.get('DiscordProfile'):
+            if self.cooldownsCaught:
+                self.tester.assertEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+            else:
+                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
+        else:
+            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
+        
+        self.totalTweetsSent += self.tweetsSent
+        self.totalWebhooksSent += self.webhooksSent
+        self.totalCooldownsCaught += self.cooldownsCaught
 
     def HandleConfigFile(self):
         print("Reading default config.json file")
@@ -16,13 +83,16 @@ class TestStreamDetective(StreamDetective):
         with open(exampleConfigFileFullPath, 'r') as f:
             self.config = json.load(f)
         
+        with self.tester.assertRaises(Exception):
+            self.TestConfig()
+
         self.config['clientId'] = '123456789012345678901234567890'
         self.config['accessToken'] = '123456789012345678901234567890'
 
         self.config['DiscordProfiles'][0]['Webhook'] = '1234567890'
 
         self.config['TwitterAccounts'][0] = {
-            "AccountName": "TwitterTest",
+            "AccountName": "default",
             "ApiKey":"1234567890123456789012345",
             "ApiKeySecret":"12345678901234567890123456789012345678901234567890",
             "AccessToken":"1234567890123456789-123456789012345678901234567890",
@@ -71,17 +141,17 @@ class TestStreamDetective(StreamDetective):
     def WriteGameCache(self, game, streamInfo):
         return
 
+    def checkIsOnCooldown(self, stream, webhookUrl):
+        if super().checkIsOnCooldown(stream, webhookUrl):
+            self.cooldownsCaught+=1
+            return True
+        return False
+
     def sendTweet(self,profile,msg):
-        return
+        self.tweetsSent += 1
     
     def sendWebhookMsg(self, discordProfile, content, embeds, atUserId):
-        return
+        self.webhooksSent += 1
 
-
-
-class BaseTestCase(unittest.TestCase):
-    def test_example(self):
-        sd = TestStreamDetective(self)
-        self.assertEqual(1, 1)
 
 unittest.main(verbosity=9, warnings="error")#, failfast=True)
