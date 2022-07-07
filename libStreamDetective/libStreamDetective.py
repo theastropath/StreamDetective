@@ -124,7 +124,7 @@ class StreamDetective:
             response = self.session.get( url, headers=headers)
             result = json.loads(response.text)
         except Exception as e:
-            print('request for '+url+' failed: ', e)
+            logex(e, 'request for '+url+' failed: ')
             raise
 
         if not result:
@@ -380,6 +380,7 @@ class StreamDetective:
         return profiles
 
     def sendTweet(self,profile,msg):
+        msg = msg[:280]
         api = tweepy.Client( bearer_token=profile["BearerToken"], 
                                     consumer_key=profile["ApiKey"], 
                                     consumer_secret=profile["ApiKeySecret"], 
@@ -388,11 +389,10 @@ class StreamDetective:
                                     return_type = requests.Response,
                                     wait_on_rate_limit=True)
         try:
-            msg = msg[:280]
             response = api.create_tweet(text=msg)
             print("Tweet sent")
         except Exception as e:
-            print("Encountered an issue when attempting to tweet: "+str(e)+" "+str(e.args))
+            logex(e, "Encountered an issue when attempting to tweet: ", msg)
         
 
     def genTwitterMsgs(self,twitterProfile,streams):
