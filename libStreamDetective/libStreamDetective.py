@@ -112,9 +112,15 @@ class StreamDetective:
                 logex(e, 'error in', game)
 
 
-    def TwitchApiRequest(self, url, headers):
+    def TwitchApiRequest(self, url, headers={}):
         response = None
         try:
+            headers = {
+                'Client-ID': self.config["clientId"],
+                'Authorization': 'Bearer '+self.config["accessToken"],
+                'Content-Type': 'application/json',
+                **headers
+            }
             response = self.session.get( url, headers=headers)
             result = json.loads(response.text)
         except Exception as e:
@@ -167,13 +173,7 @@ class StreamDetective:
         gameIdUrl = self.gameIdUrlBase+game["GameName"]
         gameId = 0
 
-        headers = {
-                'Client-ID': self.config["clientId"],
-                'Authorization': 'Bearer '+self.config["accessToken"],
-                'Content-Type': 'application/json'
-                  }
-
-        result = self.TwitchApiRequest(gameIdUrl,headers)
+        result = self.TwitchApiRequest(gameIdUrl)
 
         if "data" in result and len(result["data"])==1:
             gameId = result["data"][0]["id"]
@@ -195,19 +195,13 @@ class StreamDetective:
         keepGoing = True
         cursor = ""
         while keepGoing:
-            headers = {
-                    'Client-ID': self.config["clientId"],
-                    'Authorization': 'Bearer '+self.config["accessToken"],
-                    'Content-Type': 'application/json'
-                      }
-                      
             url = streamsUrl+"&first=100" #Fetch 100 streams at a time
             
             if cursor!="":
                 url+="&after="+cursor
             
             result = None
-            result = self.TwitchApiRequest(url,headers)
+            result = self.TwitchApiRequest(url)
             if "pagination" in result and "cursor" in result["pagination"]:
                 keepGoing = True
                 cursor = result["pagination"]["cursor"]
@@ -436,13 +430,7 @@ class StreamDetective:
     def GetUserProfilePicUrl(self,userId):
         userUrl = self.usersUrl+userId
 
-        headers = {
-                'Client-ID': self.config["clientId"],
-                'Authorization': 'Bearer '+self.config["accessToken"],
-                'Content-Type': 'application/json'
-                  }
-
-        result = self.TwitchApiRequest(userUrl,headers)
+        result = self.TwitchApiRequest(userUrl)
         if "data" in result and "profile_image_url" in result["data"][0]:
             return result["data"][0]["profile_image_url"]
             
@@ -466,13 +454,7 @@ class StreamDetective:
         if tagsToFind==0:
             return tagNames
 
-        headers = {
-                'Client-ID': self.config["clientId"],
-                'Authorization': 'Bearer '+self.config["accessToken"],
-                'Content-Type': 'application/json'
-                  }
-
-        result = self.TwitchApiRequest(tagsUrl,headers)
+        result = self.TwitchApiRequest(tagsUrl)
         #print(str(result))
         #if "data" in result and "profile_image_url" in result["data"][0]:
         #    return result["data"][0]["profile_image_url"]

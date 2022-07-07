@@ -2,9 +2,13 @@ from libStreamDetective.libStreamDetective import *
 import unittest
 
 class TestStreamDetective(StreamDetective):
-    def __init__(self, tester):
+    def __init__(self, tester: unittest.TestCase):
         self.tester = tester
         StreamDetective.__init__(self)
+
+    def HandleGames(self):# same thing as normal, but without the try/except
+        for game in self.config["Games"]:
+            self.HandleGame(game)
 
     def HandleConfigFile(self):
         print("Reading default config.json file")
@@ -27,7 +31,8 @@ class TestStreamDetective(StreamDetective):
         }
         self.TestConfig()
     
-    def TwitchApiRequest(self, url, headers):
+    def TwitchApiRequest(self, url, headers={}):
+        self.tester.assertEqual(type(headers), dict)
         if self.gameIdUrlBase in url:
             return {'data': [{'id': 'foobar'}]}
         elif self.streamsUrl in url:
