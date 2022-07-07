@@ -14,9 +14,6 @@ import time
 import tweepy
 import re
 
-clientId=""
-accessToken=""
-
 path = os.path.realpath(os.path.dirname(__file__))
 path = os.path.dirname(path)
 tempDir = os.path.join(tempfile.gettempdir(),"streams")
