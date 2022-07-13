@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 from requests import Session
 from requests.adapters import HTTPAdapter
+from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError, InvalidURL, ConnectionError
 import requests
 import json
@@ -79,6 +80,41 @@ class StreamDetective:
             assert twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
             assert len(twitter.get("BearerToken")) > 60, 'testing twitter config for: ' + repr(twitter)
             assert '-' not in twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
+            
+        for service in self.config.get('NotificationServices',[]):
+            assert service.get("ProfileName"), 'testing notification service for: ' + repr(service)
+            assert service.get("Type"), 'testing notification service for: ' + repr(service)
+            
+            if service.get("Type")=="Twitter":
+                assert service.get("ApiKey"), 'testing twitter config for: ' + repr(service)
+                assert len(service.get("ApiKey")) == 25, 'testing twitter config for: ' + repr(service)
+                assert '-' not in service.get("ApiKey"), 'testing twitter config for: ' + repr(service)
+
+                assert service.get("ApiKeySecret"), 'testing twitter config for: ' + repr(service)
+                assert len(service.get("ApiKeySecret")) == 50, 'testing twitter config for: ' + repr(service)
+                assert'-' not in service.get("ApiKeySecret"), 'testing twitter config for: ' + repr(service)
+
+                assert service.get("AccessToken"), 'testing twitter config for: ' + repr(service)
+                assert len(service.get("AccessToken")) == 50, 'testing twitter config for: ' + repr(service)
+                assert '-' in service.get("AccessToken"), 'testing twitter config for: ' + repr(service)
+
+                assert service.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(service)
+                assert len(service.get("AccessTokenSecret")) == 45, 'testing twitter config for: ' + repr(service)
+                assert '-' not in service.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(service)
+
+                assert service.get("BearerToken"), 'testing twitter config for: ' + repr(service)
+                assert len(service.get("BearerToken")) > 60, 'testing twitter config for: ' + repr(service)
+                assert '-' not in service.get("BearerToken"), 'testing twitter config for: ' + repr(service)
+                
+            elif service.get("Type")=="Discord":
+                assert service.get("Webhook"), 'testing discord config for: ' + repr(service)
+                assert service.get("UserName"), 'testing discord config for: ' + repr(service)
+            elif service.get("Type")=="Pushbullet":
+                assert service.get("ApiKey"), 'testing pushbullet config for: ' + repr(service)
+            
+                
+            
+            
         for i in range(len(self.config.get('IgnoreStreams', []))):
             self.config['IgnoreStreams'][i] = self.config['IgnoreStreams'][i].lower()
 
@@ -309,12 +345,16 @@ class StreamDetective:
                     newStreams.append(stream)
             streamInfo[id] = stream
                 
-        
         # All stream info now retrieved
         if hadCache and newStreams:
             print("  New Streams: "+str(newStreams))
+            
+            #To remove in time
             self.genWebhookMsgs(self.GetDiscordProfile(game.get("DiscordProfile")), game["GameName"], newStreams, game.get('atUserId'))
             self.genTwitterMsgs(game.get("Twitter",""),newStreams)
+            
+            #New style
+            self.genNotifications(newStreams,game)
             for stream in newStreams:
                 id = stream['id']
                 streamInfo[id] = stream
@@ -338,6 +378,91 @@ class StreamDetective:
         self.WriteGameCache(game, streamInfo)
         debug("\n\n")
         return newStreams
+
+    def genNotifications(self,newStreams,game):
+        notifications = game.get("Notifications",[])
+        
+        for notService in self.config.get("NotificationServices",[]):
+            if notService["ProfileName"] in notifications:
+                self.handleSingleNotificationService(notService,game,newStreams)
+    
+    def filterIgnoredStreams(self,profileName,newStreams):
+        IgnoreStreams = self.config.get('IgnoreStreams', [])
+        
+        toSend = []
+        for stream in newStreams:
+            if stream["user_login"].lower() in IgnoreStreams:
+                debug(stream["user_login"], 'is in IgnoreStreams')
+                continue
+            if self.checkIsOnCooldown(stream, profileName):
+                continue
+            toSend.append(stream)
+        
+        
+        return toSend
+    
+    def handleSingleNotificationService(self,service,game,newStreams):
+        filteredStreams = self.filterIgnoredStreams(service["ProfileName"],newStreams)
+
+        if   service["Type"] == "Pushbullet":
+            self.handlePushBulletMsgs(service,game,filteredStreams)
+        elif service["Type"] == "Discord":
+            self.handleDiscordMsgs(service,game,filteredStreams)
+        elif service["Type"] == "Twitter":
+            self.handleTwitterMsgs(service,game,filteredStreams)
+        else:
+            trace("Unknown Notification Service Type: "+service["Type"])
+    
+    def handleTwitterMsgs(self,service,game,newStreams):
+        for stream in newStreams:
+            msg = stream["user_name"] #The capitalized version of the name
+            msg+=' is playing '+stream['game_name']+' on Twitch'
+            msg+="\n\n"
+            msg+= stream["title"]
+            link = "\n\nhttps://twitch.tv/"+stream["user_login"]
+            if len(msg)+len(link) >= 280:
+                msg = msg[:280-len(link)-3] + '...'
+            msg+=link
+            #print(msg)
+            #print("Sending to "+str(profile))
+            self.sendTweet(service,msg)
+
+    
+    def handlePushBulletMsgs(self,service,game,newStreams):
+        for stream in newStreams:
+            title = stream["title"]
+            msg = stream["user_login"]+" is playing "+game["GameName"]
+            url = "https://twitch.tv/"+stream["user_login"]
+            self.sendPushBulletMessage(service["ApiKey"],title,msg,url=url,email=service.get("emails"))
+    
+    def sendPushBulletMessage(self,apiKey,title,body,emails=[None],url=None):
+    
+        for email in emails:
+            data = {"type": "note",
+                    "title": title,
+                    "body": body,
+                    "url":url,
+                    "email":email}
+            
+            headers = {"Accept": "application/json",
+                       "Content-Type": "application/json",
+                       "User-Agent": "StreamDetective"}
+            
+            method = "POST"
+
+            url = "https://api.pushbullet.com/v2/pushes"
+
+            jsonData = json.dumps(data)
+            
+            r = requests.request(method,
+                                 url,
+                                 data=jsonData,
+                                 headers=headers,
+                                 auth=HTTPBasicAuth(apiKey, ""))
+
+            r.raise_for_status()
+            debug(r.json())
+
 
     def GetDiscordProfile(self,profileName):
         if "DiscordProfiles" not in self.config:
@@ -465,7 +590,7 @@ class StreamDetective:
         return tagNames
         
 
-    def buildWebhookMsgs(self, discordProfile, gameName, toSend, atUserId):
+    def buildDiscordMsgs(self, discordProfile, gameName, toSend, atUserId):
         content = ''
         embeds = []
         for stream in toSend:
@@ -507,6 +632,13 @@ class StreamDetective:
         if content:
             self.sendWebhookMsg(discordProfile, content, embeds, atUserId)
 
+    def handleDiscordMsgs(self,profile,game,newList):
+        atUserId = game.get('atUserId')
+        gameName = game.get('GameName')
+
+        self.buildDiscordMsgs(profile, gameName, newList, atUserId)
+    
+
     def genWebhookMsgs(self, discordProfile, gameName, newList, atUserId):
         if not discordProfile:
             return
@@ -520,16 +652,16 @@ class StreamDetective:
                 if stream["user_login"].lower() in IgnoreStreams:
                     debug(stream["user_login"], 'is in IgnoreStreams')
                     continue
-                if self.checkIsOnCooldown(stream, webhookUrl):
+                if self.checkIsOnCooldown(stream, profile["ProfileName"]):
                     continue
                 toSend.append(stream)
             
             if toSend:
-                self.buildWebhookMsgs(profile, gameName, toSend, atUserId)
+                self.buildDiscordMsgs(profile, gameName, toSend, atUserId)
     
-    def checkIsOnCooldown(self, stream, webhookUrl):
+    def checkIsOnCooldown(self, stream, ProfileName):
         user = stream["user_login"].lower()
-        key = user + '-' + webhookUrl
+        key = user + '-' + ProfileName
         now = datetime.now()
         cooldown = self.cooldowns.get(key)
         if not cooldown:

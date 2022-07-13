@@ -43,10 +43,12 @@ class TestStreamDetective(StreamDetective):
         self.tester = tester
         self.totalTweetsSent = 0
         self.totalWebhooksSent = 0
+        self.totalPushbulletsSent = 0
         self.totalCooldownsCaught = 0
         StreamDetective.__init__(self)
         self.tester.assertGreaterEqual(self.totalTweetsSent, 1, 'totalTweetsSent')
         self.tester.assertGreaterEqual(self.totalWebhooksSent, 1, 'totalWebhooksSent')
+        self.tester.assertGreaterEqual(self.totalPushbulletsSent, 1, 'totalPushbulletsSent')
         self.tester.assertGreaterEqual(self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
 
     def HandleGames(self):# same thing as normal, but without the try/except
@@ -56,16 +58,17 @@ class TestStreamDetective(StreamDetective):
     def HandleGame(self, game):
         self.tweetsSent = 0
         self.webhooksSent = 0
+        self.pushbulletsSent = 0
         self.cooldownsCaught = 0
         newStreams = super().HandleGame(game)
         self.tester.assertEqual(len(newStreams), 1, 'newStreams')
 
-        if game.get('Twitter'):
+        if game.get('Twitter') or game.get('Notifications'):
             self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
         else:
             self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
         
-        if game.get('DiscordProfile'):
+        if game.get('DiscordProfile') or game.get('Notifications'):
             if self.cooldownsCaught:
                 self.tester.assertEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
             else:
@@ -76,6 +79,7 @@ class TestStreamDetective(StreamDetective):
         self.totalTweetsSent += self.tweetsSent
         self.totalWebhooksSent += self.webhooksSent
         self.totalCooldownsCaught += self.cooldownsCaught
+        self.totalPushbulletsSent += self.pushbulletsSent
 
     def HandleConfigFile(self):
         print("Reading default config.json file")
@@ -99,6 +103,36 @@ class TestStreamDetective(StreamDetective):
             "AccessTokenSecret":"123456789012345678901234567890123456789012345",
             "BearerToken":"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
         }
+
+        self.config['NotificationServices'][0] = {
+            "ProfileName": "TestProfile1",
+            "Type":"Discord",
+            "Webhook":"1234567890",
+			"UserName":"0987654321"
+        }
+
+        self.config['NotificationServices'][1] = {
+            "ProfileName": "TestProfile2",
+            "Type":"Twitter",
+            "ApiKey":"1234567890123456789012345",
+            "ApiKeySecret":"12345678901234567890123456789012345678901234567890",
+            "AccessToken":"1234567890123456789-123456789012345678901234567890",
+            "AccessTokenSecret":"123456789012345678901234567890123456789012345",
+            "BearerToken":"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
+        }
+		
+        self.config['NotificationServices'][2] = {
+            "ProfileName": "TestProfile3",
+            "Type":"Pushbullet",
+            "ApiKey":"1234567890123456789012345",
+        }
+        
+        self.config['Games'].append({})
+        self.config['Games'][-1]= {
+            "GameName":"LasagnaEaterPro",
+            "Notifications":["TestProfile1","TestProfile2","TestProfile3"]
+        }
+
         self.TestConfig()
     
     def TwitchApiRequest(self, url, headers={}):
@@ -152,6 +186,9 @@ class TestStreamDetective(StreamDetective):
     
     def sendWebhookMsg(self, discordProfile, content, embeds, atUserId):
         self.webhooksSent += 1
+        
+    def sendPushBulletMessage(self,apiKey,title,body,email=None,url=None):
+        self.pushbulletsSent += 1
 
 
 setVerbose(9)

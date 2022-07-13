@@ -23,7 +23,8 @@
 		{
 			"GameName": "Fall Guys",
 			"DiscordProfile": "default",
-            "Twitter": "default"
+            "Twitter": "default",
+			"Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet"]
 		}
 	],
 	"TwitterAccounts":[{
@@ -38,5 +39,27 @@
         "ProfileName":"default",
         "Webhook":"",
         "UserName":"Stream Detective"
+    }],
+	"NotificationServices":[{
+        "ProfileName":"defaultDiscord",
+        "Type":"Discord",
+        "Webhook":"",
+        "UserName":"Stream Detective"
+    },
+	{
+        "ProfileName":"defaultTwitter",
+        "Type":"Twitter",
+    	"BearerToken":"",
+    	"ApiKey":"",
+    	"ApiKeySecret":"",
+    	"AccessToken":"",
+    	"AccessTokenSecret":""
+    },
+	{
+        "ProfileName":"defaultPushbullet",
+        "Type":"Pushbullet",
+        "ApiKey":"",
+        "emails":[]
     }]
+
 }
