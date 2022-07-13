@@ -484,7 +484,7 @@ class StreamDetective:
 
     def GetTwitterProfile(self,profileName):
         if "TwitterAccounts" not in self.config:
-            return None
+            return []
 
         profileNames = []
         profiles = []
