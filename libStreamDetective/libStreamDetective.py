@@ -433,7 +433,7 @@ class StreamDetective:
             title = stream["title"]
             msg = stream["user_login"]+" is playing "+game["GameName"]
             url = "https://twitch.tv/"+stream["user_login"]
-            self.sendPushBulletMessage(service["ApiKey"],title,msg,url=url,email=service.get("emails"))
+            self.sendPushBulletMessage(service["ApiKey"],title,msg,url=url,emails=service.get("emails"))
     
     def sendPushBulletMessage(self,apiKey,title,body,emails=[None],url=None):
     

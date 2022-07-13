@@ -187,7 +187,7 @@ class TestStreamDetective(StreamDetective):
     def sendWebhookMsg(self, discordProfile, content, embeds, atUserId):
         self.webhooksSent += 1
         
-    def sendPushBulletMessage(self,apiKey,title,body,email=None,url=None):
+    def sendPushBulletMessage(self,apiKey,title,body,emails=None,url=None):
         self.pushbulletsSent += 1
 
 
