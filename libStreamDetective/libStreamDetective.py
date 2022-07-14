@@ -312,7 +312,7 @@ class StreamDetective:
     def WriteGameCache(self, game, streamInfo):
         saveLocation = self.GetGameCachePath(game["GameName"])
         f = open(saveLocation,'w')
-        json.dump(streamInfo,f)
+        json.dump(streamInfo,f,indent=4)
         f.close()
 
     def HandleGame(self,game):
