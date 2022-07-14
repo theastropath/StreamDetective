@@ -343,7 +343,7 @@ class StreamDetective:
                 stream['last_matched'] = now.isoformat()
                 if id not in streamInfo:
                     newStreams.append(stream)
-                
+        
         # All stream info now retrieved
         if hadCache and newStreams:
             print("  New Streams: "+str(newStreams))
@@ -535,13 +535,14 @@ class StreamDetective:
                     #print("Sending to "+str(profile))
                     self.sendTweet(profile,msg)
 
-    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId):
+    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId,avatarUrl):
         if len(embeds) >= 10:
             embeds = [{"title": str(len(embeds))+' new streams!',"url":'https://twitch.tv',"description": str(len(embeds))+' new streams!'}]
         if atUserId:
             content += ' <@' + str(atUserId) + '>'
         data={
             "username":discordProfile["UserName"],
+			"avatar_url":avatarUrl,
             "content": content,
             "embeds": embeds
         }
@@ -588,10 +589,21 @@ class StreamDetective:
                 tagNames.append(tagName)                
         return tagNames
         
+    def getGameBoxArt(self,gameName,width,height):
+        gameUrl = "https://api.twitch.tv/helix/games?name="+gameName
+        
+        result = self.TwitchApiRequest(gameUrl)
+        if "data" in result and "box_art_url" in result["data"][0]:
+            url = result["data"][0]["box_art_url"]
+            url = url.replace("{width}",str(width)).replace("{height}",str(height))
+            return url
+        return ""
+        
 
     def buildDiscordMsgs(self, discordProfile, gameName, toSend, atUserId):
         content = ''
         embeds = []
+        gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
         for stream in toSend:
             url="https://twitch.tv/"+stream["user_login"]
             content += url + ' is playing ' + gameName
@@ -628,12 +640,12 @@ class StreamDetective:
             
             embeds.append({"title":streamer,"url":url,"description":title,"image":image,"fields":fields})
             if len(content) >= 1700:
-                self.sendWebhookMsg(discordProfile, content, embeds, atUserId)
+                self.sendWebhookMsg(discordProfile, content, embeds, atUserId,gameArtUrl)
                 content = ''
                 embeds = []
         
         if content:
-            self.sendWebhookMsg(discordProfile, content, embeds, atUserId)
+            self.sendWebhookMsg(discordProfile, content, embeds, atUserId,gameArtUrl)
 
     def handleDiscordMsgs(self,profile,game,newList):
         atUserId = game.get('atUserId')
