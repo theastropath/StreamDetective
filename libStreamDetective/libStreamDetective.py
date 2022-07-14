@@ -343,7 +343,6 @@ class StreamDetective:
                 stream['last_matched'] = now.isoformat()
                 if id not in streamInfo:
                     newStreams.append(stream)
-            streamInfo[id] = stream
                 
         # All stream info now retrieved
         if hadCache and newStreams:
