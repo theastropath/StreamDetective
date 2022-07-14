@@ -618,7 +618,11 @@ class StreamDetective:
 
             tagsField={}
             tagsField["name"]="Tags"
-            tagsField["value"]=", ".join(self.GetTagNames(stream["tag_ids"]))
+            tagNames = self.GetTagNames(stream["tag_ids"])
+            if tagNames:
+                tagsField["value"]=", ".join(tagNames)
+            else:
+                tagsField["value"]="No Tags"
             tagsField["inline"]=True
             fields.append(tagsField)
             
