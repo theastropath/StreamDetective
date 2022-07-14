@@ -138,7 +138,7 @@ class TestStreamDetective(StreamDetective):
     def TwitchApiRequest(self, url, headers={}):
         self.tester.assertEqual(type(headers), dict)
         if self.gameIdUrlBase in url:
-            return {'data': [{'id': 'foobar'}]}
+            return {'data': [{'id': 'foobar','box_art_url':'videogames'}]}
         elif self.streamsUrl in url:
             return {'data': [
                 {
@@ -184,7 +184,7 @@ class TestStreamDetective(StreamDetective):
     def sendTweet(self,profile,msg):
         self.tweetsSent += 1
     
-    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId):
+    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId, avatarUrl):
         self.webhooksSent += 1
         
     def sendPushBulletMessage(self,apiKey,title,body,emails=None,url=None):

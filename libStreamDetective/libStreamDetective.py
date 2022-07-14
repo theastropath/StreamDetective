@@ -36,6 +36,7 @@ class StreamDetective:
         self.tagsUrl='https://api.twitch.tv/helix/tags/streams?'
         
         self.gameIdCache={}
+        self.gameArtCache={}
         self.tagsCache={}
         self.cooldowns={}
         self.LoadCacheFiles()
@@ -178,6 +179,7 @@ class StreamDetective:
 
         with open(cacheFileFullPath, 'w') as f:
             cache = { 'gameIds': self.gameIdCache,
+                'gameArt': self.gameArtCache,
                 'tags': self.tagsCache,
                 'cooldowns': self.cooldowns
             }
@@ -189,9 +191,10 @@ class StreamDetective:
             if os.path.exists(cacheFileFullPath):
                 with open(cacheFileFullPath, 'r') as f:
                     cache = json.load(f)
-                    self.gameIdCache = cache.get('gameIds')
-                    self.tagsCache = cache.get('tags')
-                    self.cooldowns = cache.get('cooldowns')
+                    self.gameIdCache = cache.get('gameIds',{})
+                    self.gameArtCache = cache.get('gameArt',{})
+                    self.tagsCache = cache.get('tags',{})
+                    self.cooldowns = cache.get('cooldowns',{})
         except Exception as e:
             logex(e, 'error in LoadCacheFile ', cacheFileFullPath)
 
@@ -199,18 +202,22 @@ class StreamDetective:
     def AddGameIdToCache(self,gameName,gameId):
         self.gameIdCache[gameName]=gameId
 
+    def AddGameArtToCache(self,gameName,artUrl):
+        self.gameArtCache[gameName]=artUrl
+
     def GetGameId(self, game):
-    
         if game["GameName"] in self.gameIdCache:
             return self.gameIdCache[game["GameName"]]
     
         gameIdUrl = self.gameIdUrlBase+game["GameName"]
         gameId = 0
+        boxArt = ""
 
         result = self.TwitchApiRequest(gameIdUrl)
 
         if "data" in result and len(result["data"])==1:
             gameId = result["data"][0]["id"]
+            boxArt = result["data"][0]["box_art_url"].replace("{width}","144").replace("{height}","192")
         else:
             raise Exception(gameIdUrl+" response expected 1 game id: ", result)
 
@@ -219,6 +226,9 @@ class StreamDetective:
             
         if gameId:
             self.AddGameIdToCache(game["GameName"],gameId)
+            
+        if boxArt:
+            self.AddGameArtToCache(game["GameName"],boxArt)
             
         return gameId
 
@@ -343,7 +353,7 @@ class StreamDetective:
                 stream['last_matched'] = now.isoformat()
                 if id not in streamInfo:
                     newStreams.append(stream)
-        
+                
         # All stream info now retrieved
         if hadCache and newStreams:
             print("  New Streams: "+str(newStreams))
@@ -535,14 +545,14 @@ class StreamDetective:
                     #print("Sending to "+str(profile))
                     self.sendTweet(profile,msg)
 
-    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId,avatarUrl):
+    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId, avatarUrl):
         if len(embeds) >= 10:
             embeds = [{"title": str(len(embeds))+' new streams!',"url":'https://twitch.tv',"description": str(len(embeds))+' new streams!'}]
         if atUserId:
             content += ' <@' + str(atUserId) + '>'
         data={
             "username":discordProfile["UserName"],
-			"avatar_url":avatarUrl,
+            "avatar_url":avatarUrl,
             "content": content,
             "embeds": embeds
         }
@@ -590,12 +600,17 @@ class StreamDetective:
         return tagNames
         
     def getGameBoxArt(self,gameName,width,height):
+        if gameName in self.gameArtCache:
+            return self.gameArtCache[gameName]
+
+
         gameUrl = "https://api.twitch.tv/helix/games?name="+gameName
         
         result = self.TwitchApiRequest(gameUrl)
         if "data" in result and "box_art_url" in result["data"][0]:
             url = result["data"][0]["box_art_url"]
             url = url.replace("{width}",str(width)).replace("{height}",str(height))
+            self.AddGameArtToCache(gameName,url)
             return url
         return ""
         
