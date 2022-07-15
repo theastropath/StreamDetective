@@ -285,7 +285,7 @@ class StreamDetective:
             
         return allStreams        
     
-    def CheckStreamFilter(self, filter, streamer, title, tags):
+    def CheckStreamFilter(self, filter, streamer, title, tags, gameName):
         if not filter.keys():
             return True
 
@@ -310,17 +310,23 @@ class StreamDetective:
         if filter.get('DontMatchTagName'):
             if filter["DontMatchTagName"] in self.GetTagNames(tags):
                 return False
+        if filter.get('MatchGameName'):
+            if filter["MatchGameName"] != gameName:
+                return False
+        if filter.get('DontMatchGameName'):
+            if filter["DontMatchGameName"] == gameName:
+                return False
 
         return True
 
-    def CheckStream(self, entry, streamer, title, tags):
+    def CheckStream(self, entry, streamer, title, tags, gameName):
         trace("Name: ", streamer, title)
         if not entry.get('filters'):
             # return True if the filters array is empty, or the key is missing
             return True
         
         for filter in entry['filters']:
-            if self.CheckStreamFilter(filter, streamer, title, tags):
+            if self.CheckStreamFilter(filter, streamer, title, tags, gameName):
                 return True
         return False
 
@@ -383,7 +389,7 @@ class StreamDetective:
             title = stream['title']
             tags = stream['tag_ids']
             stream['last_seen'] = now.isoformat()
-            matched = self.CheckStream(streamer, userlogin, title, tags)
+            matched = self.CheckStream(streamer, userlogin, title, tags, stream["game_name"])
             if matched:
                 debug("matched "+userlogin)
                 stream['last_matched'] = now.isoformat()
@@ -443,7 +449,7 @@ class StreamDetective:
             title = stream['title']
             tags = stream['tag_ids']
             stream['last_seen'] = now.isoformat()
-            matched = self.CheckStream(game, streamer, title, tags)
+            matched = self.CheckStream(game, streamer, title, tags, stream["game_name"])
             if matched:
                 debug("matched "+streamer)
                 stream['last_matched'] = now.isoformat()
