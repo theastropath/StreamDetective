@@ -63,14 +63,45 @@ class TestStreamDetective(StreamDetective):
         newStreams = super().HandleGame(game)
         self.tester.assertEqual(len(newStreams), 1, 'newStreams')
 
-        if game.get('Twitter') or game.get('Notifications'):
+        if "defaultTwitter" in game.get('Notifications',[]):
             self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
         else:
             self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
         
-        if game.get('DiscordProfile') or game.get('Notifications'):
+        if "defaultDiscord" in game.get('Notifications',[]):
             if self.cooldownsCaught:
                 self.tester.assertEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+            else:
+                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
+        else:
+            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
+        
+        self.totalTweetsSent += self.tweetsSent
+        self.totalWebhooksSent += self.webhooksSent
+        self.totalCooldownsCaught += self.cooldownsCaught
+        self.totalPushbulletsSent += self.pushbulletsSent
+
+    def HandleStreamer(self, streamer):
+        self.tweetsSent = 0
+        self.webhooksSent = 0
+        self.pushbulletsSent = 0
+        self.cooldownsCaught = 0
+
+        newStreams = super().HandleStreamer(streamer)
+        
+        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
+
+        if "defaultTwitter" in streamer.get('Notifications',[]):
+            if self.cooldownsCaught:
+                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+            else:
+                self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
+        else:
+            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
+        
+        if "defaultDiscord" in streamer.get('Notifications',[]):
+            if self.cooldownsCaught:
+                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
             else:
                 self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
         else:
@@ -93,26 +124,10 @@ class TestStreamDetective(StreamDetective):
         self.config['clientId'] = '123456789012345678901234567890'
         self.config['accessToken'] = '123456789012345678901234567890'
 
-        self.config['DiscordProfiles'][0]['Webhook'] = '1234567890'
-
-        self.config['TwitterAccounts'][0] = {
-            "AccountName": "default",
-            "ApiKey":"1234567890123456789012345",
-            "ApiKeySecret":"12345678901234567890123456789012345678901234567890",
-            "AccessToken":"1234567890123456789-123456789012345678901234567890",
-            "AccessTokenSecret":"123456789012345678901234567890123456789012345",
-            "BearerToken":"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
-        }
-
-        self.config['NotificationServices'][0] = {
-            "ProfileName": "TestProfile1",
-            "Type":"Discord",
-            "Webhook":"1234567890",
-			"UserName":"0987654321"
-        }
+        self.config['NotificationServices'][0]['Webhook'] = '1234567890'
 
         self.config['NotificationServices'][1] = {
-            "ProfileName": "TestProfile2",
+            "ProfileName": "defaultTwitter",
             "Type":"Twitter",
             "ApiKey":"1234567890123456789012345",
             "ApiKeySecret":"12345678901234567890123456789012345678901234567890",
@@ -120,18 +135,8 @@ class TestStreamDetective(StreamDetective):
             "AccessTokenSecret":"123456789012345678901234567890123456789012345",
             "BearerToken":"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
         }
-		
-        self.config['NotificationServices'][2] = {
-            "ProfileName": "TestProfile3",
-            "Type":"Pushbullet",
-            "ApiKey":"1234567890123456789012345",
-        }
         
-        self.config['Games'].append({})
-        self.config['Games'][-1]= {
-            "GameName":"LasagnaEaterPro",
-            "Notifications":["TestProfile1","TestProfile2","TestProfile3"]
-        }
+        self.config['NotificationServices'][2]['ApiKey'] = '1234567890'
 
         self.TestConfig()
     
@@ -166,6 +171,7 @@ class TestStreamDetective(StreamDetective):
     
     def LoadCacheFiles(self):
         self.gameIdCache = {}
+        self.gameArtCache = {}
         self.tagsCache = {}
         self.cooldowns = {}
 
@@ -173,6 +179,12 @@ class TestStreamDetective(StreamDetective):
         return {}
 
     def WriteGameCache(self, game, streamInfo):
+        return
+        
+    def ReadStreamerCache(self, streamer):
+        return {}
+
+    def WriteStreamerCache(self, streamer, streamInfo):
         return
 
     def checkIsOnCooldown(self, stream, webhookUrl):

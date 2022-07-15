@@ -30,9 +30,9 @@ class StreamDetective:
         self.session.mount('https://',retryAdapter)
         self.session.mount('http://',retryAdapter)
 
-        self.streamsUrl='https://api.twitch.tv/helix/streams?game_id='
-        self.usersUrl='https://api.twitch.tv/helix/users?id='
-        self.gameIdUrlBase='https://api.twitch.tv/helix/games?name='
+        self.streamsUrl='https://api.twitch.tv/helix/streams?'
+        self.usersUrl='https://api.twitch.tv/helix/users?'
+        self.gameIdUrlBase='https://api.twitch.tv/helix/games?'
         self.tagsUrl='https://api.twitch.tv/helix/tags/streams?'
         
         self.gameIdCache={}
@@ -45,15 +45,20 @@ class StreamDetective:
             print("Created default config.json file")
             exit(0)
         self.HandleGames()
+        self.HandleStreamers()
         self.SaveCacheFiles()
         
     def TestConfig(self):
         assert self.config.get('clientId')
         assert self.config.get('accessToken')
         assert self.config.get('Games')
-        for game in self.config['Games']:
+        for game in self.config.get('Games',[]):
             assert game.get('GameName'), 'testing config for game: ' + repr(game)
             #assert game.get('DiscordWebhook'), 'testing config for ' + game['GameName']
+        
+        for streamer in self.config.get('Streamers',[]):
+            assert streamer.get('UserName'), 'testing config for streamer: ' + repr(streamer)
+        
         for discord in self.config.get('DiscordProfiles', []):
             assert discord.get("ProfileName"), 'testing discord config for: ' + repr(discord)
             assert discord.get("Webhook"), 'testing discord config for: ' + repr(discord)
@@ -139,11 +144,18 @@ class StreamDetective:
             return True
 
     def HandleGames(self):
-        for game in self.config["Games"]:
+        for game in self.config.get("Games",[]):
             try:
                 self.HandleGame(game)
             except Exception as e:
                 logex(e, 'error in', game)
+                
+    def HandleStreamers(self):
+        for streamer in self.config.get("Streamers",[]):
+            try:
+                self.HandleStreamer(streamer)
+            except Exception as e:
+                logex(e, 'error in', streamer)
 
 
     def TwitchApiRequest(self, url, headers={}):
@@ -209,7 +221,7 @@ class StreamDetective:
         if game["GameName"] in self.gameIdCache:
             return self.gameIdCache[game["GameName"]]
     
-        gameIdUrl = self.gameIdUrlBase+game["GameName"]
+        gameIdUrl = self.gameIdUrlBase+"name="+game["GameName"]
         gameId = 0
         boxArt = ""
 
@@ -232,14 +244,24 @@ class StreamDetective:
             
         return gameId
 
-    def GetAllStreams(self,game,gameId):
-        streamsUrl = self.streamsUrl+gameId
+    def GetAllGameStreams(self,gameId):
+        streamsUrl = self.streamsUrl+"game_id="+gameId
         
+        return self.GetAllStreams(streamsUrl)
+        
+    def GetAllStreamerStreams(self,streamer):
+        url = self.streamsUrl + "user_login="+streamer
+        #for streamer in streamers:
+        #    url = url+"user_login="+streamer+"&"        
+        
+        return self.GetAllStreams(url)
+        
+    def GetAllStreams(self,lookupUrl):
         allStreams = []
         keepGoing = True
         cursor = ""
         while keepGoing:
-            url = streamsUrl+"&first=100" #Fetch 100 streams at a time
+            url = lookupUrl+"&first=100" #Fetch 100 streams at a time
             
             if cursor!="":
                 url+="&after="+cursor
@@ -261,8 +283,7 @@ class StreamDetective:
             if keepGoing:
                 time.sleep(0.1) #pace yourself a little bit
             
-        return allStreams
-        
+        return allStreams        
     
     def CheckStreamFilter(self, filter, streamer, title, tags):
         if not filter.keys():
@@ -292,13 +313,13 @@ class StreamDetective:
 
         return True
 
-    def CheckStream(self, game, streamer, title, tags):
+    def CheckStream(self, entry, streamer, title, tags):
         trace("Name: ", streamer, title)
-        if not game.get('filters'):
+        if not entry.get('filters'):
             # return True if the filters array is empty, or the key is missing
             return True
         
-        for filter in game['filters']:
+        for filter in entry['filters']:
             if self.CheckStreamFilter(filter, streamer, title, tags):
                 return True
         return False
@@ -318,12 +339,87 @@ class StreamDetective:
             except Exception as e:
                 logex(e, 'ReadGameCache failed at:', saveLocation, ', with config:', game)
         return None
+        
+    def ReadStreamerCache(self, streamer):
+        saveLocation = self.GetGameCachePath(streamer["UserName"])
+        if os.path.exists(saveLocation):
+            try:
+                f = open(saveLocation,'r')
+                streamInfoOld = json.load(f)
+                f.close()
+                return streamInfoOld
+            except Exception as e:
+                logex(e, 'ReadStreamerCache failed at:', saveLocation, ', with config:', streamer)
+        return None
 
     def WriteGameCache(self, game, streamInfo):
         saveLocation = self.GetGameCachePath(game["GameName"])
         f = open(saveLocation,'w')
         json.dump(streamInfo,f,indent=4)
+        f.close()    
+        
+    def WriteStreamerCache(self, streamer, streamInfo):
+        saveLocation = self.GetGameCachePath(streamer["UserName"])
+        f = open(saveLocation,'w')
+        json.dump(streamInfo,f,indent=4)
         f.close()
+
+    def HandleStreamer(self,streamer):
+        print("Handling "+streamer["UserName"])
+      
+        streamInfo = self.ReadStreamerCache(streamer)
+        hadCache = True
+        if streamInfo is None:
+            streamInfo = {}
+            hadCache = False
+        newStreams = []
+
+        allStreams = self.GetAllStreamerStreams(streamer["UserName"])
+        now = datetime.now()
+
+        for stream in allStreams:
+            id = stream['id']
+            userlogin = stream['user_login']
+            title = stream['title']
+            tags = stream['tag_ids']
+            stream['last_seen'] = now.isoformat()
+            matched = self.CheckStream(streamer, userlogin, title, tags)
+            if matched:
+                debug("matched "+userlogin)
+                stream['last_matched'] = now.isoformat()
+                if id not in streamInfo:
+                    newStreams.append(stream)
+ 
+        # All stream info now retrieved
+        if hadCache and newStreams:
+            print("  New Streams: "+str([stream['user_login'] for stream in newStreams]))
+            
+            self.genNotifications(newStreams,streamer)
+            for stream in newStreams:
+                id = stream['id']
+                streamInfo[id] = stream
+        elif not hadCache:
+            newStreams = []
+            print("Old streams cache not found, creating it now")
+            
+        # cleanup old entries in cache
+        toDelete = []
+        for key, val in streamInfo.items():
+            last_seen = fromisoformat(val['last_seen'])
+            if (now - last_seen).total_seconds() > (3600*24):
+                toDelete.append(key)
+
+        for key in toDelete:
+            del streamInfo[key]
+
+        if not os.path.exists(tempDir):
+            os.makedirs(tempDir)
+
+        self.WriteStreamerCache(streamer, streamInfo)
+        debug("\n\n")
+        return newStreams
+
+ 
 
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
@@ -337,7 +433,7 @@ class StreamDetective:
             hadCache = False
         newStreams = []
         
-        allStreams = self.GetAllStreams(game,gameId)
+        allStreams = self.GetAllGameStreams(gameId)
 
         now = datetime.now()
 
@@ -356,7 +452,7 @@ class StreamDetective:
                 
         # All stream info now retrieved
         if hadCache and newStreams:
-            print("  New Streams: "+str(newStreams))
+            print("  New Streams: "+str([stream['user_login'] for stream in newStreams]))
             
             #To remove in time
             self.genWebhookMsgs(self.GetDiscordProfile(game.get("DiscordProfile")), game["GameName"], newStreams, game.get('atUserId'))
@@ -388,12 +484,12 @@ class StreamDetective:
         debug("\n\n")
         return newStreams
 
-    def genNotifications(self,newStreams,game):
-        notifications = game.get("Notifications",[])
-        
+    def genNotifications(self,newStreams,entry):
+        notifications = entry.get("Notifications",[])
+
         for notService in self.config.get("NotificationServices",[]):
             if notService["ProfileName"] in notifications:
-                self.handleSingleNotificationService(notService,game,newStreams)
+                self.handleSingleNotificationService(notService,entry,newStreams)
     
     def filterIgnoredStreams(self,profileName,newStreams):
         IgnoreStreams = self.config.get('IgnoreStreams', [])
@@ -410,19 +506,18 @@ class StreamDetective:
         
         return toSend
     
-    def handleSingleNotificationService(self,service,game,newStreams):
+    def handleSingleNotificationService(self,service,entry,newStreams):
         filteredStreams = self.filterIgnoredStreams(service["ProfileName"],newStreams)
-
         if   service["Type"] == "Pushbullet":
-            self.handlePushBulletMsgs(service,game,filteredStreams)
+            self.handlePushBulletMsgs(service,filteredStreams)
         elif service["Type"] == "Discord":
-            self.handleDiscordMsgs(service,game,filteredStreams)
+            self.handleDiscordMsgs(service,entry,filteredStreams)
         elif service["Type"] == "Twitter":
-            self.handleTwitterMsgs(service,game,filteredStreams)
+            self.handleTwitterMsgs(service,filteredStreams)
         else:
             trace("Unknown Notification Service Type: "+service["Type"])
     
-    def handleTwitterMsgs(self,service,game,newStreams):
+    def handleTwitterMsgs(self,service,newStreams):
         for stream in newStreams:
             msg = stream["user_name"] #The capitalized version of the name
             msg+=' is playing '+stream['game_name']+' on Twitch'
@@ -437,10 +532,10 @@ class StreamDetective:
             self.sendTweet(service,msg)
 
     
-    def handlePushBulletMsgs(self,service,game,newStreams):
+    def handlePushBulletMsgs(self,service,newStreams):
         for stream in newStreams:
             title = stream["title"]
-            msg = stream["user_login"]+" is playing "+game["GameName"]
+            msg = stream["user_login"]+" is playing "+stream["game_name"]
             url = "https://twitch.tv/"+stream["user_login"]
             self.sendPushBulletMessage(service["ApiKey"],title,msg,url=url,emails=service.get("emails"))
     
@@ -561,7 +656,7 @@ class StreamDetective:
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
     def GetUserProfilePicUrl(self,userId):
-        userUrl = self.usersUrl+userId
+        userUrl = self.usersUrl+"id="+userId
 
         result = self.TwitchApiRequest(userUrl)
         if "data" in result and "profile_image_url" in result["data"][0]:
@@ -615,11 +710,13 @@ class StreamDetective:
         return ""
         
 
-    def buildDiscordMsgs(self, discordProfile, gameName, toSend, atUserId):
+    def buildDiscordMsgs(self, discordProfile, toSend, atUserId):
         content = ''
         embeds = []
-        gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
         for stream in toSend:
+            gameName = stream["game_name"]
+            gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
+
             url="https://twitch.tv/"+stream["user_login"]
             content += url + ' is playing ' + gameName
             #content += ', VOD will probably be here '
@@ -662,11 +759,10 @@ class StreamDetective:
         if content:
             self.sendWebhookMsg(discordProfile, content, embeds, atUserId,gameArtUrl)
 
-    def handleDiscordMsgs(self,profile,game,newList):
-        atUserId = game.get('atUserId')
-        gameName = game.get('GameName')
+    def handleDiscordMsgs(self,profile,entry,newList):
+        atUserId = entry.get('atUserId')
 
-        self.buildDiscordMsgs(profile, gameName, newList, atUserId)
+        self.buildDiscordMsgs(profile, newList, atUserId)
     
 
     def genWebhookMsgs(self, discordProfile, gameName, newList, atUserId):
@@ -687,7 +783,7 @@ class StreamDetective:
                 toSend.append(stream)
             
             if toSend:
-                self.buildDiscordMsgs(profile, gameName, toSend, atUserId)
+                self.buildDiscordMsgs(profile, toSend, atUserId)
     
     def checkIsOnCooldown(self, stream, ProfileName):
         user = stream["user_login"].lower()
