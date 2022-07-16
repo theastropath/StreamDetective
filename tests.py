@@ -56,6 +56,17 @@ class TestStreamDetective(StreamDetective):
     def HandleGames(self):# same thing as normal, but without the try/except
         for game in self.config["Games"]:
             self.HandleGame(game)
+            
+    def HandleStreamers(self):# same thing as normal, but without the try/except
+        for streamer in self.config["Streamers"]:
+            self.HandleStreamer(streamer)
+
+    def HandleSearches(self):# same thing as normal, but without the try/except
+        for search in self.config.get("Searches",[]):
+            if "GameName" in search:
+                self.HandleGame(search)
+            elif "UserName" in search:
+                self.HandleStreamer(search)
 
     def HandleGame(self, game: dict):
         self.tweetsSent = 0

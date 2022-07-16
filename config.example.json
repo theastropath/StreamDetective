@@ -3,7 +3,7 @@
 	"accessToken": "",
 	"IgnoreStreams": [],
 	"CooldownSeconds": 3600,
-	"Games": [
+	"Searches": [
 		{
 			"GameName": "Deus Ex",
 			"filters": [
@@ -23,9 +23,7 @@
 		{
 			"GameName": "Fall Guys",
 			"Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet"]
-		}
-	],
-   	"Streamers": [
+		},
         {
             "UserName":"YourFavouriteStreamer",
 			"filters": [

@@ -50,8 +50,11 @@ class StreamDetective:
         
         self.FetchAllStreams()        
         
-        self.HandleGames()
-        self.HandleStreamers()
+        #self.HandleGames()
+        #self.HandleStreamers()
+        
+        self.HandleSearches()
+        
         self.SaveCacheFiles()
     
     def FetchAllStreams(self):
@@ -67,6 +70,16 @@ class StreamDetective:
             name = game["GameName"]
             if name not in gameNames:
                 gameNames.append(name)
+                
+        for search in self.config.get('Searches',[]):
+            if "GameName" in search:
+                name = search["GameName"]
+                if name not in gameNames:
+                    gameNames.append(name)
+            elif "UserName" in search:
+                name = search["UserName"]
+                if name not in streamers:
+                    streamers.append(name)
                 
         #print("All Games: "+str(gameNames))
         #print("All Streamers: "+str(streamers))
@@ -102,7 +115,11 @@ class StreamDetective:
     def TestConfig(self):
         assert self.config.get('clientId')
         assert self.config.get('accessToken')
-        assert self.config.get('Games')
+
+        for search in self.config.get('Searches',[]):
+            #Must have one but not both
+            assert ("GameName" in search) ^ ("UserName" in search), 'testing config for search: ' + repr(search)
+
         for game in self.config.get('Games',[]):
             assert game.get('GameName'), 'testing config for game: ' + repr(game)
             #assert game.get('DiscordWebhook'), 'testing config for ' + game['GameName']
@@ -207,6 +224,21 @@ class StreamDetective:
                 self.HandleStreamer(streamer)
             except Exception as e:
                 logex(e, 'error in', streamer)
+                
+    def HandleSearches(self):
+        for search in self.config.get("Searches",[]):
+            if "GameName" in search:
+                try:
+                    self.HandleGame(search)
+                except Exception as e:
+                    logex(e, 'error in', search)
+            elif "UserName" in search:
+                try:
+                    self.HandleStreamer(search)
+                except Exception as e:
+                    logex(e, 'error in', search)
+                
+
 
 
     def TwitchApiRequest(self, url, headers={}):
