@@ -23,8 +23,11 @@ configFileName="config.json"
 cacheFileName="cache.json"
 
 class StreamDetective:
-    def __init__ (self):
+    def __init__ (self, dry_run=False):
         print(datetime.now().isoformat()+': StreamDetective starting')
+        if dry_run:
+            print('dry-run is enabled')
+        self.dry_run = dry_run
         self.session=Session()
         retryAdapter = HTTPAdapter(max_retries=2)
         self.session.mount('https://',retryAdapter)
@@ -559,6 +562,16 @@ class StreamDetective:
     
     def handleSingleNotificationService(self,service,entry,newStreams):
         filteredStreams = self.filterIgnoredStreams(service["ProfileName"],newStreams)
+        if self.dry_run:
+            print('\nhandleSingleNotificationService dry-run')
+            print('service:')
+            print(service)
+            print('entry:')
+            print(entry)
+            print('newStreams:')
+            print(newStreams, '\n')
+            return
+        
         if   service["Type"] == "Pushbullet":
             self.handlePushBulletMsgs(service,filteredStreams)
         elif service["Type"] == "Discord":
