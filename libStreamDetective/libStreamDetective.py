@@ -396,6 +396,9 @@ class StreamDetective:
         if filter.get('DontMatchGameName'):
             if filter["DontMatchGameName"] == gameName:
                 return False
+        if filter.get('DontMatchUser'):
+            if filter["DontMatchUser"].lower() == streamer.lower():
+                return False
 
         return True
 
