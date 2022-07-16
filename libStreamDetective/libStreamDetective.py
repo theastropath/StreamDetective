@@ -849,7 +849,7 @@ class StreamDetective:
             if toSend:
                 self.buildDiscordMsgs(profile, toSend, atUserId)
     
-    def checkIsOnCooldown(self, stream, ProfileName):
+    def checkIsOnCooldown(self, stream, ProfileName) -> bool:
         user = stream["user_login"].lower()
         key = user + '-' + ProfileName
         now = datetime.now()

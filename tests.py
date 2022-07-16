@@ -1,3 +1,5 @@
+from typeguard import typechecked, importhook
+importhook.install_import_hook('libStreamDetective')
 from libStreamDetective.libStreamDetective import *
 import unittest
 
@@ -10,7 +12,7 @@ class BetterAssertionError(AssertionError):
         failures.append(self)
         logex(self)
 
-
+@typechecked
 class BaseTestCase(unittest.TestCase):
     def __init__(self, *args):
         unittest.TestCase.__init__(self, *args)
@@ -37,7 +39,7 @@ class BaseTestCase(unittest.TestCase):
     def test_example(self):
         sd = TestStreamDetective(self)
 
-
+@typechecked
 class TestStreamDetective(StreamDetective):
     def __init__(self, tester: BaseTestCase):
         self.tester = tester
@@ -55,7 +57,7 @@ class TestStreamDetective(StreamDetective):
         for game in self.config["Games"]:
             self.HandleGame(game)
 
-    def HandleGame(self, game):
+    def HandleGame(self, game: dict):
         self.tweetsSent = 0
         self.webhooksSent = 0
         self.pushbulletsSent = 0
@@ -81,10 +83,10 @@ class TestStreamDetective(StreamDetective):
         self.totalCooldownsCaught += self.cooldownsCaught
         self.totalPushbulletsSent += self.pushbulletsSent
 
-    def GetAllGameStreams(self,gameId):
+    def GetAllGameStreams(self,gameId:str):
         return self.fetchedGames.get(str(123),[]) #TwitchApiRequest always returns game id 123
 
-    def GetAllStreamerStreams(self,streamer):
+    def GetAllStreamerStreams(self,streamer) -> list:
         return super().GetAllStreamerStreams("userlogin") #TwitchApiRequest always returns userlogin
 
     def HandleStreamer(self, streamer):
