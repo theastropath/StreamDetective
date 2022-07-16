@@ -28,6 +28,9 @@
    	"Streamers": [
         {
             "UserName":"YourFavouriteStreamer",
+			"filters": [
+                {"DontMatchString": " Rerun "}
+            ],
             "Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet"]
         }
     ],
