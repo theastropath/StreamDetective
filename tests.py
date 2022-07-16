@@ -81,6 +81,12 @@ class TestStreamDetective(StreamDetective):
         self.totalCooldownsCaught += self.cooldownsCaught
         self.totalPushbulletsSent += self.pushbulletsSent
 
+    def GetAllGameStreams(self,gameId):
+        return self.fetchedGames.get(str(123),[]) #TwitchApiRequest always returns game id 123
+
+    def GetAllStreamerStreams(self,streamer):
+        return super().GetAllStreamerStreams("userlogin") #TwitchApiRequest always returns userlogin
+
     def HandleStreamer(self, streamer):
         self.tweetsSent = 0
         self.webhooksSent = 0

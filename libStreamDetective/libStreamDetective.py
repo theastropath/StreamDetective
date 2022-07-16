@@ -44,10 +44,58 @@ class StreamDetective:
         if self.HandleConfigFile():
             print("Created default config.json file")
             exit(0)
+        
+        self.FetchAllStreams()        
+        
         self.HandleGames()
         self.HandleStreamers()
         self.SaveCacheFiles()
+    
+    def FetchAllStreams(self):
+        gameNames = []
+        streamers = []
         
+        for streamer in self.config.get('Streamers',[]):
+            name = streamer["UserName"]
+            if name not in streamers:
+                streamers.append(name)
+                
+        for game in self.config.get('Games',[]):
+            name = game["GameName"]
+            if name not in gameNames:
+                gameNames.append(name)
+                
+        #print("All Games: "+str(gameNames))
+        #print("All Streamers: "+str(streamers))
+        self.fetchedGames = {}
+        self.fetchedStreamers = []
+        
+        #This should be extended to handle more than 100 unique games
+        if gameNames:
+            allGamesUrl = self.streamsUrl
+            for game in gameNames:
+                gameId = self.GetGameId(game)
+                allGamesUrl += "game_id="+gameId+"&"
+            #print("All games: "+allGamesUrl)
+            fetchedGames = self.GetAllStreams(allGamesUrl)
+            
+            #This will be presorted so that we only have to go through the list once
+            self.fetchedGames = {}
+            
+            for game in fetchedGames:
+                if game["game_id"] not in self.fetchedGames:
+                    self.fetchedGames[game["game_id"]] = []
+                self.fetchedGames[game["game_id"]].append(game)
+                
+            
+        #This should be extended to handle more than 100 unique streamers    
+        if streamers:
+            allStreamersUrl = self.streamsUrl
+            for streamer in streamers:
+                allStreamersUrl += "user_login="+streamer+"&"
+            self.fetchedStreamers = self.GetAllStreams(allStreamersUrl)
+            
+    
     def TestConfig(self):
         assert self.config.get('clientId')
         assert self.config.get('accessToken')
@@ -217,11 +265,11 @@ class StreamDetective:
     def AddGameArtToCache(self,gameName,artUrl):
         self.gameArtCache[gameName]=artUrl
 
-    def GetGameId(self, game):
-        if game["GameName"] in self.gameIdCache:
-            return self.gameIdCache[game["GameName"]]
+    def GetGameId(self, gameName):
+        if gameName in self.gameIdCache:
+            return self.gameIdCache[gameName]
     
-        gameIdUrl = self.gameIdUrlBase+"name="+game["GameName"]
+        gameIdUrl = self.gameIdUrlBase+"name="+gameName
         gameId = 0
         boxArt = ""
 
@@ -237,24 +285,21 @@ class StreamDetective:
             raise Exception('gameId is missing')
             
         if gameId:
-            self.AddGameIdToCache(game["GameName"],gameId)
+            self.AddGameIdToCache(gameName,gameId)
             
         if boxArt:
-            self.AddGameArtToCache(game["GameName"],boxArt)
+            self.AddGameArtToCache(gameName,boxArt)
             
         return gameId
 
     def GetAllGameStreams(self,gameId):
-        streamsUrl = self.streamsUrl+"game_id="+gameId
-        
-        return self.GetAllStreams(streamsUrl)
-        
+        return self.fetchedGames.get(str(gameId),[])
+                
     def GetAllStreamerStreams(self,streamer):
-        url = self.streamsUrl + "user_login="+streamer
-        #for streamer in streamers:
-        #    url = url+"user_login="+streamer+"&"        
-        
-        return self.GetAllStreams(url)
+        for stream in self.fetchedStreamers:
+            if stream["user_login"]==streamer:
+                return [stream]
+        return []
         
     def GetAllStreams(self,lookupUrl):
         allStreams = []
@@ -430,7 +475,7 @@ class StreamDetective:
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
         
-        gameId = self.GetGameId(game)
+        gameId = self.GetGameId(game["GameName"])
 
         streamInfo = self.ReadGameCache(game)
         hadCache = True
