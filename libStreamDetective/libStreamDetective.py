@@ -24,12 +24,15 @@ cacheFileName="cache.json"
 class StreamDetective:
     def __init__ (self, dry_run=False, tempDir=None):
         print(datetime.now().isoformat()+': StreamDetective starting')
+
         if tempDir:
             self.tempDir = tempDir
-            if not os.path.exists(self.tempDir):
-                os.makedirs(self.tempDir)
         else:
             self.tempDir = os.path.join(tempfile.gettempdir(),"streams")
+        
+        if not os.path.exists(self.tempDir):
+            os.makedirs(self.tempDir)
+        
         if dry_run:
             print('dry-run is enabled')
         self.dry_run = dry_run

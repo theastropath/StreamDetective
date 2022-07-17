@@ -19,6 +19,14 @@ class BaseTestCase(unittest.TestCase):
         unittest.TestCase.__init__(self, *args)
         self.failureException = BetterAssertionError
 
+    def verboseAssert(self, caller, testname:str, *args):
+        print('')
+        print(str(self._testMethodName)+'()', type(caller).__name__)
+        print('|__ ' + testname +'(', end='')
+        print(*args, sep=', ', end=')\n\n')
+        func = getattr(self, testname)
+        func(*args)
+
     def setUp(self):
         global failures
         failures = []
@@ -39,33 +47,40 @@ class BaseTestCase(unittest.TestCase):
 
     def test_example(self):
         sd = TestStreamDetective1(self)
+    
+    def test_cooldown(self):
+        sd = TestCooldown(self, 0)
+        sd = TestCooldown(self, 1)
+        sd = TestCooldown(self, 2)
+
+
+def GetCacheDir():
+    tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
+    return tempDir
 
 
 @typechecked
 class TestStreamDetectiveBase(StreamDetective):
-    def __init__(self, tester: BaseTestCase):
+    def __init__(self, tester: BaseTestCase, startIteration=0):
         self.tester = tester
         self.totalTweetsSent = 0
         self.totalWebhooksSent = 0
         self.totalPushbulletsSent = 0
         self.totalCooldownsCaught = 0
-        tempDir = self.GetCacheDir()
-        self.ClearCache()
-        self.iterations = 0
-        StreamDetective.__init__(self, dry_run=False, tempDir=tempDir)
-        self.ClearCache()
-        self.tester.assertGreaterEqual(self.totalTweetsSent, 1, 'totalTweetsSent')
-        self.tester.assertGreaterEqual(self.totalWebhooksSent, 1, 'totalWebhooksSent')
-        self.tester.assertGreaterEqual(self.totalPushbulletsSent, 1, 'totalPushbulletsSent')
-        self.tester.assertGreaterEqual(self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
+        self.tempDir = GetCacheDir()
+        self.iterations = startIteration
+        StreamDetective.__init__(self, dry_run=False, tempDir=self.tempDir)
 
-    def GetCacheDir(self):
-        self.tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
-        return self.tempDir
+    def test(self, testname:str, *args):
+        self.tester.verboseAssert(self, testname, *args)
 
     def ClearCache(self):
+        print('Clearing Cache '+str(type(self)))
+        self.tempDir = GetCacheDir()
         if os.path.isdir(self.tempDir):
             shutil.rmtree(self.tempDir)
+        if not os.path.exists(self.tempDir):
+            os.makedirs(self.tempDir)
 
     def HandleGames(self):# same thing as normal, but without the try/except
         for game in self.config["Games"]:
@@ -148,7 +163,7 @@ class TestStreamDetectiveBase(StreamDetective):
         elif self.streamsUrl in url:
             return {'data': [
                 {
-                    "id": "123",
+                    "id": str(1000+self.iterations),
                     "user_id": "123",
                     "user_login": "userlogin",
                     "user_name": "username",
@@ -200,47 +215,94 @@ class TestStreamDetectiveBase(StreamDetective):
 
 @typechecked
 class TestStreamDetective1(TestStreamDetectiveBase):
+    def __init__(self, tester: BaseTestCase, startIteration=0):
+        self.ClearCache()
+        TestStreamDetectiveBase.__init__(self, tester, startIteration)
+        self.test('assertGreaterEqual', self.totalTweetsSent, 1, 'totalTweetsSent')
+        self.test('assertGreaterEqual', self.totalWebhooksSent, 1, 'totalWebhooksSent')
+        self.test('assertGreaterEqual', self.totalPushbulletsSent, 1, 'totalPushbulletsSent')
+        self.test('assertGreaterEqual', self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
+
     def HandleGame(self, game: dict):
         self.ClearCache()
         newStreams = super().HandleGame(game)
 
-        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
+        self.test('assertEqual', len(newStreams), 1, 'newStreams')
 
         if "defaultTwitter" in game.get('Notifications',[]):
-            self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
+            self.test('assertEqual', self.tweetsSent, 1, 'tweetsSent')
         else:
-            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
+            self.test('assertEqual', self.tweetsSent, 0, 'no tweetsSent')
         
         if "defaultDiscord" in game.get('Notifications',[]):
             if self.cooldownsCaught:
-                self.tester.assertEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+                self.test('assertEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
             else:
-                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
+                self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
         else:
-            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
+            self.test('assertEqual', self.webhooksSent, 0, 'no webhooksSent')
 
     def HandleStreamer(self, streamer):
         self.ClearCache()
         newStreams = super().HandleStreamer(streamer)
         
-        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
+        self.test('assertEqual', len(newStreams), 1, 'newStreams')
 
         if "defaultTwitter" in streamer.get('Notifications',[]):
             if self.cooldownsCaught:
-                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+                self.test('assertGreaterEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
             else:
-                self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
+                self.test('assertEqual', self.tweetsSent, 1, 'tweetsSent')
         else:
-            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
+            self.test('assertEqual', self.tweetsSent, 0, 'no tweetsSent')
         
         if "defaultDiscord" in streamer.get('Notifications',[]):
             if self.cooldownsCaught:
-                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+                self.test('assertGreaterEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
             else:
-                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
+                self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
         else:
-            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
+            self.test('assertEqual', self.webhooksSent, 0, 'no webhooksSent')
+
+
+@typechecked
+class TestCooldown(TestStreamDetectiveBase):
+    def __init__(self, tester: BaseTestCase, startIteration=0):
+        if startIteration==0:
+            self.ClearCache()
+        TestStreamDetectiveBase.__init__(self, tester, startIteration)
+    
+    def HandleConfigFile(self):
+        super().HandleConfigFile()
+        if self.iterations == 2:
+            self.config['CooldownSeconds'] = -10
+        self.config['Searches'] = [{
+			"GameName": "Deus Ex",
+			"filters": [
+				{ "MatchTagName": "Randomizer" },
+				{ "MatchString": "rando" }
+			],
+            "Notifications":[ "defaultDiscord" ]
+		}]
+        self.TestConfig()
+    
+    def HandleGame(self, game: dict):
+        newStreams = super().HandleGame(game)
+
+        if self.iterations == 1:
+            self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
+            self.test('assertEqual', self.cooldownsCaught, 0, 'cooldownsCaught')
+        elif self.iterations == 2:
+            self.test('assertEqual', self.webhooksSent, 0, 'webhooksSent')
+            self.test('assertEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
+        elif self.iterations == 3:
+            self.ClearCache()
+            self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
+            self.test('assertEqual', self.cooldownsCaught, 0, 'cooldownsCaught')
+        else:
+            self.ClearCache()
+            self.test('fail', 'Unexpected iteration '+str(self.iterations))
 
 
 setVerbose(9)
-unittest.main(verbosity=9, warnings="error")#, failfast=True)
+unittest.main(verbosity=9, warnings="error", failfast=True)
