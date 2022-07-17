@@ -17,14 +17,19 @@ import re
 
 path = os.path.realpath(os.path.dirname(__file__))
 path = os.path.dirname(path)
-tempDir = os.path.join(tempfile.gettempdir(),"streams")
 
 configFileName="config.json"
 cacheFileName="cache.json"
 
 class StreamDetective:
-    def __init__ (self, dry_run=False):
+    def __init__ (self, dry_run=False, tempDir=None):
         print(datetime.now().isoformat()+': StreamDetective starting')
+        if tempDir:
+            self.tempDir = tempDir
+            if not os.path.exists(self.tempDir):
+                os.makedirs(self.tempDir)
+        else:
+            self.tempDir = os.path.join(tempfile.gettempdir(),"streams")
         if dry_run:
             print('dry-run is enabled')
         self.dry_run = dry_run
@@ -48,7 +53,7 @@ class StreamDetective:
             print("Created default config.json file")
             exit(0)
         
-        self.FetchAllStreams()        
+        self.FetchAllStreams()
         
         #self.HandleGames()
         #self.HandleStreamers()
@@ -270,7 +275,7 @@ class StreamDetective:
         return result
 
     def SaveCacheFiles(self):
-        cacheFileFullPath = os.path.join(tempDir,cacheFileName)
+        cacheFileFullPath = os.path.join(self.tempDir,cacheFileName)
 
         with open(cacheFileFullPath, 'w') as f:
             cache = { 'gameIds': self.gameIdCache,
@@ -281,7 +286,7 @@ class StreamDetective:
             json.dump(cache,f,indent=4)
         
     def LoadCacheFiles(self):
-        cacheFileFullPath = os.path.join(tempDir,cacheFileName)
+        cacheFileFullPath = os.path.join(self.tempDir,cacheFileName)
         try:
             if os.path.exists(cacheFileFullPath):
                 with open(cacheFileFullPath, 'r') as f:
@@ -415,7 +420,7 @@ class StreamDetective:
 
     def GetGameCachePath(self, gameName):
         gameName = re.sub('[^\w\d ]', '-', gameName)
-        return os.path.join(tempDir,gameName)
+        return os.path.join(self.tempDir,gameName)
     
     def ReadGameCache(self, game):
         saveLocation = self.GetGameCachePath(game["GameName"])
@@ -501,8 +506,8 @@ class StreamDetective:
         for key in toDelete:
             del streamInfo[key]
 
-        if not os.path.exists(tempDir):
-            os.makedirs(tempDir)
+        if not os.path.exists(self.tempDir):
+            os.makedirs(self.tempDir)
 
         self.WriteStreamerCache(streamer, streamInfo)
         debug("\n\n")
@@ -566,8 +571,8 @@ class StreamDetective:
         for key in toDelete:
             del streamInfo[key]
 
-        if not os.path.exists(tempDir):
-            os.makedirs(tempDir)
+        if not os.path.exists(self.tempDir):
+            os.makedirs(self.tempDir)
 
         self.WriteGameCache(game, streamInfo)
         debug("\n\n")

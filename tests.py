@@ -1,6 +1,7 @@
 from typeguard import typechecked, importhook
 importhook.install_import_hook('libStreamDetective')
 from libStreamDetective.libStreamDetective import *
+import shutil
 import unittest
 
 failures = []
@@ -37,21 +38,34 @@ class BaseTestCase(unittest.TestCase):
         return super().tearDown()
 
     def test_example(self):
-        sd = TestStreamDetective(self)
+        sd = TestStreamDetective1(self)
+
 
 @typechecked
-class TestStreamDetective(StreamDetective):
+class TestStreamDetectiveBase(StreamDetective):
     def __init__(self, tester: BaseTestCase):
         self.tester = tester
         self.totalTweetsSent = 0
         self.totalWebhooksSent = 0
         self.totalPushbulletsSent = 0
         self.totalCooldownsCaught = 0
-        StreamDetective.__init__(self)
+        tempDir = self.GetCacheDir()
+        self.ClearCache()
+        self.iterations = 0
+        StreamDetective.__init__(self, dry_run=False, tempDir=tempDir)
+        self.ClearCache()
         self.tester.assertGreaterEqual(self.totalTweetsSent, 1, 'totalTweetsSent')
         self.tester.assertGreaterEqual(self.totalWebhooksSent, 1, 'totalWebhooksSent')
         self.tester.assertGreaterEqual(self.totalPushbulletsSent, 1, 'totalPushbulletsSent')
         self.tester.assertGreaterEqual(self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
+
+    def GetCacheDir(self):
+        self.tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
+        return self.tempDir
+
+    def ClearCache(self):
+        if os.path.isdir(self.tempDir):
+            shutil.rmtree(self.tempDir)
 
     def HandleGames(self):# same thing as normal, but without the try/except
         for game in self.config["Games"]:
@@ -74,25 +88,12 @@ class TestStreamDetective(StreamDetective):
         self.pushbulletsSent = 0
         self.cooldownsCaught = 0
         newStreams = super().HandleGame(game)
-        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
-
-        if "defaultTwitter" in game.get('Notifications',[]):
-            self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
-        else:
-            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
-        
-        if "defaultDiscord" in game.get('Notifications',[]):
-            if self.cooldownsCaught:
-                self.tester.assertEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
-            else:
-                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
-        else:
-            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
-        
         self.totalTweetsSent += self.tweetsSent
         self.totalWebhooksSent += self.webhooksSent
         self.totalCooldownsCaught += self.cooldownsCaught
         self.totalPushbulletsSent += self.pushbulletsSent
+        self.iterations += 1
+        return newStreams
 
     def GetAllGameStreams(self,gameId:str):
         return self.fetchedGames.get(str(123),[]) #TwitchApiRequest always returns game id 123
@@ -105,31 +106,12 @@ class TestStreamDetective(StreamDetective):
         self.webhooksSent = 0
         self.pushbulletsSent = 0
         self.cooldownsCaught = 0
-
         newStreams = super().HandleStreamer(streamer)
-        
-        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
-
-        if "defaultTwitter" in streamer.get('Notifications',[]):
-            if self.cooldownsCaught:
-                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
-            else:
-                self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
-        else:
-            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
-        
-        if "defaultDiscord" in streamer.get('Notifications',[]):
-            if self.cooldownsCaught:
-                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
-            else:
-                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
-        else:
-            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
-        
         self.totalTweetsSent += self.tweetsSent
         self.totalWebhooksSent += self.webhooksSent
         self.totalCooldownsCaught += self.cooldownsCaught
         self.totalPushbulletsSent += self.pushbulletsSent
+        return newStreams
 
     def HandleConfigFile(self):
         print("Reading default config.json file")
@@ -185,26 +167,20 @@ class TestStreamDetective(StreamDetective):
             ]}
         return {}
     
-    def SaveCacheFiles(self):
-        return
     
-    def LoadCacheFiles(self):
-        self.gameIdCache = {}
-        self.gameArtCache = {}
-        self.tagsCache = {}
-        self.cooldowns = {}
-
     def ReadGameCache(self, game):
-        return {}
-
-    def WriteGameCache(self, game, streamInfo):
-        return
+        ret = super().ReadGameCache(game)
+        if not ret:
+            print('default game cache')
+            return {}
+        return ret
         
     def ReadStreamerCache(self, streamer):
-        return {}
-
-    def WriteStreamerCache(self, streamer, streamInfo):
-        return
+        ret = super().ReadStreamerCache(streamer)
+        if not ret:
+            print('default streamer cache')
+            return {}
+        return ret
 
     def checkIsOnCooldown(self, stream, webhookUrl):
         if super().checkIsOnCooldown(stream, webhookUrl):
@@ -220,6 +196,50 @@ class TestStreamDetective(StreamDetective):
         
     def sendPushBulletMessage(self,apiKey,title,body,emails=None,url=None):
         self.pushbulletsSent += 1
+
+
+@typechecked
+class TestStreamDetective1(TestStreamDetectiveBase):
+    def HandleGame(self, game: dict):
+        self.ClearCache()
+        newStreams = super().HandleGame(game)
+
+        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
+
+        if "defaultTwitter" in game.get('Notifications',[]):
+            self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
+        else:
+            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
+        
+        if "defaultDiscord" in game.get('Notifications',[]):
+            if self.cooldownsCaught:
+                self.tester.assertEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+            else:
+                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
+        else:
+            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
+
+    def HandleStreamer(self, streamer):
+        self.ClearCache()
+        newStreams = super().HandleStreamer(streamer)
+        
+        self.tester.assertEqual(len(newStreams), 1, 'newStreams')
+
+        if "defaultTwitter" in streamer.get('Notifications',[]):
+            if self.cooldownsCaught:
+                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+            else:
+                self.tester.assertEqual(self.tweetsSent, 1, 'tweetsSent')
+        else:
+            self.tester.assertEqual(self.tweetsSent, 0, 'no tweetsSent')
+        
+        if "defaultDiscord" in streamer.get('Notifications',[]):
+            if self.cooldownsCaught:
+                self.tester.assertGreaterEqual(self.cooldownsCaught, 1, 'cooldownsCaught')
+            else:
+                self.tester.assertEqual(self.webhooksSent, 1, 'webhooksSent')
+        else:
+            self.tester.assertEqual(self.webhooksSent, 0, 'no webhooksSent')
 
 
 setVerbose(9)
