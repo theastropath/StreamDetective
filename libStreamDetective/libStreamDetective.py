@@ -340,7 +340,7 @@ class StreamDetective:
                 
     def GetAllStreamerStreams(self,streamer):
         for stream in self.fetchedStreamers:
-            if stream["user_login"]==streamer:
+            if stream["user_login"].lower()==streamer.lower():
                 return [stream]
         return []
         
