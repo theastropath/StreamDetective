@@ -116,8 +116,8 @@ class StreamDetective:
         if streamers:
             allStreamersUrl = self.streamsUrl
             for streamer in streamers:
-                allStreamersUrl += "user_login="+streamer+"&"
-            self.fetchedStreamers = self.GetAllStreams(allStreamersUrl)
+                allStreamersUrl = self.streamsUrl + "user_login="+streamer+"&"
+                self.fetchedStreamers.extend(self.GetAllStreams(allStreamersUrl))
             
     
     def TestConfig(self):
