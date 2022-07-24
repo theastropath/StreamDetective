@@ -474,6 +474,8 @@ class StreamDetective:
                 stream['last_matched'] = now.isoformat()
                 if id not in streamInfo:
                     newStreams.append(stream)
+            else:
+                trace('didn\'t match', userlogin)
  
         # All stream info now retrieved
         if hadCache and newStreams:
@@ -535,7 +537,7 @@ class StreamDetective:
                 if id not in streamInfo:
                     newStreams.append(stream)
             else:
-                debug('didn\'t match', streamer)
+                trace('didn\'t match', streamer)
                 
         # All stream info now retrieved
         if hadCache and newStreams:
