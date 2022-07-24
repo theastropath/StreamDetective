@@ -746,10 +746,11 @@ class StreamDetective:
             content += ' <@' + str(atUserId) + '>'
         data={
             "username":discordProfile["UserName"],
-            "avatar_url":avatarUrl,
             "content": content,
             "embeds": embeds
         }
+        if avatarUrl:
+            data['avatar_url'] = avatarUrl
         debug(data)
         response = requests.post(discordProfile["Webhook"],json=data)
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
@@ -801,7 +802,7 @@ class StreamDetective:
         gameUrl = "https://api.twitch.tv/helix/games?name="+gameName
         
         result = self.TwitchApiRequest(gameUrl)
-        if "data" in result and "box_art_url" in result["data"][0]:
+        if result.get('data') and result["data"][0].get('box_art_url'):
             url = result["data"][0]["box_art_url"]
             url = url.replace("{width}",str(width)).replace("{height}",str(height))
             self.AddGameArtToCache(gameName,url)
@@ -814,7 +815,11 @@ class StreamDetective:
         embeds = []
         for stream in toSend:
             gameName = stream["game_name"]
-            gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
+            gameArtUrl = ''
+            try:
+                gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
+            except Exception as e:
+                logex(e)
 
             url="https://twitch.tv/"+stream["user_login"]
             content += url + ' is playing ' + gameName
