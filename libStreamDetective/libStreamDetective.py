@@ -58,9 +58,6 @@ class StreamDetective:
         
         self.FetchAllStreams()
         
-        #self.HandleGames()
-        #self.HandleStreamers()
-        
         self.HandleSearches()
         
         self.SaveCacheFiles()
@@ -218,20 +215,6 @@ class StreamDetective:
                 json.dump(config,f, indent=4)
 
             return True
-
-    def HandleGames(self):
-        for game in self.config.get("Games",[]):
-            try:
-                self.HandleGame(game)
-            except Exception as e:
-                logex(e, 'error in', game)
-                
-    def HandleStreamers(self):
-        for streamer in self.config.get("Streamers",[]):
-            try:
-                self.HandleStreamer(streamer)
-            except Exception as e:
-                logex(e, 'error in', streamer)
                 
     def HandleSearches(self):
         for search in self.config.get("Searches",[]):

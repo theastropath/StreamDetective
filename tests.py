@@ -62,14 +62,18 @@ def GetCacheDir():
 @typechecked
 class TestStreamDetectiveBase(StreamDetective):
     def __init__(self, tester: BaseTestCase, startIteration=0):
+        print('\n\n', type(self), '__init__ starting')
         self.tester = tester
         self.totalTweetsSent = 0
         self.totalWebhooksSent = 0
         self.totalPushbulletsSent = 0
         self.totalCooldownsCaught = 0
+        self.twitchApiCalls = 0
+        self.getStreamsApiCalls = 0
         self.tempDir = GetCacheDir()
         self.iterations = startIteration
         StreamDetective.__init__(self, dry_run=False, tempDir=self.tempDir)
+        print('\n', type(self), '__init__ done\n')
 
     def test(self, testname:str, *args):
         self.tester.verboseAssert(self, testname, *args)
@@ -81,14 +85,6 @@ class TestStreamDetectiveBase(StreamDetective):
             shutil.rmtree(self.tempDir)
         if not os.path.exists(self.tempDir):
             os.makedirs(self.tempDir)
-
-    def HandleGames(self):# same thing as normal, but without the try/except
-        for game in self.config["Games"]:
-            self.HandleGame(game)
-            
-    def HandleStreamers(self):# same thing as normal, but without the try/except
-        for streamer in self.config["Streamers"]:
-            self.HandleStreamer(streamer)
 
     def HandleSearches(self):# same thing as normal, but without the try/except
         for search in self.config.get("Searches",[]):
@@ -111,10 +107,10 @@ class TestStreamDetectiveBase(StreamDetective):
         return newStreams
 
     def GetAllGameStreams(self,gameId:str):
-        return self.fetchedGames.get(str(123),[]) #TwitchApiRequest always returns game id 123
+        return self.fetchedGames.get(gameId,[]) #TwitchApiRequest always returns game id 123
 
     def GetAllStreamerStreams(self,streamer) -> list:
-        return super().GetAllStreamerStreams("userlogin") #TwitchApiRequest always returns userlogin
+        return super().GetAllStreamerStreams(streamer) #TwitchApiRequest always returns userlogin
 
     def HandleStreamer(self, streamer):
         self.tweetsSent = 0
@@ -156,18 +152,25 @@ class TestStreamDetectiveBase(StreamDetective):
 
         self.TestConfig()
     
+    def GetGameId(self, gameName):
+        gameId = gameName
+        self.AddGameIdToCache(gameName,gameId)
+        self.AddGameArtToCache(gameName,'boxArt')
+        return gameId
+    
     def TwitchApiRequest(self, url, headers={}):
+        self.twitchApiCalls += 1
         self.tester.assertEqual(type(headers), dict)
-        if self.gameIdUrlBase in url:
-            return {'data': [{'id': 'foobar','box_art_url':'videogames'}]}
-        elif self.streamsUrl in url:
-            return {'data': [
-                {
+        if self.streamsUrl in url and 'game_id=' in url:
+            self.getStreamsApiCalls += 1
+            ret = []
+            if 'game_id=Deus Ex' in url:
+                ret.append({
                     "id": str(1000+self.iterations),
                     "user_id": "123",
-                    "user_login": "userlogin",
-                    "user_name": "username",
-                    "game_id": "123",
+                    "user_login": "Heinki",
+                    "user_name": "Heinki",
+                    "game_id": "Deus Ex",
                     "game_name": "Deus Ex",
                     "type": "live",
                     "title": "Deus Ex Randomizer",
@@ -176,6 +179,45 @@ class TestStreamDetectiveBase(StreamDetective):
                     "language": "en",
                     "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
                     "tag_ids": ["2fd30cb8-f2e5-415d-9d42-1316cfa61367"],
+                    "is_mature": True,
+                    "last_seen": "2020-06-22T00:00:00Z"
+                })
+            if 'game_id=Fall Guys' in url:
+                ret.append({
+                    "id": str(2000+self.iterations),
+                    "user_id": "124",
+                    "user_login": "thefallguy",
+                    "user_name": "thefallguy",
+                    "game_id": "Fall Guys",
+                    "game_name": "Fall Guys",
+                    "type": "live",
+                    "title": "Fall Guys Randomizer",
+                    "viewer_count": 2052,
+                    "started_at": "2020-06-22T00:00:00Z",
+                    "language": "en",
+                    "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
+                    "tag_ids": [],
+                    "is_mature": True,
+                    "last_seen": "2020-06-22T00:00:00Z"
+                })
+            return { 'data': ret }
+        elif self.streamsUrl in url and 'user_login=YourFavouriteStreamer' in url:
+            self.getStreamsApiCalls += 1
+            return {'data': [
+                {
+                    "id": str(3000+self.iterations),
+                    "user_id": "666",
+                    "user_login": "YourFavouriteStreamer",
+                    "user_name": "YourFavouriteStreamer",
+                    "game_id": "The 7th Guest",
+                    "game_name": "The 7th Guest",
+                    "type": "live",
+                    "title": "The best game of all time!",
+                    "viewer_count": 1000000,
+                    "started_at": "2020-06-22T00:00:00Z",
+                    "language": "en",
+                    "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
+                    "tag_ids": [],
                     "is_mature": True,
                     "last_seen": "2020-06-22T00:00:00Z"
                 }
@@ -218,51 +260,10 @@ class TestStreamDetective1(TestStreamDetectiveBase):
     def __init__(self, tester: BaseTestCase, startIteration=0):
         self.ClearCache()
         TestStreamDetectiveBase.__init__(self, tester, startIteration)
-        self.test('assertGreaterEqual', self.totalTweetsSent, 1, 'totalTweetsSent')
-        self.test('assertGreaterEqual', self.totalWebhooksSent, 1, 'totalWebhooksSent')
-        self.test('assertGreaterEqual', self.totalPushbulletsSent, 1, 'totalPushbulletsSent')
-        self.test('assertGreaterEqual', self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
-
-    def HandleGame(self, game: dict):
-        self.ClearCache()
-        newStreams = super().HandleGame(game)
-
-        self.test('assertEqual', len(newStreams), 1, 'newStreams')
-
-        if "defaultTwitter" in game.get('Notifications',[]):
-            self.test('assertEqual', self.tweetsSent, 1, 'tweetsSent')
-        else:
-            self.test('assertEqual', self.tweetsSent, 0, 'no tweetsSent')
-        
-        if "defaultDiscord" in game.get('Notifications',[]):
-            if self.cooldownsCaught:
-                self.test('assertEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
-            else:
-                self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
-        else:
-            self.test('assertEqual', self.webhooksSent, 0, 'no webhooksSent')
-
-    def HandleStreamer(self, streamer):
-        self.ClearCache()
-        newStreams = super().HandleStreamer(streamer)
-        
-        self.test('assertEqual', len(newStreams), 1, 'newStreams')
-
-        if "defaultTwitter" in streamer.get('Notifications',[]):
-            if self.cooldownsCaught:
-                self.test('assertGreaterEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
-            else:
-                self.test('assertEqual', self.tweetsSent, 1, 'tweetsSent')
-        else:
-            self.test('assertEqual', self.tweetsSent, 0, 'no tweetsSent')
-        
-        if "defaultDiscord" in streamer.get('Notifications',[]):
-            if self.cooldownsCaught:
-                self.test('assertGreaterEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
-            else:
-                self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
-        else:
-            self.test('assertEqual', self.webhooksSent, 0, 'no webhooksSent')
+        self.test('assertEqual', self.totalTweetsSent, 2, 'totalTweetsSent')
+        self.test('assertEqual', self.totalWebhooksSent, 3, 'totalWebhooksSent')
+        self.test('assertEqual', self.totalPushbulletsSent, 2, 'totalPushbulletsSent')
+        self.test('assertEqual', self.totalCooldownsCaught, 0, 'totalCooldownsCaught')
 
 
 @typechecked

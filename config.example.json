@@ -18,7 +18,7 @@
 				{ "MatchTagName": "Randomizer" },
 				{ "MatchString": "rando" }
 			],
-            "Notifications":[]
+            "Notifications":["defaultDiscord"]
 		},
 		{
 			"GameName": "Fall Guys",
