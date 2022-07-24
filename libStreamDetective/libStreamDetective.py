@@ -99,17 +99,17 @@ class StreamDetective:
             allGamesUrl = self.streamsUrl
             for game in gameNames:
                 gameId = self.GetGameId(game)
-                allGamesUrl += "game_id="+gameId+"&"
-            #print("All games: "+allGamesUrl)
-            fetchedGames = self.GetAllStreams(allGamesUrl)
+                allGamesUrl = self.streamsUrl + "game_id="+gameId+"&"
+                #print("All games: "+allGamesUrl)
+                fetchedGames = self.GetAllStreams(allGamesUrl)
             
-            #This will be presorted so that we only have to go through the list once
-            self.fetchedGames = {}
-            
-            for game in fetchedGames:
-                if game["game_id"] not in self.fetchedGames:
-                    self.fetchedGames[game["game_id"]] = []
-                self.fetchedGames[game["game_id"]].append(game)
+                #This will be presorted so that we only have to go through the list once
+                #self.fetchedGames = {}
+                
+                for game in fetchedGames:
+                    if game["game_id"] not in self.fetchedGames:
+                        self.fetchedGames[game["game_id"]] = []
+                    self.fetchedGames[game["game_id"]].append(game)
                 
             
         #This should be extended to handle more than 100 unique streamers    
@@ -546,6 +546,8 @@ class StreamDetective:
                 stream['last_matched'] = now.isoformat()
                 if id not in streamInfo:
                     newStreams.append(stream)
+            else:
+                debug('didn\'t match', streamer)
                 
         # All stream info now retrieved
         if hadCache and newStreams:
