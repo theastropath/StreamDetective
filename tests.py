@@ -160,6 +160,7 @@ class TestStreamDetectiveBase(StreamDetective):
     
     def TwitchApiRequest(self, url, headers={}):
         self.twitchApiCalls += 1
+        print('mocked TwitchApiRequest', url, headers)
         self.tester.assertEqual(type(headers), dict)
         if self.streamsUrl in url and 'game_id=' in url:
             self.getStreamsApiCalls += 1

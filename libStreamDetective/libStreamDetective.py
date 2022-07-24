@@ -96,25 +96,25 @@ class StreamDetective:
             allGamesUrl = self.streamsUrl
             for game in gameNames:
                 gameId = self.GetGameId(game)
-                allGamesUrl = self.streamsUrl + "game_id="+gameId+"&"
-                #print("All games: "+allGamesUrl)
-                fetchedGames = self.GetAllStreams(allGamesUrl)
+                allGamesUrl += "game_id="+gameId+"&"
+            #print("All games: "+allGamesUrl)
+            fetchedGames = self.GetAllStreams(allGamesUrl)
             
-                #This will be presorted so that we only have to go through the list once
-                #self.fetchedGames = {}
-                
-                for game in fetchedGames:
-                    if game["game_id"] not in self.fetchedGames:
-                        self.fetchedGames[game["game_id"]] = []
-                    self.fetchedGames[game["game_id"]].append(game)
+            #This will be presorted so that we only have to go through the list once
+            self.fetchedGames = {}
+            
+            for game in fetchedGames:
+                if game["game_id"] not in self.fetchedGames:
+                    self.fetchedGames[game["game_id"]] = []
+                self.fetchedGames[game["game_id"]].append(game)
                 
             
         #This should be extended to handle more than 100 unique streamers    
         if streamers:
             allStreamersUrl = self.streamsUrl
             for streamer in streamers:
-                allStreamersUrl = self.streamsUrl + "user_login="+streamer+"&"
-                self.fetchedStreamers.extend(self.GetAllStreams(allStreamersUrl))
+                allStreamersUrl += "user_login="+streamer+"&"
+            self.fetchedStreamers = self.GetAllStreams(allStreamersUrl)
             
     
     def TestConfig(self):
@@ -233,6 +233,7 @@ class StreamDetective:
 
 
     def TwitchApiRequest(self, url, headers={}):
+        print('TwitchApiRequest', url, headers)
         response = None
         try:
             headers = {
@@ -258,6 +259,7 @@ class StreamDetective:
                 print(repr(response.headers))
             print('request for '+url+' failed with status:', result['status'], ', result: ', result)
             raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
+        print('TwitchApiRequest', url, headers, 'result:', result)
         return result
 
     def SaveCacheFiles(self):
@@ -332,7 +334,10 @@ class StreamDetective:
         keepGoing = True
         cursor = ""
         while keepGoing:
-            url = lookupUrl+"&first=100" #Fetch 100 streams at a time
+            url = lookupUrl
+            if not lookupUrl.endswith('&'):
+                url += '&'
+            url += "first=100" #Fetch 100 streams at a time
             
             if cursor!="":
                 url+="&after="+cursor
