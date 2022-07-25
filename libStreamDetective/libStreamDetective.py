@@ -233,7 +233,7 @@ class StreamDetective:
 
 
     def TwitchApiRequest(self, url, headers={}):
-        print('TwitchApiRequest', url, headers)
+        debug('TwitchApiRequest', url, headers)
         response = None
         try:
             headers = {
@@ -259,7 +259,7 @@ class StreamDetective:
                 print(repr(response.headers))
             print('request for '+url+' failed with status:', result['status'], ', result: ', result)
             raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
-        print('TwitchApiRequest', url, headers, 'result:', result)
+        debug('TwitchApiRequest', 'results:', len(result.get('data', [])))
         return result
 
     def SaveCacheFiles(self):
@@ -603,8 +603,7 @@ class StreamDetective:
             print(service)
             print('entry:')
             print(entry)
-            print('newStreams:')
-            print(newStreams, '\n')
+            print("  New Streams: "+str([stream['user_login'] for stream in newStreams]), '\n')
             return
         
         if   service["Type"] == "Pushbullet":
