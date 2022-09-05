@@ -52,6 +52,10 @@ class StreamDetective:
         self.cooldowns={}
         self.LoadCacheFiles()
         
+        self.rateLimitLimit=0
+        self.rateLimitRemaining=0
+        self.rateLimitReset=0
+        
         if self.HandleConfigFile():
             print("Created default config.json file")
             exit(0)
@@ -61,6 +65,10 @@ class StreamDetective:
         self.HandleSearches()
         
         self.SaveCacheFiles()
+        
+        if self.rateLimitLimit!=0 and self.rateLimitReset!=0:
+            #Output rate limit info
+            print("Rate Limit: "+str(self.rateLimitRemaining)+"/"+str(self.rateLimitLimit)+" - Resets at "+datetime.fromtimestamp(self.rateLimitReset).strftime('%c'))
     
     def FetchAllStreams(self):
         gameNames = []
@@ -259,6 +267,15 @@ class StreamDetective:
                 print(repr(response.headers))
             print('request for '+url+' failed with status:', result['status'], ', result: ', result)
             raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
+        if response and response.headers:
+            #hdrs=json.loads(response.headers)
+            debug('TwitchApiRequest','Ratelimit-Limit',str(response.headers["Ratelimit-Limit"]))
+            self.rateLimitLimit=response.headers["Ratelimit-Limit"]
+            debug('TwitchApiRequest','Ratelimit-Remaining',str(response.headers["Ratelimit-Remaining"]))
+            self.rateLimitRemaining=response.headers["Ratelimit-Remaining"]
+            debug('TwitchApiRequest','Ratelimit-Reset',str(response.headers["Ratelimit-Reset"]))
+            self.rateLimitReset=int(response.headers["Ratelimit-Reset"])
+            
         debug('TwitchApiRequest', 'results:', len(result.get('data', [])))
         return result
 
