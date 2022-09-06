@@ -52,9 +52,9 @@ class StreamDetective:
         self.cooldowns={}
         self.LoadCacheFiles()
         
-        self.rateLimitLimit=0
-        self.rateLimitRemaining=0
-        self.rateLimitReset=0
+        self.rateLimitLimit=None
+        self.rateLimitRemaining=None
+        self.rateLimitReset=None
         self.apiCalls=0
         
         if self.HandleConfigFile():
@@ -67,7 +67,7 @@ class StreamDetective:
         
         self.SaveCacheFiles()
         
-        if self.rateLimitLimit!=0 and self.rateLimitReset!=0:
+        if self.rateLimitLimit is not None and self.rateLimitReset is not None:
             #Output rate limit info
             print("Rate Limit: "+str(self.rateLimitRemaining)+"/"+str(self.rateLimitLimit)+" - Resets at "+datetime.fromtimestamp(self.rateLimitReset).strftime('%c'))
         print("Number of API Calls: "+str(self.apiCalls))
@@ -245,6 +245,12 @@ class StreamDetective:
     def TwitchApiRequest(self, url, headers={}):
         debug('TwitchApiRequest', url, headers)
         response = None
+
+        if self.apiCalls > 200:
+            raise Exception('too many Twitch API calls', self.apiCalls)
+        if self.rateLimitRemaining is not None and self.rateLimitRemaining < 10:
+            raise Exception('rate limit remaining is too low', self.rateLimitRemaining)
+    
         try:
             headers = {
                 'Client-ID': self.config["clientId"],
