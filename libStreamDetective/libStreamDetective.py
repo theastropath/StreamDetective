@@ -278,12 +278,12 @@ class StreamDetective:
             raise Exception('request for '+url+' failed with status:', result['status'], ', result: ', result)
         if response and response.headers:
             #hdrs=json.loads(response.headers)
-            debug('TwitchApiRequest','Ratelimit-Limit',str(response.headers["Ratelimit-Limit"]))
-            self.rateLimitLimit=response.headers["Ratelimit-Limit"]
-            debug('TwitchApiRequest','Ratelimit-Remaining',str(response.headers["Ratelimit-Remaining"]))
-            self.rateLimitRemaining=response.headers["Ratelimit-Remaining"]
-            debug('TwitchApiRequest','Ratelimit-Reset',str(response.headers["Ratelimit-Reset"]))
-            self.rateLimitReset=int(response.headers["Ratelimit-Reset"])
+            debug('TwitchApiRequest','Ratelimit-Limit', response.headers["Ratelimit-Limit"])
+            self.rateLimitLimit = int(response.headers["Ratelimit-Limit"])
+            debug('TwitchApiRequest','Ratelimit-Remaining', response.headers["Ratelimit-Remaining"])
+            self.rateLimitRemaining = int(response.headers["Ratelimit-Remaining"])
+            debug('TwitchApiRequest','Ratelimit-Reset', response.headers["Ratelimit-Reset"])
+            self.rateLimitReset = int(response.headers["Ratelimit-Reset"])
             
         debug('TwitchApiRequest', 'results:', len(result.get('data', [])))
         return result
