@@ -55,6 +55,7 @@ class StreamDetective:
         self.rateLimitLimit=0
         self.rateLimitRemaining=0
         self.rateLimitReset=0
+        self.apiCalls=0
         
         if self.HandleConfigFile():
             print("Created default config.json file")
@@ -69,7 +70,8 @@ class StreamDetective:
         if self.rateLimitLimit!=0 and self.rateLimitReset!=0:
             #Output rate limit info
             print("Rate Limit: "+str(self.rateLimitRemaining)+"/"+str(self.rateLimitLimit)+" - Resets at "+datetime.fromtimestamp(self.rateLimitReset).strftime('%c'))
-    
+        print("Number of API Calls: "+str(self.apiCalls))
+         
     def FetchAllStreams(self):
         gameNames = []
         streamers = []
@@ -251,6 +253,7 @@ class StreamDetective:
                 **headers
             }
             response = self.session.get(url, headers=headers)
+            self.apiCalls+=1
             trace(url, response.headers, response.text)
             result = json.loads(response.text)
         except Exception as e:
