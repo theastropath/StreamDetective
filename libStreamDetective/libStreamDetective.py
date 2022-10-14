@@ -435,12 +435,15 @@ class StreamDetective:
                 return True
         return False
 
-    def GetGameCachePath(self, gameName):
-        gameName = re.sub('[^\w\d ]', '-', gameName)
-        return os.path.join(self.tempDir,gameName)
+    def GetCachePath(self, name, profile):
+        profileHash = json.dumps(profile)
+        profileHash = sha1(profileHash.encode()).hexdigest()
+        cacheName = name + '-' + profileHash
+        cacheName = re.sub('[^\w\d ]', '-', cacheName)
+        return os.path.join(self.tempDir, cacheName)
     
     def ReadGameCache(self, game):
-        saveLocation = self.GetGameCachePath(game["GameName"])
+        saveLocation = self.GetCachePath(game["GameName"], game)
         if os.path.exists(saveLocation):
             try:
                 f = open(saveLocation,'r')
@@ -452,7 +455,7 @@ class StreamDetective:
         return None
         
     def ReadStreamerCache(self, streamer):
-        saveLocation = self.GetGameCachePath(streamer["UserName"])
+        saveLocation = self.GetCachePath(streamer["UserName"], streamer)
         if os.path.exists(saveLocation):
             try:
                 f = open(saveLocation,'r')
@@ -464,13 +467,13 @@ class StreamDetective:
         return None
 
     def WriteGameCache(self, game, streamInfo):
-        saveLocation = self.GetGameCachePath(game["GameName"])
+        saveLocation = self.GetCachePath(game["GameName"], game)
         f = open(saveLocation,'w')
         json.dump(streamInfo,f,indent=4)
         f.close()    
         
     def WriteStreamerCache(self, streamer, streamInfo):
-        saveLocation = self.GetGameCachePath(streamer["UserName"])
+        saveLocation = self.GetCachePath(streamer["UserName"], streamer)
         f = open(saveLocation,'w')
         json.dump(streamInfo,f,indent=4)
         f.close()
@@ -925,7 +928,7 @@ class StreamDetective:
         last_notified = cooldown['last_notified']
         last_notified = fromisoformat(last_notified)
         if (now - last_notified).total_seconds() < self.config.get('CooldownSeconds',0):
-            print(stream["user_login"], 'is on cooldown')
+            print(stream["user_login"], 'is on cooldown for', ProfileName)
             return True
         cooldown['last_notified'] = now.isoformat()
         return False

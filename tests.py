@@ -53,6 +53,9 @@ class BaseTestCase(unittest.TestCase):
         sd = TestCooldown(self, 1)
         sd = TestCooldown(self, 2)
 
+    def test_multiples(self):
+        sd = TestMultiples(self)
+
 
 def GetCacheDir():
     tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
@@ -264,7 +267,8 @@ class TestStreamDetective1(TestStreamDetectiveBase):
         self.test('assertEqual', self.totalTweetsSent, 2, 'totalTweetsSent')
         self.test('assertEqual', self.totalWebhooksSent, 3, 'totalWebhooksSent')
         self.test('assertEqual', self.totalPushbulletsSent, 2, 'totalPushbulletsSent')
-        self.test('assertEqual', self.totalCooldownsCaught, 0, 'totalCooldownsCaught')
+        # the config.example.json has 2 Deus Ex Randomizer entries going to defaultDiscord
+        self.test('assertEqual', self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
 
 
 @typechecked
@@ -305,6 +309,33 @@ class TestCooldown(TestStreamDetectiveBase):
             self.ClearCache()
             self.test('fail', 'Unexpected iteration '+str(self.iterations))
 
+
+@typechecked
+class TestMultiples(TestStreamDetectiveBase):
+    def __init__(self, tester: BaseTestCase, startIteration=0):
+        self.ClearCache()
+        TestStreamDetectiveBase.__init__(self, tester, startIteration)
+        self.test('assertEqual', self.totalWebhooksSent, 1, 'totalWebhooksSent')
+        self.test('assertEqual', self.totalTweetsSent, 1, 'totalTweetsSent')
+    
+    def HandleConfigFile(self):
+        super().HandleConfigFile()
+        self.config['Searches'] = [
+            {
+                "GameName": "Deus Ex",
+                "Notifications":[ "defaultDiscord" ]
+            },
+            {
+                "GameName": "Deus Ex",
+                "Notifications":[ "defaultTwitter" ]
+            }
+        ]
+        self.TestConfig()
+
+    def HandleGame(self, game: dict):
+        newStreams = super().HandleGame(game)
+        print('got', len(newStreams), 'new streams for: ', game)
+        self.test('assertEqual', len(newStreams), 1, 'got 1 newStreams')
 
 setVerbose(9)
 unittest.main(verbosity=9, warnings="error", failfast=True)
