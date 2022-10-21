@@ -1,3 +1,4 @@
+from linecache import clearcache
 from typeguard import typechecked, importhook
 importhook.install_import_hook('libStreamDetective')
 from libStreamDetective.libStreamDetective import *
@@ -56,6 +57,14 @@ class BaseTestCase(unittest.TestCase):
     def test_multiples(self):
         sd = TestMultiples(self)
 
+    def test_args(self):
+        sd = TestStreamDetectiveBase(self, 0, clearCache=True, testStream=TestStream({
+            'game': "Deus Ex", "user": "Heinki", "title": "Deus Ex Randomizer", "tag_ids": ["2fd30cb8-f2e5-415d-9d42-1316cfa61367"]
+        }))
+        sd.test('assertEqual', sd.totalWebhooksSent, 1, 'totalWebhooksSent')
+        online = sd.CheckUser('Heinki')
+        self.verboseAssert(self, 'assertEqual', online, True, 'Heinki is online')
+
 
 def GetCacheDir():
     tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
@@ -64,7 +73,7 @@ def GetCacheDir():
 
 @typechecked
 class TestStreamDetectiveBase(StreamDetective):
-    def __init__(self, tester: BaseTestCase, startIteration=0):
+    def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
         print('\n\n', type(self), '__init__ starting')
         self.tester = tester
         self.totalTweetsSent = 0
@@ -75,7 +84,10 @@ class TestStreamDetectiveBase(StreamDetective):
         self.getStreamsApiCalls = 0
         self.tempDir = GetCacheDir()
         self.iterations = startIteration
-        StreamDetective.__init__(self, dry_run=False, tempDir=self.tempDir)
+        if kargs.get('clearCache'):
+            self.ClearCache()
+            kargs.pop('clearCache')
+        StreamDetective.__init__(self, dry_run=False, tempDir=self.tempDir, **kargs)
         print('\n', type(self), '__init__ done\n')
 
     def test(self, testname:str, *args):

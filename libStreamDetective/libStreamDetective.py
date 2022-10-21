@@ -1,3 +1,4 @@
+import random
 from urllib.parse import urlencode
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -21,8 +22,15 @@ path = os.path.dirname(path)
 configFileName="config.json"
 cacheFileName="cache.json"
 
+def TestStream(testStream):
+    return {
+        "id": random.randint(1, 999999999), "game_name": testStream['game'],
+        "user_id": "123", "user_login": testStream['user'], "user_name": testStream['user'],
+        "title": testStream['title'], "tag_ids": testStream.get('tag_ids', [])
+    }
+
 class StreamDetective:
-    def __init__ (self, dry_run=False, tempDir=None):
+    def __init__ (self, dry_run=False, tempDir=None, testStream=None, checkUser=None):
         print(datetime.now().isoformat()+': StreamDetective starting')
 
         if tempDir:
@@ -61,7 +69,18 @@ class StreamDetective:
             print("Created default config.json file")
             exit(0)
         
-        self.FetchAllStreams()
+        if testStream:
+            print("\n\nUsing testStream", testStream)
+            testStream['game_id'] = self.GetGameId(testStream['game_name'])
+            self.fetchedStreamers = [testStream]
+            self.fetchedGames = {}
+            self.fetchedGames[testStream["game_id"]] = [testStream]
+        else:
+            self.FetchAllStreams()
+
+        if checkUser:
+            self.CheckUser(checkUser)
+            return
         
         self.HandleSearches()
         
@@ -125,6 +144,27 @@ class StreamDetective:
             for streamer in streamers:
                 allStreamersUrl += "user_login="+streamer+"&"
             self.fetchedStreamers = self.GetAllStreams(allStreamersUrl)
+
+    
+    def CheckUser(self, user):
+        for s in self.fetchedStreamers:
+            if s['user_name'] == user:
+                print('found', user, s)
+                return True
+        
+        for g in self.fetchedGames.values():
+            for s in g:
+                if s['user_name'] == user:
+                    print('found', user, s)
+                    return True
+
+        url = self.streamsUrl + 'user_login='+user
+        self.fetchedStreamers = self.GetAllStreams(url)
+        for s in self.fetchedStreamers:
+            if s['user_name'] == user:
+                print('found', user, s)
+                return True
+        return False
             
     
     def TestConfig(self):
