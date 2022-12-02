@@ -1,3 +1,4 @@
+from linecache import clearcache
 from typeguard import typechecked, importhook
 importhook.install_import_hook('libStreamDetective')
 from libStreamDetective.libStreamDetective import *
@@ -53,6 +54,17 @@ class BaseTestCase(unittest.TestCase):
         sd = TestCooldown(self, 1)
         sd = TestCooldown(self, 2)
 
+    def test_multiples(self):
+        sd = TestMultiples(self)
+
+    def test_args(self):
+        sd = TestStreamDetectiveBase(self, 0, clearCache=True, testStream=TestStream({
+            'game': "Deus Ex", "user": "Heinki", "title": "Deus Ex Randomizer", "tag_ids": ["2fd30cb8-f2e5-415d-9d42-1316cfa61367"]
+        }))
+        sd.test('assertEqual', sd.totalWebhooksSent, 1, 'totalWebhooksSent')
+        online = sd.CheckUser('Heinki')
+        self.verboseAssert(self, 'assertEqual', online, True, 'Heinki is online')
+
 
 def GetCacheDir():
     tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
@@ -61,7 +73,7 @@ def GetCacheDir():
 
 @typechecked
 class TestStreamDetectiveBase(StreamDetective):
-    def __init__(self, tester: BaseTestCase, startIteration=0):
+    def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
         print('\n\n', type(self), '__init__ starting')
         self.tester = tester
         self.totalTweetsSent = 0
@@ -73,7 +85,10 @@ class TestStreamDetectiveBase(StreamDetective):
         self.getStreamsApiCalls = 0
         self.tempDir = GetCacheDir()
         self.iterations = startIteration
-        StreamDetective.__init__(self, dry_run=False, tempDir=self.tempDir)
+        if kargs.get('clearCache'):
+            self.ClearCache()
+            kargs.pop('clearCache')
+        StreamDetective.__init__(self, dry_run=False, tempDir=self.tempDir, **kargs)
         print('\n', type(self), '__init__ done\n')
 
     def test(self, testname:str, *args):
@@ -277,7 +292,8 @@ class TestStreamDetective1(TestStreamDetectiveBase):
         self.test('assertEqual', self.totalTootsSent, 2, 'totalTootsSent')
         self.test('assertEqual', self.totalWebhooksSent, 3, 'totalWebhooksSent')
         self.test('assertEqual', self.totalPushbulletsSent, 2, 'totalPushbulletsSent')
-        self.test('assertEqual', self.totalCooldownsCaught, 0, 'totalCooldownsCaught')
+        # the config.example.json has 2 Deus Ex Randomizer entries going to defaultDiscord
+        self.test('assertEqual', self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
 
 
 @typechecked
@@ -318,6 +334,33 @@ class TestCooldown(TestStreamDetectiveBase):
             self.ClearCache()
             self.test('fail', 'Unexpected iteration '+str(self.iterations))
 
+
+@typechecked
+class TestMultiples(TestStreamDetectiveBase):
+    def __init__(self, tester: BaseTestCase, startIteration=0):
+        self.ClearCache()
+        TestStreamDetectiveBase.__init__(self, tester, startIteration)
+        self.test('assertEqual', self.totalWebhooksSent, 1, 'totalWebhooksSent')
+        self.test('assertEqual', self.totalTweetsSent, 1, 'totalTweetsSent')
+    
+    def HandleConfigFile(self):
+        super().HandleConfigFile()
+        self.config['Searches'] = [
+            {
+                "GameName": "Deus Ex",
+                "Notifications":[ "defaultDiscord" ]
+            },
+            {
+                "GameName": "Deus Ex",
+                "Notifications":[ "defaultTwitter" ]
+            }
+        ]
+        self.TestConfig()
+
+    def HandleGame(self, game: dict):
+        newStreams = super().HandleGame(game)
+        print('got', len(newStreams), 'new streams for: ', game)
+        self.test('assertEqual', len(newStreams), 1, 'got 1 newStreams')
 
 setVerbose(9)
 unittest.main(verbosity=9, warnings="error", failfast=True)
