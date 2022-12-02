@@ -65,6 +65,7 @@ class TestStreamDetectiveBase(StreamDetective):
         print('\n\n', type(self), '__init__ starting')
         self.tester = tester
         self.totalTweetsSent = 0
+        self.totalTootsSent = 0
         self.totalWebhooksSent = 0
         self.totalPushbulletsSent = 0
         self.totalCooldownsCaught = 0
@@ -95,11 +96,13 @@ class TestStreamDetectiveBase(StreamDetective):
 
     def HandleGame(self, game: dict):
         self.tweetsSent = 0
+        self.tootsSent = 0
         self.webhooksSent = 0
         self.pushbulletsSent = 0
         self.cooldownsCaught = 0
         newStreams = super().HandleGame(game)
         self.totalTweetsSent += self.tweetsSent
+        self.totalTootsSent += self.tootsSent
         self.totalWebhooksSent += self.webhooksSent
         self.totalCooldownsCaught += self.cooldownsCaught
         self.totalPushbulletsSent += self.pushbulletsSent
@@ -114,11 +117,13 @@ class TestStreamDetectiveBase(StreamDetective):
 
     def HandleStreamer(self, streamer):
         self.tweetsSent = 0
+        self.tootsSent = 0
         self.webhooksSent = 0
         self.pushbulletsSent = 0
         self.cooldownsCaught = 0
         newStreams = super().HandleStreamer(streamer)
         self.totalTweetsSent += self.tweetsSent
+        self.totalTootsSent += self.tootsSent
         self.totalWebhooksSent += self.webhooksSent
         self.totalCooldownsCaught += self.cooldownsCaught
         self.totalPushbulletsSent += self.pushbulletsSent
@@ -149,6 +154,11 @@ class TestStreamDetectiveBase(StreamDetective):
         }
         
         self.config['NotificationServices'][2]['ApiKey'] = '1234567890'
+
+        self.config['NotificationServices'][3]['ClientKey'] = "ClientKey"
+        self.config['NotificationServices'][3]['ClientSecret'] = "ClientSecret"
+        self.config['NotificationServices'][3]['AccessToken'] = "AccessToken"
+        self.config['NotificationServices'][3]['BaseURL'] = "BaseURL"
 
         self.TestConfig()
     
@@ -255,6 +265,8 @@ class TestStreamDetectiveBase(StreamDetective):
     def sendPushBulletMessage(self,apiKey,title,body,emails=None,url=None):
         self.pushbulletsSent += 1
 
+    def sendToot(self,profile,msg):
+        self.tootsSent += 1
 
 @typechecked
 class TestStreamDetective1(TestStreamDetectiveBase):
@@ -262,6 +274,7 @@ class TestStreamDetective1(TestStreamDetectiveBase):
         self.ClearCache()
         TestStreamDetectiveBase.__init__(self, tester, startIteration)
         self.test('assertEqual', self.totalTweetsSent, 2, 'totalTweetsSent')
+        self.test('assertEqual', self.totalTootsSent, 2, 'totalTootsSent')
         self.test('assertEqual', self.totalWebhooksSent, 3, 'totalWebhooksSent')
         self.test('assertEqual', self.totalPushbulletsSent, 2, 'totalPushbulletsSent')
         self.test('assertEqual', self.totalCooldownsCaught, 0, 'totalCooldownsCaught')

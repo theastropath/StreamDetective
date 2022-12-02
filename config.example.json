@@ -22,14 +22,14 @@
 		},
 		{
 			"GameName": "Fall Guys",
-			"Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet"]
+			"Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet","defaultMastodon"]
 		},
         {
             "UserName":"YourFavouriteStreamer",
 			"filters": [
                 {"DontMatchString": " Rerun "}
             ],
-            "Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet"]
+            "Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet","defaultMastodon"]
         }
     ],
 	"NotificationServices":[{
@@ -52,6 +52,15 @@
         "Type":"Pushbullet",
         "ApiKey":"",
         "emails":[]
-    }]
+    },
+    {
+        "ProfileName":"defaultMastodon",
+        "Type":"Mastodon",
+        "ClientKey":"",
+        "ClientSecret":"",
+        "AccessToken":"",
+        "BaseURL":""
+    }
+    ]
 
 }

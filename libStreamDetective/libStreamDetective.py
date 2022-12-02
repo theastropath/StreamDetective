@@ -14,6 +14,7 @@ from datetime import datetime
 import time
 import tweepy
 import re
+from mastodon import Mastodon
 
 path = os.path.realpath(os.path.dirname(__file__))
 path = os.path.dirname(path)
@@ -200,7 +201,12 @@ class StreamDetective:
                 assert service.get("UserName"), 'testing discord config for: ' + repr(service)
             elif service.get("Type")=="Pushbullet":
                 assert service.get("ApiKey"), 'testing pushbullet config for: ' + repr(service)
-            
+            elif service.get("Type")=="Mastodon":
+                assert service.get("ClientKey"), 'testing mastodon config for: ' + repr(service)
+                assert service.get("ClientSecret"), 'testing mastodon config for: ' + repr(service)
+                assert service.get("AccessToken"), 'testing mastodon config for: ' + repr(service)
+                assert service.get("BaseURL"), 'testing mastodon config for: ' + repr(service)
+
                 
             
             
@@ -638,6 +644,8 @@ class StreamDetective:
             self.handleDiscordMsgs(service,entry,filteredStreams)
         elif service["Type"] == "Twitter":
             self.handleTwitterMsgs(service,filteredStreams)
+        elif service["Type"] == "Mastodon":
+            self.handleMastoMsgs(service,filteredStreams)
         else:
             trace("Unknown Notification Service Type: "+service["Type"])
     
@@ -654,6 +662,20 @@ class StreamDetective:
             #print(msg)
             #print("Sending to "+str(profile))
             self.sendTweet(service,msg)
+
+    def handleMastoMsgs(self,service,newStreams):
+        for stream in newStreams:
+            msg = stream["user_name"] #The capitalized version of the name
+            msg+=' is playing '+stream['game_name']+' on Twitch'
+            msg+="\n\n"
+            msg+= stream["title"]
+            link = "\n\nhttps://twitch.tv/"+stream["user_login"]
+            if len(msg)+len(link) >= 500:
+                msg = msg[:500-len(link)-3] + '...'
+            msg+=link
+            #print(msg)
+            #print("Sending to "+str(profile))
+            self.sendToot(service,msg)
 
     
     def handlePushBulletMsgs(self,service,newStreams):
@@ -745,6 +767,22 @@ class StreamDetective:
         except Exception as e:
             logex(e, "Encountered an issue when attempting to tweet: ", msg)
         
+    def sendToot(self,profile,msg):
+        msg = msg[:500]
+
+        api = Mastodon(client_id=profile["ClientKey"],
+                       client_secret=profile["ClientSecret"],
+                       access_token=profile["AccessToken"],
+                       api_base_url=profile["BaseURL"])
+
+        try:
+            response = api.status_post(msg)
+            print("Toot sent")
+            debug(response)
+        except Exception as e:
+            logex(e, "Encountered an issue when attempting to toot: ", msg)
+
+
 
     def genTwitterMsgs(self,twitterProfile,streams):
         profiles = self.GetTwitterProfile(twitterProfile)
