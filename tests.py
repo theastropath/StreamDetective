@@ -36,9 +36,10 @@ class BaseTestCase(unittest.TestCase):
     def tearDown(self):
         global failures
         numDetectedErrors = 0
-        for error in self._outcome.errors:
-            if error[1]:
-                numDetectedErrors+=1
+        # this doesn't work in Python 3.11, _outcome doesn't have errors
+        #for error in self._outcome.errors:
+        #    if error[1]:
+        #        numDetectedErrors+=1
         if numDetectedErrors==0:
             for fail in failures:
                 logex(fail, 'caught failure')
