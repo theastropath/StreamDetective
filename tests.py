@@ -1,3 +1,4 @@
+import autoinstaller
 from linecache import clearcache
 from typeguard import typechecked, importhook
 importhook.install_import_hook('libStreamDetective')
