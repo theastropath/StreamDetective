@@ -20,8 +20,9 @@ def check_requirement(r):
         install(r)
         # make sure it installed properly, this especially helps catch missing entries in import_names
         importlib.invalidate_caches()
-        if not importlib.util.find_spec(m):
-            raise Exception('failed to install '+r)
+        importlib.import_module(m)
+        #if not importlib.util.find_spec(m):
+        #    raise Exception('failed to install '+r)
 
 
 def install(r):
