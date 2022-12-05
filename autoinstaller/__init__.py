@@ -1,11 +1,15 @@
+# autoinstaller
+# automatically install modules as the user, this helps with APIs and crons that run as a user you don't have permission to install for
 import importlib
 import importlib.util
 import subprocess
 import sys
 
-import_names = { 'Mastodon.py': 'mastodon' }
+import_names = { 'Mastodon.py': 'mastodon', 'Pillow': 'PIL' }
 
 def check_requirement(r):
+    if not r:
+        return
     m = import_names.get(r, r)
     need_install = False
     
@@ -14,7 +18,7 @@ def check_requirement(r):
             # we don't want to install from inside the try block
             need_install = True
     except Exception as e:
-        print(r, 'failed to find_spec, need to install,', e)
+        print(r, 'failed to find_spec, need to install,', e, file=sys.stderr)
         need_install = True
     
     if need_install:
@@ -26,7 +30,7 @@ def check_requirement(r):
 
 
 def install(r):
-    print('need to install:', r)
+    print('need to install:', r, file=sys.stderr)
     subprocess.run(["pip3", "install", '--user', r], check=True, capture_output=True)
 
 
