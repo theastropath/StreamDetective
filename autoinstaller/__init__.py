@@ -11,6 +11,7 @@ def check_requirement(r):
     
     try:
         if not importlib.util.find_spec(m):
+            # we don't want to install from inside the try block
             need_install = True
     except Exception as e:
         print(r, 'failed to find_spec, need to install,', e)
@@ -19,12 +20,7 @@ def check_requirement(r):
     if need_install:
         install(r)
         # make sure it installed properly, this especially helps catch missing entries in import_names
-        importlib.invalidate_caches()
-        import site
-        p = site.getusersitepackages()
-        if not p in sys.path:
-            sys.path.append(p)
-        #importlib.import_module(m)
+        invalidate_caches()
         if not importlib.util.find_spec(m):
             raise Exception('failed to install '+r)
 
@@ -32,8 +28,15 @@ def check_requirement(r):
 def install(r):
     print('need to install:', r)
     subprocess.run(["pip3", "install", '--user', r], check=True, capture_output=True)
-    #pip.main(['install', '--user', r])
 
+
+def invalidate_caches():
+    importlib.invalidate_caches()
+    # workaround for bug in invalidate_caches before python 3.10
+    import site
+    p = site.getusersitepackages()
+    if p not in sys.path:
+        sys.path.append(p)
 
 with open('requirements.txt') as requirements:
     for r in requirements:
