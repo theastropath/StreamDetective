@@ -4,6 +4,7 @@ import importlib
 import importlib.util
 import subprocess
 import sys
+import os.path
 
 import_names = { 'Mastodon.py': 'mastodon', 'Pillow': 'PIL' }
 
@@ -42,6 +43,11 @@ def invalidate_caches():
     if p not in sys.path:
         sys.path.append(p)
 
-with open('requirements.txt') as requirements:
+file = os.path.dirname(__file__)
+file = os.path.realpath(file)
+file = os.path.dirname(file)
+file = os.path.join(file, 'requirements.txt')
+
+with open(file) as requirements:
     for r in requirements:
         check_requirement(r.strip(' \t\n\r'))
