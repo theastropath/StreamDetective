@@ -3,6 +3,7 @@
 	"accessToken": "",
 	"IgnoreStreams": [],
 	"CooldownSeconds": 3600,
+        "ErrorNotifications": ["defaultPushbullet"],
 	"Searches": [
 		{
 			"GameName": "Deus Ex",

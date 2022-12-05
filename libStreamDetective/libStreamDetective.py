@@ -259,7 +259,13 @@ class StreamDetective:
         if os.path.exists(configFileFullPath):
             with open(configFileFullPath, 'r') as f:
                 self.config = json.load(f)
-            self.TestConfig()
+            
+            try:
+                self.TestConfig()
+            except AssertionError as e:
+                self.genErrorMsgs("Config validation failed: "+str(e))
+                raise
+        
         else:
             print("Writing default config.json file")
             config = {}
@@ -278,12 +284,12 @@ class StreamDetective:
                 try:
                     self.HandleGame(search)
                 except Exception as e:
-                    logex(e, 'error in', search)
+                    logex(self, e, 'error in', search)
             elif "UserName" in search:
                 try:
                     self.HandleStreamer(search)
                 except Exception as e:
-                    logex(e, 'error in', search)
+                    logex(self, e, 'error in', search)
                 
 
 
@@ -309,7 +315,7 @@ class StreamDetective:
             trace(url, response.headers, response.text)
             result = json.loads(response.text)
         except Exception as e:
-            logex(e, 'request for '+url+' failed: ')
+            logex(self, e, 'request for '+url+' failed: ')
             raise
 
         if not result:
@@ -356,7 +362,7 @@ class StreamDetective:
                     self.tagsCache = cache.get('tags',{})
                     self.cooldowns = cache.get('cooldowns',{})
         except Exception as e:
-            logex(e, 'error in LoadCacheFile ', cacheFileFullPath)
+            logex(self, e, 'error in LoadCacheFile ', cacheFileFullPath)
 
 
     def AddGameIdToCache(self,gameName,gameId):
@@ -497,7 +503,7 @@ class StreamDetective:
                 f.close()
                 return streamInfoOld
             except Exception as e:
-                logex(e, 'ReadGameCache failed at:', saveLocation, ', with config:', game)
+                logex(self, e, 'ReadGameCache failed at:', saveLocation, ', with config:', game)
         return None
         
     def ReadStreamerCache(self, streamer):
@@ -509,7 +515,7 @@ class StreamDetective:
                 f.close()
                 return streamInfoOld
             except Exception as e:
-                logex(e, 'ReadStreamerCache failed at:', saveLocation, ', with config:', streamer)
+                logex(self, e, 'ReadStreamerCache failed at:', saveLocation, ', with config:', streamer)
         return None
 
     def WriteGameCache(self, game, streamInfo):
@@ -585,7 +591,6 @@ class StreamDetective:
 
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
-        
         gameId = self.GetGameId(game["GameName"])
 
         streamInfo = self.ReadGameCache(game)
@@ -655,6 +660,14 @@ class StreamDetective:
             if notService["ProfileName"] in notifications:
                 self.handleSingleNotificationService(notService,entry,newStreams)
     
+    def genErrorMsgs(self,errMsg):
+        notifications = self.config.get("ErrorNotifications",[])
+
+        for notService in self.config.get("NotificationServices",[]):
+            if notService["ProfileName"] in notifications:
+                self.handleErrorSingleNotificationService(notService,errMsg)
+ 
+
     def filterIgnoredStreams(self,profileName,newStreams):
         IgnoreStreams = self.config.get('IgnoreStreams', [])
         
@@ -691,7 +704,20 @@ class StreamDetective:
             self.handleMastoMsgs(service,filteredStreams)
         else:
             trace("Unknown Notification Service Type: "+service["Type"])
-    
+
+    def handleErrorSingleNotificationService(self,service,errMsg):
+        if   service["Type"] == "Pushbullet":
+            self.sendPushBulletMessage(service["ApiKey"],"Stream Detective Error",errMsg)
+        elif service["Type"] == "Discord":
+            self.sendWebhookMsg(service, errMsg, [], [], [])
+        elif service["Type"] == "Twitter":
+            self.sendTweet(service,errMsg,raise_exc=False)
+        elif service["Type"] == "Mastodon":
+            self.sendToot(service,errMsg,raise_exc=False)
+        else:
+            trace("Unknown Notification Service Type: "+service["Type"])
+
+
     def handleTwitterMsgs(self,service,newStreams):
         for stream in newStreams:
             msg = stream["user_name"] #The capitalized version of the name
@@ -713,10 +739,11 @@ class StreamDetective:
             msg+=' is playing '+stream['game_name']+' on Twitch'
             msg+="\n\n"
             msg+= stream["title"]
-            link = "\n\nhttps://twitch.tv/"+stream["user_login"]
-            if len(msg)+len(link) >= 500:
-                msg = msg[:500-len(link)-3] + '...'
-            msg+=link
+            after = "\n\nhttps://twitch.tv/"+stream["user_login"]
+            after += "\n\n#StreamDetective"
+            if len(msg)+len(after) >= 500:
+                msg = msg[:500-len(after)-3] + '...'
+            msg+=after
             #print(msg)
             #print("Sending to "+str(profile))
             self.sendToot(service,msg)
@@ -795,7 +822,7 @@ class StreamDetective:
                     profiles.append(profile)
         return profiles
 
-    def sendTweet(self,profile,msg):
+    def sendTweet(self,profile,msg,raise_exc=True):
         msg = msg[:280]
         api = tweepy.Client( bearer_token=profile["BearerToken"], 
                                     consumer_key=profile["ApiKey"], 
@@ -809,9 +836,10 @@ class StreamDetective:
             print("Tweet sent")
             debug(response)
         except Exception as e:
-            logex(e, "Encountered an issue when attempting to tweet: ", msg)
+            if raise_exc:
+                logex(self, e, "Encountered an issue when attempting to tweet: ", msg)
         
-    def sendToot(self,profile,msg):
+    def sendToot(self,profile,msg,raise_exc=True):
         msg = msg[:500]
 
         api = Mastodon(client_id=profile["ClientKey"],
@@ -824,7 +852,8 @@ class StreamDetective:
             print("Toot sent")
             debug(response)
         except Exception as e:
-            logex(e, "Encountered an issue when attempting to toot: ", msg)
+            if raise_exc:
+                logex(self, e, "Encountered an issue when attempting to toot: ", msg)
 
 
 
@@ -926,7 +955,7 @@ class StreamDetective:
             try:
                 gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
             except Exception as e:
-                logex(e)
+                logex(self,e)
 
             url="https://twitch.tv/"+stream["user_login"]
             content += url + ' is playing ' + gameName
@@ -1012,9 +1041,13 @@ class StreamDetective:
         cooldown['last_notified'] = now.isoformat()
         return False
 
-def logex(e, *args):
+def logex(sd, e, *args):
     estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
     print("\nERROR: "+estr, *args, '\n')
+    
+    if sd:
+        argsStr = " ".join([*args])
+        sd.genErrorMsgs("ERROR: "+estr+argsStr)
 
 def fromisoformat(iso):
     # for compatibility with python 3.6
