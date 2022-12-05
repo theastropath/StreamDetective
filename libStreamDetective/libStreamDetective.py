@@ -698,10 +698,11 @@ class StreamDetective:
             msg+=' is playing '+stream['game_name']+' on Twitch'
             msg+="\n\n"
             msg+= stream["title"]
-            link = "\n\nhttps://twitch.tv/"+stream["user_login"]
-            if len(msg)+len(link) >= 280:
-                msg = msg[:280-len(link)-3] + '...'
-            msg+=link
+            after = "\n\nhttps://twitch.tv/"+stream["user_login"]
+            after += "\n\n#StreamDetective"
+            if len(msg)+len(after) >= 280:
+                msg = msg[:280-len(after)-3] + '...'
+            msg+=after
             #print(msg)
             #print("Sending to "+str(profile))
             self.sendTweet(service,msg)
