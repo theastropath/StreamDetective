@@ -415,13 +415,14 @@ class StreamDetective:
             url = lookupUrl
             if not lookupUrl.endswith('&'):
                 url += '&'
-            url += "first=100" #Fetch 100 streams at a time
+            url += "first=100" # Fetch 100 streams at a time
             
             if cursor!="":
                 url+="&after="+cursor
             
             result = None
             result = self.TwitchApiRequest(url)
+            # Twitch API doesn't always return full pages, so we need to load the next page no matter what
             if "pagination" in result and "cursor" in result["pagination"]:
                 keepGoing = True
                 cursor = result["pagination"]["cursor"]
@@ -435,7 +436,7 @@ class StreamDetective:
                 #print(stream["user_login"])
                 
             if keepGoing:
-                time.sleep(0.1) #pace yourself a little bit
+                time.sleep(0.1) # pace yourself a little bit
             
         return allStreams        
     
