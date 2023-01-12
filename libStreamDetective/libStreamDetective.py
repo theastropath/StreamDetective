@@ -27,7 +27,7 @@ def TestStream(testStream):
     return {
         "id": random.randint(1, 999999999), "game_name": testStream['game'],
         "user_id": "123", "user_login": testStream['user'], "user_name": testStream['user'],
-        "title": testStream['title'], "tag_ids": testStream.get('tag_ids', [])
+        "title": testStream['title'], "tags": testStream.get('tags', [])
     }
 
 class StreamDetective:
@@ -53,11 +53,9 @@ class StreamDetective:
         self.streamsUrl='https://api.twitch.tv/helix/streams?'
         self.usersUrl='https://api.twitch.tv/helix/users?'
         self.gameIdUrlBase='https://api.twitch.tv/helix/games?'
-        self.tagsUrl='https://api.twitch.tv/helix/tags/streams?'
         
         self.gameIdCache={}
         self.gameArtCache={}
-        self.tagsCache={}
         self.cooldowns={}
         self.LoadCacheFiles()
         
@@ -346,7 +344,6 @@ class StreamDetective:
         with open(cacheFileFullPath, 'w') as f:
             cache = { 'gameIds': self.gameIdCache,
                 'gameArt': self.gameArtCache,
-                'tags': self.tagsCache,
                 'cooldowns': self.cooldowns
             }
             json.dump(cache,f,indent=4)
@@ -359,7 +356,6 @@ class StreamDetective:
                     cache = json.load(f)
                     self.gameIdCache = cache.get('gameIds',{})
                     self.gameArtCache = cache.get('gameArt',{})
-                    self.tagsCache = cache.get('tags',{})
                     self.cooldowns = cache.get('cooldowns',{})
         except Exception as e:
             logex(self, e, 'error in LoadCacheFile ', cacheFileFullPath)
@@ -446,24 +442,25 @@ class StreamDetective:
 
         if not tags:
             tags = []
-
+        print(tags)
         if filter.get('MatchTag'):
-            if filter["MatchTag"] not in tags:
+            if filter["MatchTag"].lower() not in tags:
                 return False
         if filter.get('MatchTagName'):
-            if filter["MatchTagName"] not in self.GetTagNames(tags):
+            print(filter["MatchTagName"].lower())
+            if filter["MatchTagName"].lower() not in tags:
                 return False
         if filter.get('MatchString'):
             if filter["MatchString"].lower() not in title.lower():
                 return False
         if filter.get('DontMatchTag'):
-            if filter['DontMatchTag'] in tags:
+            if filter['DontMatchTag'].lower() in tags:
                 return False
         if filter.get('DontMatchString'):
             if filter['DontMatchString'].lower() in title.lower():
                 return False
         if filter.get('DontMatchTagName'):
-            if filter["DontMatchTagName"] in self.GetTagNames(tags):
+            if filter["DontMatchTagName"].lower() in tags:
                 return False
         if filter.get('MatchGameName'):
             if filter["MatchGameName"] != gameName:
@@ -482,6 +479,9 @@ class StreamDetective:
         if not entry.get('filters'):
             # return True if the filters array is empty, or the key is missing
             return True
+        
+        if tags:
+            tags=[x.lower() for x in tags]
         
         for filter in entry['filters']:
             if self.CheckStreamFilter(filter, streamer, title, tags, gameName):
@@ -548,7 +548,7 @@ class StreamDetective:
             id = stream['id']
             userlogin = stream['user_login']
             title = stream['title']
-            tags = stream['tag_ids']
+            tags = stream['tags']
             stream['last_seen'] = now.isoformat()
             matched = self.CheckStream(streamer, userlogin, title, tags, stream["game_name"])
             if matched:
@@ -609,7 +609,7 @@ class StreamDetective:
             id = stream['id']
             streamer = stream['user_login']
             title = stream['title']
-            tags = stream['tag_ids']
+            tags = stream['tags']
             stream['last_seen'] = now.isoformat()
             matched = self.CheckStream(game, streamer, title, tags, stream["game_name"])
             if matched:
@@ -900,36 +900,6 @@ class StreamDetective:
             return result["data"][0]["profile_image_url"]
             
         return ""
-
-    def GetTagNames(self,tags):
-        if not tags:
-            return []
-        tagNames=[]
-        tagsUrl = self.tagsUrl
-        tagsToFind=0
-        
-        for tag in tags:
-            if tag in self.tagsCache:
-                #print("Found tag "+tag+" as "+self.tagsCache[tag])
-                tagNames.append(self.tagsCache[tag])
-            else:               
-                tagsUrl+="tag_id="+tag+"&"
-                tagsToFind+=1
-                
-        if tagsToFind==0:
-            return tagNames
-
-        result = self.TwitchApiRequest(tagsUrl)
-        #trace(str(result))
-        #if "data" in result and "profile_image_url" in result["data"][0]:
-        #    return result["data"][0]["profile_image_url"]
-        if "data" in result:
-            for tagResult in result["data"]:
-                #print(tagResult["localization_names"]["en-us"])
-                tagName = tagResult["localization_names"]["en-us"]
-                self.tagsCache[tagResult["tag_id"]]=tagName
-                tagNames.append(tagName)                
-        return tagNames
         
     def getGameBoxArt(self,gameName,width,height):
         if gameName in self.gameArtCache:
@@ -983,7 +953,7 @@ class StreamDetective:
 
             tagsField={}
             tagsField["name"]="Tags"
-            tagNames = self.GetTagNames(stream["tag_ids"])
+            tagNames = stream["tags"]
             if tagNames:
                 tagsField["value"]=", ".join(tagNames)
             else:

@@ -61,7 +61,7 @@ class BaseTestCase(unittest.TestCase):
 
     def test_args(self):
         sd = TestStreamDetectiveBase(self, 0, clearCache=True, testStream=TestStream({
-            'game': "Deus Ex", "user": "Heinki", "title": "Deus Ex Randomizer", "tag_ids": ["2fd30cb8-f2e5-415d-9d42-1316cfa61367"]
+            'game': "Deus Ex", "user": "Heinki", "title": "Deus Ex Randomizer", "tags": ["StreamDetectiveTest"]
         }))
         sd.test('assertEqual', sd.totalWebhooksSent, 1, 'totalWebhooksSent')
         online = sd.CheckUser('Heinki')
@@ -206,7 +206,7 @@ class TestStreamDetectiveBase(StreamDetective):
                     "started_at": "2020-06-22T00:00:00Z",
                     "language": "en",
                     "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
-                    "tag_ids": ["2fd30cb8-f2e5-415d-9d42-1316cfa61367"],
+                    "tags": ["StreamDetectiveTest"],
                     "is_mature": True,
                     "last_seen": "2020-06-22T00:00:00Z"
                 })
@@ -224,7 +224,7 @@ class TestStreamDetectiveBase(StreamDetective):
                     "started_at": "2020-06-22T00:00:00Z",
                     "language": "en",
                     "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
-                    "tag_ids": [],
+                    "tags": [],
                     "is_mature": True,
                     "last_seen": "2020-06-22T00:00:00Z"
                 })
@@ -245,7 +245,7 @@ class TestStreamDetectiveBase(StreamDetective):
                     "started_at": "2020-06-22T00:00:00Z",
                     "language": "en",
                     "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
-                    "tag_ids": [],
+                    "tags": [],
                     "is_mature": True,
                     "last_seen": "2020-06-22T00:00:00Z"
                 }
