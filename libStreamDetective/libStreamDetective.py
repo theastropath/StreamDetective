@@ -449,6 +449,13 @@ class StreamDetective:
         if filter.get('MatchTagName'):
             if filter["MatchTagName"].lower() not in tags:
                 return False
+        if filter.get('MatchTagSubstring'):
+            found=False
+            for tag in tags:
+                if filter["MatchTagSubstring"].lower() in tag:
+                    found=True
+            if not found:
+                return False
         if filter.get('MatchString'):
             if filter["MatchString"].lower() not in title.lower():
                 return False
@@ -461,6 +468,13 @@ class StreamDetective:
         if filter.get('DontMatchTagName'):
             if filter["DontMatchTagName"].lower() in tags:
                 return False
+        if filter.get('DontMatchTagSubstring'):
+            found=False
+            for tag in tags:
+                if filter["MatchTagSubstring"].lower() in tag:
+                    found=True
+            if found:
+                return False        
         if filter.get('MatchGameName'):
             if filter["MatchGameName"] != gameName:
                 return False
