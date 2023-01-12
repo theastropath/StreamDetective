@@ -1,4 +1,4 @@
-Stream Detective
+# Stream Detective
 
 This is a bot to give you notifications about Twitch streams based on the category, title, tags, and/or streamer. It was originally created to alert us about streams of Deus Ex Randomizer and our other mods, and also The 7th Guest, The 11th Hour, and The 13th Doll. Stream Detective can send the notifications to Discord, Twitter, Mastodon, and Pushbullet.
 
