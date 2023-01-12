@@ -709,13 +709,13 @@ class StreamDetective:
             return
         
         if   service["Type"] == "Pushbullet":
-            self.handlePushBulletMsgs(service,filteredStreams)
+            self.handlePushBulletMsgs(service,entry,filteredStreams)
         elif service["Type"] == "Discord":
             self.handleDiscordMsgs(service,entry,filteredStreams)
         elif service["Type"] == "Twitter":
-            self.handleTwitterMsgs(service,filteredStreams)
+            self.handleTwitterMsgs(service,entry,filteredStreams)
         elif service["Type"] == "Mastodon":
-            self.handleMastoMsgs(service,filteredStreams)
+            self.handleMastoMsgs(service,entry,filteredStreams)
         else:
             trace("Unknown Notification Service Type: "+service["Type"])
 
@@ -732,10 +732,14 @@ class StreamDetective:
             trace("Unknown Notification Service Type: "+service["Type"])
 
 
-    def handleTwitterMsgs(self,service,newStreams):
+    def handleTwitterMsgs(self,service,entry,newStreams):
+        titleOverride=entry.get("TitleOverride",None)
         for stream in newStreams:
             msg = stream["user_name"] #The capitalized version of the name
-            msg+=' is playing '+stream['game_name']+' on Twitch'
+            if titleOverride:
+                msg+=' is playing '+titleOverride+' on Twitch'
+            else:
+                msg+=' is playing '+stream['game_name']+' on Twitch'
             msg+="\n\n"
             msg+= stream["title"]
             after = "\n\nhttps://twitch.tv/"+stream["user_login"]
@@ -747,10 +751,14 @@ class StreamDetective:
             #print("Sending to "+str(profile))
             self.sendTweet(service,msg)
 
-    def handleMastoMsgs(self,service,newStreams):
+    def handleMastoMsgs(self,service,entry,newStreams):
+        titleOverride=entry.get("TitleOverride",None)
         for stream in newStreams:
             msg = stream["user_name"] #The capitalized version of the name
-            msg+=' is playing '+stream['game_name']+' on Twitch'
+            if titleOverride:
+                msg+=' is playing '+titleOverride+' on Twitch'
+            else:
+                msg+=' is playing '+stream['game_name']+' on Twitch'
             msg+="\n\n"
             msg+= stream["title"]
             after = "\n\nhttps://twitch.tv/"+stream["user_login"]
@@ -763,10 +771,14 @@ class StreamDetective:
             self.sendToot(service,msg)
 
     
-    def handlePushBulletMsgs(self,service,newStreams):
+    def handlePushBulletMsgs(self,service,entry,newStreams):
+        titleOverride=entry.get("TitleOverride",None)
         for stream in newStreams:
             title = stream["title"]
-            msg = stream["user_login"]+" is playing "+stream["game_name"]
+            if titleOverride:
+                msg = stream["user_login"]+" is playing "+titleOverride
+            else:
+                msg = stream["user_login"]+" is playing "+stream["game_name"]
             url = "https://twitch.tv/"+stream["user_login"]
             self.sendPushBulletMessage(service["ApiKey"],title,msg,url=url,emails=service.get("emails"))
     
@@ -930,11 +942,16 @@ class StreamDetective:
         return ""
         
 
-    def buildDiscordMsgs(self, discordProfile, toSend, atUserId):
+    def buildDiscordMsgs(self, discordProfile, toSend, atUserId, titleOverride=None):
         content = ''
         embeds = []
         for stream in toSend:
-            gameName = stream["game_name"]
+        
+            if titleOverride:
+                gameName = titleOverride
+            else:
+                gameName = stream["game_name"]
+                       
             gameArtUrl = ''
             try:
                 gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
@@ -985,8 +1002,9 @@ class StreamDetective:
 
     def handleDiscordMsgs(self,profile,entry,newList):
         atUserId = entry.get('atUserId')
+        titleOverride=entry.get('TitleOverride',None)
 
-        self.buildDiscordMsgs(profile, newList, atUserId)
+        self.buildDiscordMsgs(profile, newList, atUserId, titleOverride)
     
 
     def genWebhookMsgs(self, discordProfile, gameName, newList, atUserId):
