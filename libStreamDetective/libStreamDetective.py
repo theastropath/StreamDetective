@@ -442,12 +442,11 @@ class StreamDetective:
 
         if not tags:
             tags = []
-        print(tags)
+
         if filter.get('MatchTag'):
             if filter["MatchTag"].lower() not in tags:
                 return False
         if filter.get('MatchTagName'):
-            print(filter["MatchTagName"].lower())
             if filter["MatchTagName"].lower() not in tags:
                 return False
         if filter.get('MatchString'):
