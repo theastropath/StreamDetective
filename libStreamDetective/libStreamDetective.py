@@ -167,19 +167,14 @@ class StreamDetective:
             
     
     def TestConfig(self):
-        assert self.config.get('clientId')
-        assert self.config.get('accessToken')
+        assert self.config.get('clientId'), 'config has clientId'
+        assert self.config.get('accessToken'), 'config has accessToken'
+        assert self.config.get('Searches'), 'config has Searches'
+        assert self.config.get('NotificationServices'), 'config has NotificationServices'
 
         for search in self.config.get('Searches',[]):
-            #Must have one but not both
+            # Must have one but not both
             assert ("GameName" in search) ^ ("UserName" in search), 'testing config for search: ' + repr(search)
-
-        for game in self.config.get('Games',[]):
-            assert game.get('GameName'), 'testing config for game: ' + repr(game)
-            #assert game.get('DiscordWebhook'), 'testing config for ' + game['GameName']
-        
-        for streamer in self.config.get('Streamers',[]):
-            assert streamer.get('UserName'), 'testing config for streamer: ' + repr(streamer)
         
         for discord in self.config.get('DiscordProfiles', []):
             assert discord.get("ProfileName"), 'testing discord config for: ' + repr(discord)
@@ -245,9 +240,6 @@ class StreamDetective:
                 assert service.get("AccessToken"), 'testing mastodon config for: ' + repr(service)
                 assert service.get("BaseURL"), 'testing mastodon config for: ' + repr(service)
 
-                
-            
-            
         for i in range(len(self.config.get('IgnoreStreams', []))):
             self.config['IgnoreStreams'][i] = self.config['IgnoreStreams'][i].lower()
 
