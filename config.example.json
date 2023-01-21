@@ -1,54 +1,54 @@
 {
-	"clientId": "",
-	"accessToken": "",
-	"IgnoreStreams": [],
-	"CooldownSeconds": 3600,
-        "ErrorNotifications": ["defaultPushbullet"],
-	"Searches": [
-		{
-			"GameName": "Deus Ex",
-			"filters": [
-				{ "MatchTag": "2fd30cb8-f2e5-415d-9d42-1316cfa61367" },
-				{ "MatchString": "rando" }
-			],
+    "clientId": "",
+    "accessToken": "",
+    "IgnoreStreams": [],
+    "CooldownSeconds": 3600,
+    "ErrorNotifications": ["defaultPushbullet"],
+    "Searches": [
+        {
+            "GameName": "Deus Ex",
+            "filters": [
+                { "MatchTagName": "Randomizer" },
+                { "MatchString": "rando" }
+            ],
             "Notifications":["defaultDiscord"]
-		},
-		{
-			"GameName": "Deus Ex",
-			"filters": [
-				{ "MatchTagName": "Randomizer" },
-				{ "MatchString": "rando" }
-			],
+        },
+        {
+            "GameName": "Retro",
+            "filters": [
+                { "MatchString": "7th Guest" }
+            ],
+            "TitleOverride": "The 7th Guest",
             "Notifications":["defaultDiscord"]
-		},
-		{
-			"GameName": "Fall Guys",
-			"Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet","defaultMastodon"]
-		},
+        },
+        {
+            "GameName": "Fall Guys",
+            "Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet","defaultMastodon"]
+        },
         {
             "UserName":"YourFavouriteStreamer",
-			"filters": [
+            "filters": [
                 {"DontMatchString": " Rerun "}
             ],
             "Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet","defaultMastodon"]
         }
     ],
-	"NotificationServices":[{
+    "NotificationServices":[{
         "ProfileName":"defaultDiscord",
         "Type":"Discord",
         "Webhook":"",
         "UserName":"Stream Detective"
     },
-	{
+    {
         "ProfileName":"defaultTwitter",
         "Type":"Twitter",
-    	"BearerToken":"",
-    	"ApiKey":"",
-    	"ApiKeySecret":"",
-    	"AccessToken":"",
-    	"AccessTokenSecret":""
+        "BearerToken":"",
+        "ApiKey":"",
+        "ApiKeySecret":"",
+        "AccessToken":"",
+        "AccessTokenSecret":""
     },
-	{
+    {
         "ProfileName":"defaultPushbullet",
         "Type":"Pushbullet",
         "ApiKey":"",
@@ -63,5 +63,4 @@
         "BaseURL":""
     }
     ]
-
 }

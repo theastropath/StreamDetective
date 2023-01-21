@@ -13,7 +13,7 @@ class BetterAssertionError(AssertionError):
         global failures
         AssertionError.__init__(self, *args)
         failures.append(self)
-        logex(self)
+        logex(None, self)
 
 @typechecked
 class BaseTestCase(unittest.TestCase):
@@ -43,7 +43,7 @@ class BaseTestCase(unittest.TestCase):
         #        numDetectedErrors+=1
         if numDetectedErrors==0:
             for fail in failures:
-                logex(fail, 'caught failure')
+                logex(None, fail, 'caught failure')
             self.assertEqual(len(failures), 0, 'caught exceptions')
         
         return super().tearDown()
@@ -295,7 +295,7 @@ class TestStreamDetective1(TestStreamDetectiveBase):
         self.test('assertEqual', self.totalWebhooksSent, 3, 'totalWebhooksSent')
         self.test('assertEqual', self.totalPushbulletsSent, 2, 'totalPushbulletsSent')
         # the config.example.json has 2 Deus Ex Randomizer entries going to defaultDiscord
-        self.test('assertEqual', self.totalCooldownsCaught, 1, 'totalCooldownsCaught')
+        self.test('assertEqual', self.totalCooldownsCaught, 0, 'totalCooldownsCaught')
 
 
 @typechecked

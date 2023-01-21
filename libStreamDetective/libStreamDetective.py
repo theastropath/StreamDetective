@@ -1043,8 +1043,12 @@ class StreamDetective:
         cooldown['last_notified'] = now.isoformat()
         return False
 
-def logex(sd, e, *args):
-    estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
+def logex(sd: StreamDetective | None, e: BaseException, *args):
+    try:
+        estr = "".join(traceback.format_exception(BaseException, e, e.__traceback__))
+    except:
+        estr = str(e)
+
     print("\nERROR: "+estr, *args, '\n')
     
     if sd:
