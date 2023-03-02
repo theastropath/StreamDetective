@@ -11,7 +11,8 @@
                 { "MatchTagName": "Randomizer" },
                 { "MatchString": "rando" }
             ],
-            "Notifications":["defaultDiscord"]
+            "Notifications":["defaultDiscord"],
+            "CustomDiscordMessage": "Get in here! <@&1080719252417417226>"
         },
         {
             "GameName": "Retro",

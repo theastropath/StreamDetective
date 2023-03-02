@@ -934,9 +934,11 @@ class StreamDetective:
         return ""
         
 
-    def buildDiscordMsgs(self, discordProfile, toSend, atUserId, titleOverride=None):
+    def buildDiscordMsgs(self, discordProfile, toSend, atUserId, titleOverride, customMessage):
         content = ''
         embeds = []
+        if customMessage:
+            content += customMessage + '\n'
         for stream in toSend:
         
             if titleOverride:
@@ -988,6 +990,8 @@ class StreamDetective:
                 self.sendWebhookMsg(discordProfile, content, embeds, atUserId,gameArtUrl)
                 content = ''
                 embeds = []
+                if customMessage:
+                    content += customMessage + '\n'
         
         if content:
             self.sendWebhookMsg(discordProfile, content, embeds, atUserId,gameArtUrl)
@@ -995,8 +999,9 @@ class StreamDetective:
     def handleDiscordMsgs(self,profile,entry,newList):
         atUserId = entry.get('atUserId')
         titleOverride=entry.get('TitleOverride',None)
+        customMessage=entry.get('CustomDiscordMessage')
 
-        self.buildDiscordMsgs(profile, newList, atUserId, titleOverride)
+        self.buildDiscordMsgs(profile, newList, atUserId, titleOverride, customMessage)
     
 
     def genWebhookMsgs(self, discordProfile, gameName, newList, atUserId):
