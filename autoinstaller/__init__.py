@@ -1,38 +1,31 @@
 # autoinstaller
 # automatically install modules as the user, this helps with APIs and crons that run as a user you don't have permission to install for
 import importlib
-import importlib.util
 import subprocess
 import sys
 import os.path
-
-import_names = { 'Mastodon.py': 'mastodon', 'Pillow': 'PIL' }
+import pkg_resources
 
 def check_requirement(r):
     if not r:
         return
-    m = import_names.get(r, r)
     need_install = False
     
     try:
-        if not importlib.util.find_spec(m):
-            # we don't want to install from inside the try block
-            need_install = True
+        pkg_resources.require(r)
     except Exception as e:
-        print(r, 'failed to find_spec, need to install,', e, file=sys.stderr)
+        print(r, 'failed to pkg_resources.require, need to install,', e, file=sys.stderr)
         need_install = True
     
     if need_install:
         install(r)
         # make sure it installed properly, this especially helps catch missing entries in import_names
-        invalidate_caches()
-        if not importlib.util.find_spec(m):
-            raise Exception('failed to install '+r)
-
+        pkg_resources.require(r)
 
 def install(r):
     print('need to install:', r, file=sys.stderr)
-    subprocess.run(["pip3", "install", '--user', r], check=True, capture_output=True)
+    subprocess.run(["pip3", "install", '--user', '--upgrade', r], check=True, capture_output=True)
+    invalidate_caches()
 
 
 def invalidate_caches():

@@ -1,3 +1,3 @@
 tweepy
-typeguard
+typeguard>=3.0.0
 Mastodon.py

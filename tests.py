@@ -1,7 +1,7 @@
 import autoinstaller
 from linecache import clearcache
-from typeguard import typechecked, importhook
-importhook.install_import_hook('libStreamDetective')
+from typeguard import typechecked, install_import_hook
+install_import_hook('libStreamDetective')
 from libStreamDetective.libStreamDetective import *
 import shutil
 import unittest
