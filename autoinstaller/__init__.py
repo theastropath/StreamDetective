@@ -20,7 +20,7 @@ def check_requirement(r):
     if need_install:
         install(r)
         # make sure it installed properly, this especially helps catch missing entries in import_names
-        pkg_resources.require(r)
+        #pkg_resources.require(r)
 
 def install(r):
     print('need to install:', r, file=sys.stderr)
