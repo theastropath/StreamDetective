@@ -67,10 +67,28 @@ class BaseTestCase(unittest.TestCase):
         online = sd.CheckUser('Heinki')
         self.verboseAssert(self, 'assertEqual', online, True, 'Heinki is online')
 
+    def test_config(self):
+        TestStreamDetectiveConfig(self)
+
 
 def GetCacheDir():
     tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
     return tempDir
+
+
+@typechecked
+class TestStreamDetectiveConfig(StreamDetective):
+    def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
+        print('\n\n', type(self), '__init__ starting')
+        configFileFullPath = os.path.join(path,configFileName)
+        #oldverbose = getVerbose()
+        #setVerbose(0)
+        if os.path.exists(configFileFullPath):
+            self.HandleConfigFile()
+            #StreamDetective.__init__(self, dry_run=True)
+        else:
+            print('no config file, skipping test')
+        #setVerbose(oldverbose)
 
 
 @typechecked

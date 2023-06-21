@@ -428,6 +428,13 @@ class StreamDetective:
             
         return allStreams        
     
+    def GetFilter(self, filter, name) -> list:
+        f = filter.get(name, [])
+        if not isinstance(f, list):
+            f = [f]
+        return f
+    
+
     def CheckStreamFilter(self, filter, streamer, title, tags, gameName):
         if not filter.keys():
             return True
@@ -435,46 +442,57 @@ class StreamDetective:
         if not tags:
             tags = []
 
-        if filter.get('MatchTag'):
-            if filter["MatchTag"].lower() not in tags:
+        for f in self.GetFilter(filter, 'MatchTag'):
+            if f.lower() not in tags:
                 return False
-        if filter.get('MatchTagName'):
-            if filter["MatchTagName"].lower() not in tags:
+        for f in self.GetFilter(filter, 'MatchTagName'):
+            if f.lower() not in tags:
                 return False
-        if filter.get('MatchTagSubstring'):
+        for f in self.GetFilter(filter, 'MatchTagSubstring'):
             found=False
             for tag in tags:
-                if filter["MatchTagSubstring"].lower() in tag:
+                if f.lower() in tag:
                     found=True
             if not found:
                 return False
-        if filter.get('MatchString'):
-            if filter["MatchString"].lower() not in title.lower():
+        for f in self.GetFilter(filter, 'MatchString'):
+            if f.lower() not in title.lower():
                 return False
-        if filter.get('DontMatchTag'):
-            if filter['DontMatchTag'].lower() in tags:
+        for f in self.GetFilter(filter, 'DontMatchTag'):
+            if f.lower() in tags:
                 return False
-        if filter.get('DontMatchString'):
-            if filter['DontMatchString'].lower() in title.lower():
+        for f in self.GetFilter(filter, 'DontMatchString'):
+            if f.lower() in title.lower():
                 return False
-        if filter.get('DontMatchTagName'):
-            if filter["DontMatchTagName"].lower() in tags:
+        for f in self.GetFilter(filter, 'DontMatchTagName'):
+            if f.lower() in tags:
                 return False
-        if filter.get('DontMatchTagSubstring'):
+        for f in self.GetFilter(filter, 'DontMatchTagSubstring'):
             found=False
             for tag in tags:
-                if filter["MatchTagSubstring"].lower() in tag:
+                if f.lower() in tag:
                     found=True
             if found:
-                return False        
-        if filter.get('MatchGameName'):
-            if filter["MatchGameName"] != gameName:
                 return False
-        if filter.get('DontMatchGameName'):
-            if filter["DontMatchGameName"] == gameName:
+        for f in self.GetFilter(filter, 'MatchGameName'):
+            if f != gameName:
                 return False
-        if filter.get('DontMatchUser'):
-            if filter["DontMatchUser"].lower() == streamer.lower():
+        for f in self.GetFilter(filter, 'DontMatchGameName'):
+            if f == gameName:
+                return False
+        for f in self.GetFilter(filter, 'DontMatchUser'):
+            if f.lower() == streamer.lower():
+                return False
+            
+        for f in self.GetFilter(filter, 'SearchRegex'):
+            found = False
+            if re.search(f, title, flags=re.IGNORECASE):
+                found = True
+            if not found:
+                return False
+            
+        for f in self.GetFilter(filter, 'DontSearchRegex'):
+            if re.search(f, title, flags=re.IGNORECASE):
                 return False
 
         return True
@@ -1076,5 +1094,9 @@ def setVerbose(v: int):
         trace = print
     else:
         trace = lambda *a: None # do-nothing function
+
+def getVerbose() -> int:
+    global verbose
+    return verbose
 
 setVerbose(verbose)
