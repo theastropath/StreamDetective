@@ -17,6 +17,8 @@ import tweepy
 import re
 from mastodon import Mastodon
 
+from libStreamDetective.config import validateConfig
+
 path = os.path.realpath(os.path.dirname(__file__))
 path = os.path.dirname(path)
 
@@ -167,79 +169,7 @@ class StreamDetective:
             
     
     def TestConfig(self):
-        assert self.config.get('clientId'), 'config has clientId'
-        assert self.config.get('accessToken'), 'config has accessToken'
-        assert self.config.get('Searches'), 'config has Searches'
-        assert self.config.get('NotificationServices'), 'config has NotificationServices'
-
-        for search in self.config.get('Searches',[]):
-            # Must have one but not both
-            assert ("GameName" in search) ^ ("UserName" in search), 'testing config for search: ' + repr(search)
-        
-        for discord in self.config.get('DiscordProfiles', []):
-            assert discord.get("ProfileName"), 'testing discord config for: ' + repr(discord)
-            assert discord.get("Webhook"), 'testing discord config for: ' + repr(discord)
-            assert discord.get("UserName"), 'testing discord config for: ' + repr(discord)
-
-        for twitter in self.config.get('TwitterAccounts', []):
-            assert twitter.get("AccountName"), 'testing twitter config for: ' + repr(twitter)
-
-            assert twitter.get("ApiKey"), 'testing twitter config for: ' + repr(twitter)
-            assert len(twitter.get("ApiKey")) == 25, 'testing twitter config for: ' + repr(twitter)
-            assert '-' not in twitter.get("ApiKey"), 'testing twitter config for: ' + repr(twitter)
-
-            assert twitter.get("ApiKeySecret"), 'testing twitter config for: ' + repr(twitter)
-            assert len(twitter.get("ApiKeySecret")) == 50, 'testing twitter config for: ' + repr(twitter)
-            assert'-' not in twitter.get("ApiKeySecret"), 'testing twitter config for: ' + repr(twitter)
-
-            assert twitter.get("AccessToken"), 'testing twitter config for: ' + repr(twitter)
-            assert len(twitter.get("AccessToken")) == 50, 'testing twitter config for: ' + repr(twitter)
-            assert '-' in twitter.get("AccessToken"), 'testing twitter config for: ' + repr(twitter)
-
-            assert twitter.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(twitter)
-            assert len(twitter.get("AccessTokenSecret")) == 45, 'testing twitter config for: ' + repr(twitter)
-            assert '-' not in twitter.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(twitter)
-
-            assert twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
-            assert len(twitter.get("BearerToken")) > 60, 'testing twitter config for: ' + repr(twitter)
-            assert '-' not in twitter.get("BearerToken"), 'testing twitter config for: ' + repr(twitter)
-            
-        for service in self.config.get('NotificationServices',[]):
-            assert service.get("ProfileName"), 'testing notification service for: ' + repr(service)
-            assert service.get("Type"), 'testing notification service for: ' + repr(service)
-            
-            if service.get("Type")=="Twitter":
-                assert service.get("ApiKey"), 'testing twitter config for: ' + repr(service)
-                assert len(service.get("ApiKey")) == 25, 'testing twitter config for: ' + repr(service)
-                assert '-' not in service.get("ApiKey"), 'testing twitter config for: ' + repr(service)
-
-                assert service.get("ApiKeySecret"), 'testing twitter config for: ' + repr(service)
-                assert len(service.get("ApiKeySecret")) == 50, 'testing twitter config for: ' + repr(service)
-                assert'-' not in service.get("ApiKeySecret"), 'testing twitter config for: ' + repr(service)
-
-                assert service.get("AccessToken"), 'testing twitter config for: ' + repr(service)
-                assert len(service.get("AccessToken")) == 50, 'testing twitter config for: ' + repr(service)
-                assert '-' in service.get("AccessToken"), 'testing twitter config for: ' + repr(service)
-
-                assert service.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(service)
-                assert len(service.get("AccessTokenSecret")) == 45, 'testing twitter config for: ' + repr(service)
-                assert '-' not in service.get("AccessTokenSecret"), 'testing twitter config for: ' + repr(service)
-
-                assert service.get("BearerToken"), 'testing twitter config for: ' + repr(service)
-                assert len(service.get("BearerToken")) > 60, 'testing twitter config for: ' + repr(service)
-                assert '-' not in service.get("BearerToken"), 'testing twitter config for: ' + repr(service)
-                
-            elif service.get("Type")=="Discord":
-                assert service.get("Webhook"), 'testing discord config for: ' + repr(service)
-                assert service.get("UserName"), 'testing discord config for: ' + repr(service)
-            elif service.get("Type")=="Pushbullet":
-                assert service.get("ApiKey"), 'testing pushbullet config for: ' + repr(service)
-            elif service.get("Type")=="Mastodon":
-                assert service.get("ClientKey"), 'testing mastodon config for: ' + repr(service)
-                assert service.get("ClientSecret"), 'testing mastodon config for: ' + repr(service)
-                assert service.get("AccessToken"), 'testing mastodon config for: ' + repr(service)
-                assert service.get("BaseURL"), 'testing mastodon config for: ' + repr(service)
-
+        validateConfig(self.config)
         for i in range(len(self.config.get('IgnoreStreams', []))):
             self.config['IgnoreStreams'][i] = self.config['IgnoreStreams'][i].lower()
 
