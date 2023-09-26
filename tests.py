@@ -3,17 +3,27 @@ from linecache import clearcache
 from typeguard import typechecked, install_import_hook
 install_import_hook('libStreamDetective')
 from libStreamDetective.libStreamDetective import *
+from libStreamDetective import notifiers
 import shutil
 import unittest
 
 failures = []
 
+@typechecked
 class BetterAssertionError(AssertionError):
     def __init__(self, *args):
         global failures
         AssertionError.__init__(self, *args)
         failures.append(self)
         logex(None, self)
+
+@typechecked
+def TestStream(testStream):
+    return {
+        "id": random.randint(1, 999999999), "game_name": testStream['game'],
+        "user_id": "123", "user_login": testStream['user'], "user_name": testStream['user'],
+        "title": testStream['title'], "tags": testStream.get('tags', [])
+    }
 
 @typechecked
 class BaseTestCase(unittest.TestCase):
@@ -63,7 +73,7 @@ class BaseTestCase(unittest.TestCase):
         sd = TestStreamDetectiveBase(self, 0, clearCache=True, testStream=TestStream({
             'game': "Deus Ex", "user": "Heinki", "title": "Deus Ex Randomizer", "tags": ["StreamDetectiveTest"]
         }))
-        sd.test('assertEqual', sd.totalWebhooksSent, 1, 'totalWebhooksSent')
+        sd.test('assertEqual', sd.notifiers['defaultDiscord'].MessagesSent, 1, 'totalWebhooksSent')
         online = sd.CheckUser('Heinki')
         self.verboseAssert(self, 'assertEqual', online, True, 'Heinki is online')
 
@@ -81,6 +91,8 @@ class TestStreamDetectiveConfig(StreamDetective):
     def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
         print('\n\n', type(self), '__init__ starting')
         configFileFullPath = os.path.join(path,configFileName)
+        self.dry_run = True
+        self.notifiers = {}
         #oldverbose = getVerbose()
         #setVerbose(0)
         if os.path.exists(configFileFullPath):
@@ -92,14 +104,16 @@ class TestStreamDetectiveConfig(StreamDetective):
 
 
 @typechecked
+class TestNotifier(notifiers.Notifier):
+    def handleMsgs(self, entry, filteredStreams):
+        pass
+
+
+@typechecked
 class TestStreamDetectiveBase(StreamDetective):
     def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
         print('\n\n', type(self), '__init__ starting')
         self.tester = tester
-        self.totalTweetsSent = 0
-        self.totalTootsSent = 0
-        self.totalWebhooksSent = 0
-        self.totalPushbulletsSent = 0
         self.totalCooldownsCaught = 0
         self.twitchApiCalls = 0
         self.getStreamsApiCalls = 0
@@ -114,6 +128,12 @@ class TestStreamDetectiveBase(StreamDetective):
     def test(self, testname:str, *args):
         self.tester.verboseAssert(self, testname, *args)
 
+    def AddNotifier(self, config):
+        NotifierName = config['ProfileName']
+        assert NotifierName not in self.notifiers
+        self.notifiers[NotifierName] = TestNotifier(config, self)
+        print(repr(self.notifiers))
+    
     def ClearCache(self):
         print('Clearing Cache '+str(type(self)))
         self.tempDir = GetCacheDir()
@@ -130,17 +150,9 @@ class TestStreamDetectiveBase(StreamDetective):
                 self.HandleStreamer(search)
 
     def HandleGame(self, game: dict):
-        self.tweetsSent = 0
-        self.tootsSent = 0
-        self.webhooksSent = 0
-        self.pushbulletsSent = 0
         self.cooldownsCaught = 0
         newStreams = super().HandleGame(game)
-        self.totalTweetsSent += self.tweetsSent
-        self.totalTootsSent += self.tootsSent
-        self.totalWebhooksSent += self.webhooksSent
         self.totalCooldownsCaught += self.cooldownsCaught
-        self.totalPushbulletsSent += self.pushbulletsSent
         self.iterations += 1
         return newStreams
 
@@ -151,17 +163,9 @@ class TestStreamDetectiveBase(StreamDetective):
         return super().GetAllStreamerStreams(streamer) #TwitchApiRequest always returns userlogin
 
     def HandleStreamer(self, streamer):
-        self.tweetsSent = 0
-        self.tootsSent = 0
-        self.webhooksSent = 0
-        self.pushbulletsSent = 0
         self.cooldownsCaught = 0
         newStreams = super().HandleStreamer(streamer)
-        self.totalTweetsSent += self.tweetsSent
-        self.totalTootsSent += self.tootsSent
-        self.totalWebhooksSent += self.webhooksSent
         self.totalCooldownsCaught += self.cooldownsCaught
-        self.totalPushbulletsSent += self.pushbulletsSent
         return newStreams
 
     def HandleConfigFile(self):
@@ -308,10 +312,11 @@ class TestStreamDetective1(TestStreamDetectiveBase):
     def __init__(self, tester: BaseTestCase, startIteration=0):
         self.ClearCache()
         TestStreamDetectiveBase.__init__(self, tester, startIteration)
-        self.test('assertEqual', self.totalTweetsSent, 2, 'totalTweetsSent')
-        self.test('assertEqual', self.totalTootsSent, 2, 'totalTootsSent')
-        self.test('assertEqual', self.totalWebhooksSent, 3, 'totalWebhooksSent')
-        self.test('assertEqual', self.totalPushbulletsSent, 2, 'totalPushbulletsSent')
+        n = self.notifiers
+        self.test('assertEqual', n['defaultTwitter'].MessagesSent, 2, 'totalTweetsSent')
+        self.test('assertEqual', n['defaultMastodon'].MessagesSent, 2, 'totalTootsSent')
+        self.test('assertEqual', n['defaultDiscord'].MessagesSent, 3, 'totalWebhooksSent')
+        self.test('assertEqual', n['defaultPushbullet'].MessagesSent, 2, 'totalPushbulletsSent')
         # the config.example.json has 2 Deus Ex Randomizer entries going to defaultDiscord
         self.test('assertEqual', self.totalCooldownsCaught, 0, 'totalCooldownsCaught')
 
@@ -339,16 +344,17 @@ class TestCooldown(TestStreamDetectiveBase):
     
     def HandleGame(self, game: dict):
         newStreams = super().HandleGame(game)
+        n = self.notifiers
 
         if self.iterations == 1:
-            self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
+            self.test('assertEqual', n['defaultDiscord'].MessagesSent, 1, 'webhooksSent')
             self.test('assertEqual', self.cooldownsCaught, 0, 'cooldownsCaught')
         elif self.iterations == 2:
-            self.test('assertEqual', self.webhooksSent, 0, 'webhooksSent')
+            self.test('assertEqual', n['defaultDiscord'].MessagesSent, 0, 'webhooksSent')
             self.test('assertEqual', self.cooldownsCaught, 1, 'cooldownsCaught')
         elif self.iterations == 3:
             self.ClearCache()
-            self.test('assertEqual', self.webhooksSent, 1, 'webhooksSent')
+            self.test('assertEqual', n['defaultDiscord'].MessagesSent, 1, 'webhooksSent')
             self.test('assertEqual', self.cooldownsCaught, 0, 'cooldownsCaught')
         else:
             self.ClearCache()
@@ -360,8 +366,9 @@ class TestMultiples(TestStreamDetectiveBase):
     def __init__(self, tester: BaseTestCase, startIteration=0):
         self.ClearCache()
         TestStreamDetectiveBase.__init__(self, tester, startIteration)
-        self.test('assertEqual', self.totalWebhooksSent, 1, 'totalWebhooksSent')
-        self.test('assertEqual', self.totalTweetsSent, 1, 'totalTweetsSent')
+        n = self.notifiers
+        self.test('assertEqual', n['defaultDiscord'].MessagesSent, 1, 'totalWebhooksSent')
+        self.test('assertEqual', n['defaultTwitter'].MessagesSent, 1, 'totalTweetsSent')
     
     def HandleConfigFile(self):
         super().HandleConfigFile()

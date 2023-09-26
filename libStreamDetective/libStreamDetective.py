@@ -18,6 +18,7 @@ import re
 from mastodon import Mastodon
 
 from libStreamDetective.config import validateConfig
+from libStreamDetective.notifiers import CreateNotifier
 
 path = os.path.realpath(os.path.dirname(__file__))
 path = os.path.dirname(path)
@@ -25,12 +26,6 @@ path = os.path.dirname(path)
 configFileName="config.json"
 cacheFileName="cache.json"
 
-def TestStream(testStream):
-    return {
-        "id": random.randint(1, 999999999), "game_name": testStream['game'],
-        "user_id": "123", "user_login": testStream['user'], "user_name": testStream['user'],
-        "title": testStream['title'], "tags": testStream.get('tags', [])
-    }
 
 class StreamDetective:
     def __init__ (self, dry_run=False, tempDir=None, testStream=None, checkUser=None):
@@ -59,6 +54,7 @@ class StreamDetective:
         self.gameIdCache={}
         self.gameArtCache={}
         self.cooldowns={}
+        self.notifiers={}
         self.LoadCacheFiles()
         
         self.rateLimitLimit=None
@@ -69,6 +65,9 @@ class StreamDetective:
         if self.HandleConfigFile():
             print("Created default config.json file")
             exit(0)
+
+        for NotifierConfig in self.config.get("NotificationServices", []):
+            self.AddNotifier(NotifierConfig)
         
         if testStream:
             print("\n\nUsing testStream", testStream)
@@ -197,7 +196,14 @@ class StreamDetective:
                 json.dump(config,f, indent=4)
 
             return True
-                
+
+
+    def AddNotifier(self, config):
+        name = config['ProfileName']
+        assert name not in self.notifiers
+        self.notifiers[name] = CreateNotifier(config, self)
+
+
     def HandleSearches(self):
         for search in self.config.get("Searches",[]):
             if "GameName" in search:
@@ -541,7 +547,6 @@ class StreamDetective:
         debug("\n\n")
         return newStreams
 
- 
 
     def HandleGame(self,game):
         print("Handling "+game["GameName"])
@@ -577,10 +582,6 @@ class StreamDetective:
         if hadCache and newStreams:
             print("  New Streams: "+str([stream['user_login'] for stream in newStreams]))
             
-            #To remove in time
-            self.genWebhookMsgs(self.GetDiscordProfile(game.get("DiscordProfile")), game["GameName"], newStreams, game.get('atUserId'))
-            self.genTwitterMsgs(game.get("Twitter",""),newStreams)
-            
             #New style
             self.genNotifications(newStreams,game)
             for stream in newStreams:
@@ -607,20 +608,24 @@ class StreamDetective:
         debug("\n\n")
         return newStreams
 
-    def genNotifications(self,newStreams,entry):
+
+    def genNotifications(self, newStreams, entry):
         notifications = entry.get("Notifications",[])
 
-        for notService in self.config.get("NotificationServices",[]):
-            if notService["ProfileName"] in notifications:
-                self.handleSingleNotificationService(notService,entry,newStreams)
+        for NotifierName in notifications:
+            notifier = self.notifiers.get(NotifierName)
+            if notifier:
+                notifier.handleSingleNotificationService(entry, newStreams)
     
+
     def genErrorMsgs(self,errMsg):
         notifications = self.config.get("ErrorNotifications",[])
 
-        for notService in self.config.get("NotificationServices",[]):
-            if notService["ProfileName"] in notifications:
-                self.handleErrorSingleNotificationService(notService,errMsg)
- 
+        for NotifierName in notifications:
+            notifier = self.notifiers.get(NotifierName)
+            if notifier:
+                notifier.handleErrorSingleNotificationService(errMsg)
+
 
     def filterIgnoredStreams(self,profileName,newStreams):
         IgnoreStreams = self.config.get('IgnoreStreams', [])
@@ -633,243 +638,12 @@ class StreamDetective:
             if self.checkIsOnCooldown(stream, profileName):
                 continue
             toSend.append(stream)
-        
-        
         return toSend
-    
-    def handleSingleNotificationService(self,service,entry,newStreams):
-        filteredStreams = self.filterIgnoredStreams(service["ProfileName"],newStreams)
-        if self.dry_run:
-            print('\nhandleSingleNotificationService dry-run')
-            print('service:')
-            print(service)
-            print('entry:')
-            print(entry)
-            print("  New Streams: "+str([stream['user_login'] for stream in newStreams]), '\n')
-            return
-        
-        if   service["Type"] == "Pushbullet":
-            self.handlePushBulletMsgs(service,entry,filteredStreams)
-        elif service["Type"] == "Discord":
-            self.handleDiscordMsgs(service,entry,filteredStreams)
-        elif service["Type"] == "Twitter":
-            self.handleTwitterMsgs(service,entry,filteredStreams)
-        elif service["Type"] == "Mastodon":
-            self.handleMastoMsgs(service,entry,filteredStreams)
-        else:
-            trace("Unknown Notification Service Type: "+service["Type"])
-
-    def handleErrorSingleNotificationService(self,service,errMsg):
-        if   service["Type"] == "Pushbullet":
-            self.sendPushBulletMessage(service["ApiKey"],"Stream Detective Error",errMsg)
-        elif service["Type"] == "Discord":
-            self.sendWebhookMsg(service, errMsg, [], [], [])
-        elif service["Type"] == "Twitter":
-            self.sendTweet(service,errMsg,raise_exc=False)
-        elif service["Type"] == "Mastodon":
-            self.sendToot(service,errMsg,raise_exc=False)
-        else:
-            trace("Unknown Notification Service Type: "+service["Type"])
 
 
-    def handleTwitterMsgs(self,service,entry,newStreams):
-        titleOverride=entry.get("TitleOverride",None)
-        for stream in newStreams:
-            msg = stream["user_name"] #The capitalized version of the name
-            if titleOverride:
-                msg+=' is playing '+titleOverride+' on Twitch'
-            else:
-                msg+=' is playing '+stream['game_name']+' on Twitch'
-            msg+="\n\n"
-            msg+= stream["title"]
-            after = "\n\nhttps://twitch.tv/"+stream["user_login"]
-            after += "\n\n#StreamDetective"
-            if len(msg)+len(after) >= 280:
-                msg = msg[:280-len(after)-3] + '...'
-            msg+=after
-            #print(msg)
-            #print("Sending to "+str(profile))
-            self.sendTweet(service,msg)
-
-    def handleMastoMsgs(self,service,entry,newStreams):
-        titleOverride=entry.get("TitleOverride",None)
-        for stream in newStreams:
-            msg = stream["user_name"] #The capitalized version of the name
-            if titleOverride:
-                msg+=' is playing '+titleOverride+' on Twitch'
-            else:
-                msg+=' is playing '+stream['game_name']+' on Twitch'
-            msg+="\n\n"
-            msg+= stream["title"]
-            after = "\n\nhttps://twitch.tv/"+stream["user_login"]
-            after += "\n\n#StreamDetective"
-            if len(msg)+len(after) >= 500:
-                msg = msg[:500-len(after)-3] + '...'
-            msg+=after
-            #print(msg)
-            #print("Sending to "+str(profile))
-            self.sendToot(service,msg)
-
-    
-    def handlePushBulletMsgs(self,service,entry,newStreams):
-        titleOverride=entry.get("TitleOverride",None)
-        for stream in newStreams:
-            title = stream["title"]
-            if titleOverride:
-                msg = stream["user_login"]+" is playing "+titleOverride
-            else:
-                msg = stream["user_login"]+" is playing "+stream["game_name"]
-            url = "https://twitch.tv/"+stream["user_login"]
-            self.sendPushBulletMessage(service["ApiKey"],title,msg,url=url,emails=service.get("emails"))
-    
-    def sendPushBulletMessage(self,apiKey,title,body,emails=[None],url=None):
-    
-        for email in emails:
-            data = {"type": "note",
-                    "title": title,
-                    "body": body,
-                    "url":url,
-                    "email":email}
-            
-            headers = {"Accept": "application/json",
-                       "Content-Type": "application/json",
-                       "User-Agent": "StreamDetective"}
-            
-            method = "POST"
-
-            url = "https://api.pushbullet.com/v2/pushes"
-
-            jsonData = json.dumps(data)
-            
-            r = requests.request(method,
-                                 url,
-                                 data=jsonData,
-                                 headers=headers,
-                                 auth=HTTPBasicAuth(apiKey, ""))
-
-            r.raise_for_status()
-            debug(r.json())
-
-
-    def GetDiscordProfile(self,profileName):
-        if "DiscordProfiles" not in self.config:
-            return []
-        
-        profileNames = []
-        profiles = []
-        
-        if type(profileName) is list:
-            profileNames=profileName
-        else:
-            profileNames.append(profileName)
-        
-        for profName in profileNames:
-            for profile in self.config["DiscordProfiles"]:
-                if profile["ProfileName"]==profName:
-                    profiles.append(profile)
-        return profiles
-
-    def GetTwitterProfile(self,profileName):
-        if "TwitterAccounts" not in self.config:
-            return []
-
-        profileNames = []
-        profiles = []
-        
-        if type(profileName) is list:
-            profileNames=profileName
-        else:
-            profileNames.append(profileName)
-            
-        for profName in profileNames:
-            for profile in self.config["TwitterAccounts"]:
-                name = profile.get("AccountName","")
-                if name == profName:
-                    profiles.append(profile)
-        return profiles
-
-    def sendTweet(self,profile,msg,raise_exc=True):
-        msg = msg[:280]
-        api = tweepy.Client( bearer_token=profile["BearerToken"], 
-                                    consumer_key=profile["ApiKey"], 
-                                    consumer_secret=profile["ApiKeySecret"], 
-                                    access_token=profile["AccessToken"], 
-                                    access_token_secret=profile["AccessTokenSecret"], 
-                                    return_type = requests.Response,
-                                    wait_on_rate_limit=True)
-        try:
-            response = api.create_tweet(text=msg)
-            print("Tweet sent")
-            debug(response)
-        except Exception as e:
-            if raise_exc:
-                logex(self, e, "Encountered an issue when attempting to tweet: ", msg)
-        
-    def sendToot(self,profile,msg,raise_exc=True):
-        msg = msg[:500]
-
-        api = Mastodon(client_id=profile["ClientKey"],
-                       client_secret=profile["ClientSecret"],
-                       access_token=profile["AccessToken"],
-                       api_base_url=profile["BaseURL"])
-
-        try:
-            response = api.status_post(msg)
-            print("Toot sent")
-            debug(response)
-        except Exception as e:
-            if raise_exc:
-                logex(self, e, "Encountered an issue when attempting to toot: ", msg)
-
-
-
-    def genTwitterMsgs(self,twitterProfile,streams):
-        profiles = self.GetTwitterProfile(twitterProfile)
-        
-        for profile in profiles:
-            if profile!=None:
-                for stream in streams:
-                    msg = stream["user_name"] #The capitalized version of the name
-                    msg+=' is playing '+stream['game_name']+' on Twitch'
-                    msg+="\n\n"
-                    msg+= stream["title"]
-                    link = "\n\nhttps://twitch.tv/"+stream["user_login"]
-                    if len(msg)+len(link) >= 280:
-                        msg = msg[:280-len(link)-3] + '...'
-                    msg+=link
-                    #print(msg)
-                    #print("Sending to "+str(profile))
-                    self.sendTweet(profile,msg)
-
-    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId, avatarUrl):
-        if len(embeds) >= 10:
-            embeds = [{"title": str(len(embeds))+' new streams!',"url":'https://twitch.tv',"description": str(len(embeds))+' new streams!'}]
-        if atUserId:
-            content += ' <@' + str(atUserId) + '>'
-        data={
-            "username":discordProfile["UserName"],
-            "content": content,
-            "embeds": embeds
-        }
-        if avatarUrl:
-            data['avatar_url'] = avatarUrl
-        debug(data)
-        response = requests.post(discordProfile["Webhook"],json=data)
-        print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
-
-    def GetUserProfilePicUrl(self,userId):
-        userUrl = self.usersUrl+"id="+userId
-
-        result = self.TwitchApiRequest(userUrl)
-        if "data" in result and "profile_image_url" in result["data"][0]:
-            return result["data"][0]["profile_image_url"]
-            
-        return ""
-        
     def getGameBoxArt(self,gameName,width,height):
         if gameName in self.gameArtCache:
             return self.gameArtCache[gameName]
-
 
         gameUrl = "https://api.twitch.tv/helix/games?name="+gameName
         
@@ -880,98 +654,8 @@ class StreamDetective:
             self.AddGameArtToCache(gameName,url)
             return url
         return ""
-        
 
-    def buildDiscordMsgs(self, discordProfile, toSend, atUserId, titleOverride, customMessage):
-        content = ''
-        embeds = []
-        if customMessage:
-            content += customMessage + '\n'
-        for stream in toSend:
-        
-            if titleOverride:
-                gameName = titleOverride
-            else:
-                gameName = stream["game_name"]
-                       
-            gameArtUrl = ''
-            try:
-                gameArtUrl = self.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
-            except Exception as e:
-                logex(self,e)
 
-            url="https://twitch.tv/"+stream["user_login"]
-            content += url + ' is playing ' + gameName
-            #content += ', VOD will probably be here '
-            #content += 'https://www.twitch.tv/'+stream["user_login"]+'/videos?filter=archives&sort=time'
-            content += '\n'
-
-            streamer = stream["user_name"]
-
-            title = stream["title"]
-            title+="\n\n"
-            title+='['+stream["user_login"]+' VODs](https://www.twitch.tv/'+stream["user_login"]+'/videos?filter=archives&sort=time)'
-                        
-            image = self.GetUserProfilePicUrl(stream["user_id"])
-            image = {"url":image}
-            
-            fields = []
-
-            gameField = {}
-            gameField["name"]="Game"
-            gameField["value"]=gameName
-            gameField["inline"]=True
-            fields.append(gameField)
-
-            tagsField={}
-            tagsField["name"]="Tags"
-            tagNames = stream["tags"]
-            if tagNames:
-                tagsField["value"]=", ".join(tagNames)
-            else:
-                tagsField["value"]="No Tags"
-            tagsField["inline"]=True
-            fields.append(tagsField)
-            
-            embeds.append({"title":streamer,"url":url,"description":title,"image":image,"fields":fields})
-            if len(content) >= 1700:
-                self.sendWebhookMsg(discordProfile, content, embeds, atUserId,gameArtUrl)
-                content = ''
-                embeds = []
-                if customMessage:
-                    content += customMessage + '\n'
-        
-        if content:
-            self.sendWebhookMsg(discordProfile, content, embeds, atUserId,gameArtUrl)
-
-    def handleDiscordMsgs(self,profile,entry,newList):
-        atUserId = entry.get('atUserId')
-        titleOverride=entry.get('TitleOverride',None)
-        customMessage=entry.get('CustomDiscordMessage')
-
-        self.buildDiscordMsgs(profile, newList, atUserId, titleOverride, customMessage)
-    
-
-    def genWebhookMsgs(self, discordProfile, gameName, newList, atUserId):
-        if not discordProfile:
-            return
-        
-        for profile in discordProfile:
-            webhookUrl = profile["Webhook"]
-            
-            IgnoreStreams = self.config.get('IgnoreStreams', [])
-            toSend = []
-            for stream in newList:
-                if stream["user_login"].lower() in IgnoreStreams:
-                    debug(stream["user_login"], 'is in IgnoreStreams')
-                    continue
-                if self.checkIsOnCooldown(stream, profile["ProfileName"]):
-                    continue
-                toSend.append(stream)
-            
-            if toSend:
-                self.buildDiscordMsgs(profile, toSend, atUserId)
-    
     def checkIsOnCooldown(self, stream, ProfileName) -> bool:
         user = stream["user_login"].lower()
         key = user + '-' + ProfileName
@@ -987,6 +671,9 @@ class StreamDetective:
             return True
         cooldown['last_notified'] = now.isoformat()
         return False
+
+
+
 
 def logex(sd: StreamDetective | None, e: BaseException, *args):
     try:
