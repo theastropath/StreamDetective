@@ -282,13 +282,13 @@ def CreateNotifier(config, parent) -> Notifier:
     type = config["Type"]
 
     if   type == "Pushbullet":
-        newClass = Notifier
+        newClass = PushbulletNotifier
     elif type == "Discord":
-        newClass = Notifier
+        newClass = DiscordNotifier
     elif type == "Twitter":
-        newClass = Notifier
+        newClass = TwitterNotifier
     elif type == "Mastodon":
-        newClass = Notifier
+        newClass = MastodonNotifier
     else:
         raise RuntimeError("unknown NotificationService type "+type, config)
     return newClass(config, parent)

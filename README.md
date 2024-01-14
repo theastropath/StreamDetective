@@ -2,7 +2,9 @@
 
 This is a bot to give you notifications about Twitch streams based on the category, title, tags, and/or streamer. It was originally created to alert us about streams of Deus Ex Randomizer and our other mods, and also The 7th Guest, The 11th Hour, and The 13th Doll. Stream Detective can send the notifications to Discord, Twitter, Mastodon, and Pushbullet.
 
-Discuss here https://discord.gg/YCGJ8nXtAs (and you can also see it in action in the #streams channel!)
+Discuss here https://discord.gg/YCGJ8nXtAs (and you can also see it in action in the #streams channel!) or on Lemmy https://lemmy.mods4ever.com/c/stream_detective 
+
+You can see all the running deployments of Stream Detective (that we know about) here https://lemmy.mods4ever.com/post/116
 
 To set up your own instance, copy the `config.example.json` file to `config.json` and adjust the settings as desired. `clientId` and `accessToken` are for the Twitch API. `Searches` is what streams to search for. `NotificationServices` is where it can send notifications to.
 
