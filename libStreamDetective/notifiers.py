@@ -17,6 +17,9 @@ class Notifier:
         self.ErrorsSent = 0
     
 
+    def sendError(self, errMsg):
+        raise RuntimeError(errMsg)
+
     def handleSingleNotificationService(self, entry, newStreams):
         filteredStreams = self.parent.filterIgnoredStreams(self.ProfileName, newStreams)
         if self.dry_run:
@@ -143,7 +146,7 @@ class DiscordNotifier(Notifier):
             try:
                 gameArtUrl = self.parent.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
             except Exception as e:
-                logex(self,e)
+                logex(self.parent, e)
 
             url="https://twitch.tv/"+stream["user_login"]
             content += url + ' is playing ' + gameName
@@ -230,7 +233,7 @@ class MastodonNotifier(Notifier):
             debug(response)
         except Exception as e:
             if raise_exc:
-                logex(self, e, "Encountered an issue when attempting to toot: ", msg)
+                logex(self.parent, e, "Encountered an issue when attempting to toot: ", msg)
 
 
 
@@ -277,7 +280,7 @@ class TwitterNotifier(Notifier):
             debug(response)
         except Exception as e:
             if raise_exc:
-                logex(self, e, "Encountered an issue when attempting to tweet: ", msg)
+                logex(self.parent, e, "Encountered an issue when attempting to tweet: ", msg)
 
 
 

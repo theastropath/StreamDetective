@@ -108,6 +108,9 @@ class TestNotifier(notifiers.Notifier):
     def handleMsgs(self, entry, filteredStreams):
         pass
 
+    def sendError(self, errMsg):
+        pass
+
 
 @typechecked
 class TestStreamDetectiveBase(StreamDetective):
