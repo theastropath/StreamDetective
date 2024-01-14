@@ -2,9 +2,12 @@
 from libStreamDetective import *
 from libStreamDetective.libStreamDetective import *
 
+debug = print
+trace = print
+
 class Notifier:
     usersUrl='https://api.twitch.tv/helix/users?'
-    
+
     def __init__(self, config, parent):
         self.config = config
         self.ProfileName = config['ProfileName']
