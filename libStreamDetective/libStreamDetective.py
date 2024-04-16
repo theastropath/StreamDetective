@@ -185,7 +185,7 @@ class StreamDetective:
             if 'Searches' not in self.config:
                 self.config['Searches'] = []
 
-            configsFolder = Path(searchesFolderPath)
+            configsFolder = Path(path) / searchesFolderPath
             for f in configsFolder.glob('*.json'):
                 data = f.read_text()
                 searches = json.loads(data)
