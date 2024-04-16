@@ -1,0 +1,31 @@
+[
+    {
+        "GameName": "Deus Ex",
+        "filters": [
+            { "MatchTagName": "Randomizer" },
+            { "MatchTagName": "Randomiser" },
+            { "MatchString": "rando" }
+        ],
+        "Notifications":["defaultDiscord"],
+        "CustomDiscordMessage": "Get in here! <@&1080719252417417226>"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            { "MatchString": "7th Guest" }
+        ],
+        "TitleOverride": "The 7th Guest",
+        "Notifications":["defaultDiscord"]
+    },
+    {
+        "GameName": "Fall Guys",
+        "Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet","defaultMastodon"]
+    },
+    {
+        "UserName":"YourFavouriteStreamer",
+        "filters": [
+            {"DontMatchString": " Rerun "}
+        ],
+        "Notifications": ["defaultTwitter","defaultDiscord","defaultPushbullet","defaultMastodon"]
+    }
+]

@@ -176,6 +176,11 @@ class TestStreamDetectiveBase(StreamDetective):
         exampleConfigFileFullPath = os.path.join(path,"config.example.json")
         with open(exampleConfigFileFullPath, 'r') as f:
             self.config = json.load(f)
+
+        exampleSearchFullPath = os.path.join(path,"searches/searches.json.example")
+        with open(exampleSearchFullPath, 'r') as f:
+            self.config['Searches'] = json.load(f)
+            validateSearchesConfig(self.config['Searches'], f)
         
         with self.tester.assertRaises(Exception):
             self.TestConfig()

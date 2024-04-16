@@ -7,6 +7,7 @@ from requests.exceptions import HTTPError, InvalidURL, ConnectionError
 import requests
 import json
 import os.path
+from pathlib import Path
 import sys
 import tempfile
 import traceback
@@ -17,7 +18,7 @@ import tweepy
 import re
 from mastodon import Mastodon
 
-from libStreamDetective.config import validateConfig
+from libStreamDetective.config import validateConfig, validateSearchesConfig
 from libStreamDetective.util import *
 from libStreamDetective.notifiers import CreateNotifier
 
@@ -25,6 +26,7 @@ path = os.path.realpath(os.path.dirname(__file__))
 path = os.path.dirname(path)
 
 configFileName="config.json"
+searchesFolderPath="searches"
 cacheFileName="cache.json"
 
 
@@ -179,6 +181,16 @@ class StreamDetective:
         if os.path.exists(configFileFullPath):
             with open(configFileFullPath, 'r') as f:
                 self.config = json.load(f)
+            
+            if 'Searches' not in self.config:
+                self.config['Searches'] = []
+
+            configsFolder = Path(searchesFolderPath)
+            for f in configsFolder.glob('*.json'):
+                data = f.read_text()
+                searches = json.loads(data)
+                validateSearchesConfig(searches, f)
+                self.config['Searches'].extend(searches)
             
             try:
                 self.TestConfig()
