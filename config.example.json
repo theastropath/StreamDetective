@@ -9,6 +9,7 @@
             "GameName": "Deus Ex",
             "filters": [
                 { "MatchTagName": "Randomizer" },
+                { "MatchTagName": "Randomiser" },
                 { "MatchString": "rando" }
             ],
             "Notifications":["defaultDiscord"],
