@@ -187,10 +187,14 @@ class StreamDetective:
 
             configsFolder = Path(path) / searchesFolderPath
             for f in configsFolder.glob('*.json'):
-                data = f.read_text()
-                searches = json.loads(data)
-                validateSearchesConfig(searches, f)
-                self.config['Searches'].extend(searches)
+                try:
+                    data = f.read_text()
+                    searches = json.loads(data)
+                    validateSearchesConfig(searches)
+                    self.config['Searches'].extend(searches)
+                except Exception as e:
+                    e.add_note('error in file: ' + str(f))
+                    raise e
             
             try:
                 self.TestConfig()

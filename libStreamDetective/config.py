@@ -63,15 +63,10 @@ base_schema = {
      "additionalProperties": False
 }
 
-def validateSearchesConfig(searches, file=None):
+def validateSearchesConfig(searches):
     global Searches_schema
-    try:
-        for search in searches:
-            validate(search, Searches_schema)
-    except Exception as e:
-        if file:
-            e.add_note('error in file: ' + str(file))
-        raise e
+    for search in searches:
+        validate(search, Searches_schema)
 
 
 def validateConfig(conf):
