@@ -25,12 +25,11 @@ from libStreamDetective.notifiers import CreateNotifier
 path = os.path.realpath(os.path.dirname(__file__))
 path = os.path.dirname(path)
 
-configFileName="config.json"
-searchesFolderPath="searches"
-cacheFileName="cache.json"
-
-
 class StreamDetective:
+    configFileName="config.json"
+    searchesFolderPath="searches"
+    cacheFileName="cache.json"
+
     def __init__ (self, dry_run=False, tempDir=None, testStream=None, checkUser=None):
         print(datetime.now().isoformat()+': StreamDetective starting')
 
@@ -177,7 +176,7 @@ class StreamDetective:
 
 
     def HandleConfigFile(self):
-        configFileFullPath = os.path.join(path,configFileName)
+        configFileFullPath = os.path.join(path, self.configFileName)
         if os.path.exists(configFileFullPath):
             with open(configFileFullPath, 'r') as f:
                 self.config = json.load(f)
@@ -185,7 +184,7 @@ class StreamDetective:
             if 'Searches' not in self.config:
                 self.config['Searches'] = []
 
-            configsFolder = Path(path) / searchesFolderPath
+            configsFolder = Path(path) / self.searchesFolderPath
             for f in configsFolder.glob('*.json'):
                 try:
                     data = f.read_text()
@@ -284,7 +283,7 @@ class StreamDetective:
         return result
 
     def SaveCacheFiles(self):
-        cacheFileFullPath = os.path.join(self.tempDir,cacheFileName)
+        cacheFileFullPath = os.path.join(self.tempDir, self.cacheFileName)
 
         with open(cacheFileFullPath, 'w') as f:
             cache = { 'gameIds': self.gameIdCache,
@@ -294,7 +293,7 @@ class StreamDetective:
             json.dump(cache,f,indent=4)
         
     def LoadCacheFiles(self):
-        cacheFileFullPath = os.path.join(self.tempDir,cacheFileName)
+        cacheFileFullPath = os.path.join(self.tempDir, self.cacheFileName)
         try:
             if os.path.exists(cacheFileFullPath):
                 with open(cacheFileFullPath, 'r') as f:

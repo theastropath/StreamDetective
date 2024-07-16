@@ -1,5 +1,5 @@
 config.json
-searches/*.json
+searches
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -90,16 +90,19 @@ def GetCacheDir():
 class TestStreamDetectiveConfig(StreamDetective):
     def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
         print('\n\n', type(self), '__init__ starting')
-        configFileFullPath = os.path.join(path,configFileName)
+        configFileFullPath = os.path.join(path, self.configFileName)
+        searchesPath = os.path.join(path, self.searchesFolderPath)
         self.dry_run = True
         self.notifiers = {}
         #oldverbose = getVerbose()
         #setVerbose(0)
-        if os.path.exists(configFileFullPath):
+        if not os.path.exists(configFileFullPath):
+            print('no config.json file, skipping test')
+        elif not os.path.exists(searchesPath):
+            print('no searches folder, skipping test')
+        else:
             self.HandleConfigFile()
             #StreamDetective.__init__(self, dry_run=True)
-        else:
-            print('no config file, skipping test')
         #setVerbose(oldverbose)
 
 
@@ -177,7 +180,7 @@ class TestStreamDetectiveBase(StreamDetective):
         with open(exampleConfigFileFullPath, 'r') as f:
             self.config = json.load(f)
 
-        exampleSearchFullPath = os.path.join(path,"searches/searches.json.example")
+        exampleSearchFullPath = os.path.join(path,"searches_examples/searches.json.example")
         with open(exampleSearchFullPath, 'r') as f:
             self.config['Searches'] = json.load(f)
             validateSearchesConfig(self.config['Searches'])

@@ -16,3 +16,11 @@ MAILTO=""
 */5 * * * * python3 ~/StreamDetective/StreamDetective.py >> ~/StreamDetective.log 2>&1
 0 0 1 * * mv -f ~/StreamDetective.log ~/StreamDetective.old.log
 ```
+
+If you want to symlink to use the searches_examples folder, then for Linux:
+
+`ln -s searches_examples searches`
+
+Or for Windows, from an admin cmd:
+
+`mklink /D searches searches_examples`
