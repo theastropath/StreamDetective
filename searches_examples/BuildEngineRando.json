@@ -1,0 +1,54 @@
+[
+    {
+        "GameName": "Duke Nukem 3D",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchString": "randomi"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719371174952960>"
+    },
+    {
+        "GameName": "Duke Nukem 3D: 20th Anniversary World Tour",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchString": "randomi"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719371174952960>"
+    },
+
+    {
+        "GameName": "Ion Fury",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchString": "randomi"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719371174952960>"
+    },
+    
+    {
+        "GameName": "Shadow Warrior",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchString": "randomi"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719371174952960>"
+    },
+    {
+        "GameName": "Shadow Warrior Classic Redux",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchString": "randomi"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719371174952960>"
+    }
+]

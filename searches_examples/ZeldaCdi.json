@@ -1,0 +1,47 @@
+[
+    {
+        "GameName":"Zelda's Adventure",
+        "Notifications":["ZeldaCdi"]
+    },
+    {
+        "GameName":"The Wand of Gamelon Remastered",
+        "Notifications":["ZeldaCdi"]
+    },
+    {
+        "GameName":"Zelda: The Wand of Gamelon",
+        "Notifications":["ZeldaCdi"]
+    },
+    {
+        "GameName":"Link: The Faces of Evil",
+        "Notifications":["ZeldaCdi"]
+    },
+    {
+        "GameName":"The Faces of Evil Remastered",
+        "Notifications":["ZeldaCdi"]
+    },
+    {
+        "GameName":"Retro",
+        "filters": [
+            { "MatchString": "Wand of Gamelon" }
+        ],
+        "TitleOverride": "Zelda: The Wand of Gamelon",
+        "Notifications":["ZeldaCdi"]
+    },
+    {
+        "GameName":"Retro",
+        "filters": [
+            { "MatchString": "Faces of Evil" }
+        ],
+        "TitleOverride": "Link: The Faces of Evil",
+        "Notifications":["ZeldaCdi"]
+    },
+    {
+        "GameName":"Retro",
+        "filters": [
+            { "MatchString": "Zelda's Adventure" },
+            { "MatchString": "Zeldas Adventure" }
+        ],
+        "TitleOverride": "Zelda's Adventure",
+        "Notifications":["ZeldaCdi"]
+    }
+]

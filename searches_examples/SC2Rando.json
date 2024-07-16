@@ -1,0 +1,46 @@
+[
+    {
+        "GameName": "StarCraft II",
+        "filters": [
+            {
+                "MatchTag": "Randomizer",
+                "DontMatchString": [
+                    "multiworld", "archipelago", "WoL", "HotS", "perpetual"
+                ],
+                "DontMatchTagSubstring": [
+                    "archipelago", "multiworld", "perpetual"
+                ]
+            },
+            {
+                "MatchTag": "Randomiser",
+                "DontMatchString": [
+                    "multiworld", "archipelago", "WoL", "HotS", "perpetual"
+                ],
+                "DontMatchTagSubstring": [
+                    "archipelago", "multiworld", "perpetual"
+                ]
+            },
+            {
+                "MatchTag": "Crowd Control"
+            },
+            {
+                "MatchTag": "CrowdControl"
+            },
+            {
+                "MatchString": [
+                    "randomi", "crowd control", "crowdcontrol"
+                ],
+                "DontMatchString": [
+                    "multiworld", "archipelago", "WoL", "HotS", "perpetual"
+                ],
+                "DontMatchTagSubstring": [
+                    "archipelago", "multiworld", "perpetual"
+                ]
+            }
+        ],
+        "Notifications": [
+            "mods4ever"
+        ],
+        "CustomDiscordMessage": "<@&1080719434240507975>"
+    }
+]

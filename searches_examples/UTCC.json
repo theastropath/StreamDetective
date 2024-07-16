@@ -1,0 +1,29 @@
+[
+    {
+        "GameName": "Unreal Tournament",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchTag": "Crowd Control"},
+            {"MatchTag": "CrowdControl"},
+            {"MatchString": "Crowd Control"},
+            {"MatchString": "CrowdControl"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719464653398079>"
+    },
+
+    {
+        "GameName": "Unreal Tournament 2004",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchTag": "Crowd Control"},
+            {"MatchTag": "CrowdControl"},
+            {"MatchString": "Crowd Control"},
+            {"MatchString": "CrowdControl"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719464653398079>"
+    }
+]

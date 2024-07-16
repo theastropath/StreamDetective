@@ -1,0 +1,50 @@
+[
+    {
+        "GameName": "RollerCoaster Tycoon 2",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchTag": "Crowd Control"},
+            {"MatchTag": "CrowdControl"},
+            {"MatchTag": "Archipelago"},
+            {"MatchString": "randomi"},
+            {"MatchString": "Archipelago"},
+            {"MatchString": "crowd control"},
+            {"MatchString": "crowdcontrol"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719402258931752>"
+    },
+    {
+        "GameName": "RollerCoaster Tycoon",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchTag": "Crowd Control"},
+            {"MatchTag": "CrowdControl"},
+            {"MatchTag": "Archipelago"},
+            {"MatchString": "randomi"},
+            {"MatchString": "Archipelago"},
+            {"MatchString": "crowd control"},
+            {"MatchString": "crowdcontrol"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719402258931752>"
+    },
+    {
+        "GameName": "RollerCoaster Tycoon Classic",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchTag": "Crowd Control"},
+            {"MatchTag": "CrowdControl"},
+            {"MatchTag": "Archipelago"},
+            {"MatchString": "randomi"},
+            {"MatchString": "Archipelago"},
+            {"MatchString": "crowd control"},
+            {"MatchString": "crowdcontrol"}
+        ],
+        "Notifications": ["mods4ever"],
+        "CustomDiscordMessage": "<@&1080719402258931752>"
+    }
+]

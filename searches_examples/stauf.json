@@ -1,0 +1,107 @@
+[
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "7th Guest"}
+        ],
+        "TitleOverride": "The 7th Guest",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114526820826628177>"
+    },
+    {
+        "GameName": "The 7th Guest",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114526820826628177>"
+    },
+    {
+        "GameName": "The 7th Guest: 25th Anniversary Edition",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114526820826628177>"
+    },
+    {
+        "GameName": "The 7th Guest: Infection",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114526820826628177>"
+    },
+
+    {
+        "GameName": "The 7th Guest VR",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1134652570984525834>"
+    },
+
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "11th Hour"}
+        ],
+        "TitleOverride": "The 11th Hour",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527438622433281>"
+    },
+    {
+        "GameName": "The 11th Hour",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527438622433281>"
+    },
+
+    
+    {
+        "GameName": "The 13th Doll",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527551067537408>"
+    },
+    {
+        "GameName": "The 13th Doll: A Fan Game of The 7th Guest",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527551067537408>"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "The 13th Doll"}
+        ],
+        "TitleOverride": "The 13th Doll",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527551067537408>"
+    },
+
+
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "Clandestiny"}
+        ],
+        "TitleOverride": "Clandestiny",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527699084517436>"
+    },
+    {
+        "GameName": "Clandestiny",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527699084517436>"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "Tender Loving Care"}
+        ],
+        "TitleOverride": "Tender Loving Care",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114529005501153350>"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "Uncle Henry's Playhouse"}
+        ],
+        "TitleOverride": "Uncle Henry's Playhouse",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527895067566190>"
+    },
+    {
+        "GameName": "Uncle Henry's Playhouse",
+        "Notifications": ["stauf"],
+        "CustomDiscordMessage": "<@&1114527895067566190>"
+    }
+]

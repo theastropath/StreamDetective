@@ -1,0 +1,60 @@
+[
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "Phantasmagoria"}
+        ],
+        "TitleOverride": "Phantasmagoria",
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526532208169021>"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "Where in Space Is Carmen Sandiego"}
+        ],
+        "TitleOverride": "Where in Space Is Carmen Sandiego",
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526004430520403>"
+    },
+    {
+        "GameName": "Where in Space Is Carmen Sandiego?",
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526004430520403>"
+    },
+    {
+        "GameName": "Where in Space is Carmen Sandiego?: Deluxe Edition",
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526004430520403>"
+    },
+
+    {
+        "GameName": "Phantasmagoria",
+        "filters": [
+            {"DontMatchString": "Phasmo"}
+        ],
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526532208169021>"
+    },
+    {
+        "GameName": "Phantasmagoria 2: A Puzzle of Flesh",
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526532208169021>"
+    },
+
+    {
+        "GameName": "Shivers",
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526369544687666>"
+    },
+    {
+        "GameName": "Shivers II: Harvest of Souls",
+        "Notifications": ["stauftopic"],
+        "CustomDiscordMessage": "<@&1114526369544687666>"
+    },
+
+    {
+        "GameName": "Kraven Manor",
+        "Notifications": ["stauftopic"]
+    }
+]

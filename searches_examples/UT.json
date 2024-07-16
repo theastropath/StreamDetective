@@ -1,0 +1,28 @@
+[
+    {
+        "GameName":"Unreal Championship",
+        "Notifications":["KOJAK", "UCDark1"]
+    },
+    {
+        "GameName":"Unreal Championship 2: The Liandri Conflict",
+        "Notifications":["KOJAK", "UCDark1"]
+    },
+    {
+        "GameName":"Retro",
+        "filters": [
+            { "MatchString": "Unreal Championship" }
+        ],
+        "TitleOverride": "Unreal Championship",
+        "Notifications":["KOJAK", "UCDark1"]
+    },
+
+
+    {
+        "GameName":"Unreal Tournament 2003",
+        "Notifications":["UT2003"]
+    },
+    {
+        "GameName":"Unreal Tournament 2004",
+        "Notifications":["UT2004"]
+    }
+]

@@ -1,0 +1,17 @@
+[
+    {
+        "GameName": "Deus Ex",
+        "filters": [
+            {"MatchTag": "Randomizer"},
+            {"MatchTag": "Randomiser"},
+            {"MatchTag": "Crowd Control"},
+            {"MatchTag": "CrowdControl"},
+            {"MatchString": "rando"},
+            {"MatchString": "crowd control"},
+            {"MatchString": "crowdcontrol"},
+            {"MatchString": "bingo"}
+        ],
+        "Notifications": ["mods4ever", "DXRandoActivityMasto"],
+        "CustomDiscordMessage": "<@&1080719252417417226>"
+    }
+]
