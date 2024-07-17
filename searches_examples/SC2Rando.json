@@ -28,7 +28,29 @@
             },
             {
                 "MatchString": [
-                    "randomi", "crowd control", "crowdcontrol"
+                    "randomi"
+                ],
+                "DontMatchString": [
+                    "multiworld", "archipelago", "WoL", "HotS", "perpetual"
+                ],
+                "DontMatchTagSubstring": [
+                    "archipelago", "multiworld", "perpetual"
+                ]
+            },
+            {
+                "MatchString": [
+                    "crowd control"
+                ],
+                "DontMatchString": [
+                    "multiworld", "archipelago", "WoL", "HotS", "perpetual"
+                ],
+                "DontMatchTagSubstring": [
+                    "archipelago", "multiworld", "perpetual"
+                ]
+            },
+            {
+                "MatchString": [
+                    "crowdcontrol"
                 ],
                 "DontMatchString": [
                     "multiworld", "archipelago", "WoL", "HotS", "perpetual"

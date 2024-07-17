@@ -79,6 +79,15 @@ class BaseTestCase(unittest.TestCase):
 
     def test_config(self):
         TestStreamDetectiveConfig(self)
+    
+    def test_example_configs(self):
+        sd = TestStreamDetectiveFilters(self)
+        sd.assertMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Randomizer speedruns', [])
+        sd.assertNotMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Rnadomizer speedruns', [])
+        sd.assertMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer', [])
+        sd.assertNotMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer Archipelago', [])
+        sd.assertMatch('Retro', 'letsplays', 'The 7th Guest', [])
+        sd.assertNotMatch('Retro', 'letsplays', 'The Guest', [])
 
 
 def GetCacheDir():
@@ -399,6 +408,55 @@ class TestMultiples(TestStreamDetectiveBase):
         newStreams = super().HandleGame(game)
         print('got', len(newStreams), 'new streams for: ', game)
         self.test('assertEqual', len(newStreams), 1, 'got 1 newStreams')
+
+@typechecked
+class TestStreamDetectiveFilters(StreamDetective):
+    configFileName = "config.example.json"
+    searchesFolderPath = "searches_examples"
+
+    def __init__(self, tester):
+        self.tester = tester
+        return super().__init__(dry_run=True)
+
+    def HandleSearches(self):
+        pass
+
+    def FetchAllStreams(self):
+        pass
+
+    def test(self, testname:str, *args):
+        self.tester.verboseAssert(self, testname, *args)
+
+    def TestConfig(self):
+        self.config['clientId'] = '123456789012345678901234567890'
+        self.config['accessToken'] = '123456789012345678901234567890'
+        self.config['NotificationServices'] = [{
+            "ProfileName":"defaultDiscord",
+            "Type":"Discord",
+            "Webhook":"fakeurl",
+            "UserName":"Stream Detective"
+        }]
+        super().TestConfig()
+
+    def testMatch(self, game, streamer, title, tags):
+        count = 0
+        for search in self.config.get("Searches",[]):
+            if search.get('GameName') == game or search.get('UserName') == streamer:
+                count += 1
+                matched = self.CheckStream(search, streamer, title, tags, game)
+                if matched:
+                    return True
+        if count == 0:
+            print("testMatch no filters checked?", game, streamer, title, tags, self.config.get("Searches"))
+        return False
+    
+    def assertMatch(self, game, streamer, title, tags):
+        matched = self.testMatch(game, streamer, title, tags)
+        self.test('assertTrue', matched, 'filters assertMatch ' + title)
+
+    def assertNotMatch(self, game, streamer, title, tags):
+        matched = self.testMatch(game, streamer, title, tags)
+        self.test('assertFalse', matched, 'filters assertNotMatch ' + title)
 
 setVerbose(9)
 unittest.main(verbosity=9, warnings="error", failfast=True)

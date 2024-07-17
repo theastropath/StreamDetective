@@ -450,9 +450,11 @@ class StreamDetective:
         return True
 
     def CheckStream(self, entry, streamer, title, tags, gameName):
-        trace("Name: ", streamer, title)
+        trace("")
+        trace("Name: ", streamer, title, tags, gameName, entry)
         if not entry.get('filters'):
             # return True if the filters array is empty, or the key is missing
+            trace("no filters, accepting stream")
             return True
         
         if tags:
@@ -460,7 +462,10 @@ class StreamDetective:
         
         for filter in entry['filters']:
             if self.CheckStreamFilter(filter, streamer, title, tags, gameName):
+                print(streamer, title, tags, gameName, "accepted by filter", filter)
                 return True
+            trace(streamer, "not accepted by filter", filter)
+        debug(streamer, "not accepted by any filters")
         return False
 
     def GetCachePath(self, name, profile):
