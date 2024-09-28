@@ -13,5 +13,15 @@
         ],
         "Notifications": ["mods4ever", "DXRandoActivityMasto"],
         "CustomDiscordMessage": "<@&1080719252417417226>"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "Deus Ex Randomizer"},
+            {"MatchString": "Deus Ex Randomiser"}
+        ],
+        "TitleOverride": "Deus Ex",
+        "Notifications": ["mods4ever", "DXRandoActivityMasto"],
+        "CustomDiscordMessage": "<@&1080719252417417226>"
     }
 ]
