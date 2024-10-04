@@ -212,7 +212,7 @@ class MastodonNotifier(Notifier):
             msg+= stream["title"].replace('#', '*') # don't let streamers dump hashtags on our bot!
             after = "\n\nhttps://twitch.tv/"+stream["user_login"]
             if footerText:
-                after += '\n\n' + footerText
+                after += '\n\n' + footerText + ' #StreamDetective'
             else:
                 after += "\n\n#StreamDetective"
             
