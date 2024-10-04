@@ -11,8 +11,11 @@
             {"MatchString": "crowdcontrol"},
             {"MatchString": "bingo"}
         ],
+        "TitleOverride": "Deus Ex Randomizer",
+        "GameArtOverride": "Deus Ex",
         "Notifications": ["mods4ever", "DXRandoActivityMasto"],
-        "CustomDiscordMessage": "<@&1080719252417417226>"
+        "CustomDiscordMessage": "<@&1080719252417417226>",
+        "MastoFooter": "#DXRando"
     },
     {
         "GameName": "Retro",
@@ -20,8 +23,10 @@
             {"MatchString": "Deus Ex Randomizer"},
             {"MatchString": "Deus Ex Randomiser"}
         ],
-        "TitleOverride": "Deus Ex",
+        "TitleOverride": "Deus Ex Randomizer",
+        "GameArtOverride": "Deus Ex",
         "Notifications": ["mods4ever", "DXRandoActivityMasto"],
-        "CustomDiscordMessage": "<@&1080719252417417226>"
+        "CustomDiscordMessage": "<@&1080719252417417226>",
+        "MastoFooter": "#DXRando"
     }
 ]

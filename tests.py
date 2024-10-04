@@ -83,6 +83,7 @@ class BaseTestCase(unittest.TestCase):
     def test_example_configs(self):
         sd = TestStreamDetectiveFilters(self)
         sd.assertMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Randomizer speedruns', [])
+        sd.assertMatch('Deus Ex', 'Die4Ever2011', 'dEUS eX rAndomiZer speedruns', [])
         sd.assertNotMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Rnadomizer speedruns', [])
         sd.assertMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer', [])
         sd.assertNotMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer Archipelago', [])

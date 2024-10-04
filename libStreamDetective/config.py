@@ -39,6 +39,8 @@ Searches_schema = {
         "Notifications": {"type": "array"},
         "CustomDiscordMessage": {"type": "string"},
         "TitleOverride": {"type": "string"},
+        "GameArtOverride": {"type": "string"},
+        "MastoFooter": {"type": "string"},
     },
 
     "required": ["Notifications"], # can this do conditional requirements?

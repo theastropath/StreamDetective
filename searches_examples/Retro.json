@@ -1,0 +1,48 @@
+[
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchTag": "DOS"},
+            {"MatchTag": "DOSGame"},
+            {"MatchTag": "DOSGames"},
+            {"MatchString": "DOS Game"}
+        ],
+        "TitleOverride": "a DOS game",
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "MastoFooter": "#DOSGames"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchTag": "abandonware"},
+            {"MatchString": "abandonware"},
+            {"MatchString": "abandon ware"}
+        ],
+        "TitleOverride": "an abandonware game",
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "MastoFooter": "#Abandonware"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchTag": "FMV"},
+            {"MatchTag": "FMVGame"},
+            {"MatchTag": "FMVGames"},
+            {"MatchString": "FMV"}
+        ],
+        "TitleOverride": "an FMV game",
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "MastoFooter": "#FMVGames"
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchTag": "CarmenSandiego"},
+            {"MatchString": "CarmenSandiego"},
+            {"MatchString": "Carmen Sandiego"}
+        ],
+        "TitleOverride": "Carmen Sandiego",
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "MastoFooter": "#Abandonware #CarmenSandiego"
+    }
+]

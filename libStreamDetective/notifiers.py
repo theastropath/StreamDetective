@@ -104,9 +104,10 @@ class DiscordNotifier(Notifier):
     def handleMsgs(self, entry, newList):
         atUserId = entry.get('atUserId')
         titleOverride=entry.get('TitleOverride',None)
+        gameArtOverride=entry.get('GameArtOverride',None)
         customMessage=entry.get('CustomDiscordMessage')
 
-        self.buildDiscordMsgs(self.config, newList, atUserId, titleOverride, customMessage)
+        self.buildDiscordMsgs(self.config, newList, atUserId, titleOverride, gameArtOverride, customMessage)
 
     
     def sendError(self, errMsg):
@@ -130,7 +131,7 @@ class DiscordNotifier(Notifier):
         print("Webhook Response: "+str(response.status_code)+" contents: "+str(response.content))
 
     
-    def buildDiscordMsgs(self, discordProfile, toSend, atUserId, titleOverride, customMessage):
+    def buildDiscordMsgs(self, discordProfile, toSend, atUserId, titleOverride, gameArtOverride, customMessage):
         content = ''
         embeds = []
         if customMessage:
@@ -144,7 +145,10 @@ class DiscordNotifier(Notifier):
                        
             gameArtUrl = ''
             try:
-                gameArtUrl = self.parent.getGameBoxArt(gameName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
+                gameArtName = gameName
+                if gameArtOverride:
+                    gameArtName = gameArtOverride
+                gameArtUrl = self.parent.getGameBoxArt(gameArtName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
             except Exception as e:
                 logex(self.parent, e)
 
@@ -197,6 +201,7 @@ class DiscordNotifier(Notifier):
 class MastodonNotifier(Notifier):
     def handleMsgs(self, entry, newStreams):
         titleOverride=entry.get("TitleOverride",None)
+        footerText=entry.get("MastoFooter")
         for stream in newStreams:
             msg = stream["user_name"] #The capitalized version of the name
             if titleOverride:
@@ -204,9 +209,13 @@ class MastodonNotifier(Notifier):
             else:
                 msg+=' is playing '+stream['game_name']+' on Twitch'
             msg+="\n\n"
-            msg+= stream["title"]
+            msg+= stream["title"].replace('#', '*') # don't let streamers dump hashtags on our bot!
             after = "\n\nhttps://twitch.tv/"+stream["user_login"]
-            after += "\n\n#StreamDetective"
+            if footerText:
+                after += '\n\n' + footerText
+            else:
+                after += "\n\n#StreamDetective"
+            
             if len(msg)+len(after) >= 500:
                 msg = msg[:500-len(after)-3] + '...'
             msg+=after

@@ -5,27 +5,31 @@
             {"MatchString": "Phantasmagoria"}
         ],
         "TitleOverride": "Phantasmagoria",
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526532208169021>"
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526532208169021>",
+        "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
     },
     {
         "GameName": "Retro",
         "filters": [
             {"MatchString": "Where in Space Is Carmen Sandiego"}
         ],
-        "TitleOverride": "Where in Space Is Carmen Sandiego",
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526004430520403>"
+        "TitleOverride": "Where in Space Is Carmen Sandiego?",
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526004430520403>",
+        "MastoFooter": "#DOSGames #Abandonware #CarmenSandiego"
     },
     {
         "GameName": "Where in Space Is Carmen Sandiego?",
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526004430520403>"
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526004430520403>",
+        "MastoFooter": "#DOSGames #Abandonware #CarmenSandiego"
     },
     {
         "GameName": "Where in Space is Carmen Sandiego?: Deluxe Edition",
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526004430520403>"
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526004430520403>",
+        "MastoFooter": "#DOSGames #Abandonware #CarmenSandiego"
     },
 
     {
@@ -33,28 +37,33 @@
         "filters": [
             {"DontMatchString": "Phasmo"}
         ],
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526532208169021>"
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526532208169021>",
+        "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
     },
     {
         "GameName": "Phantasmagoria 2: A Puzzle of Flesh",
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526532208169021>"
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526532208169021>",
+        "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
     },
 
     {
         "GameName": "Shivers",
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526369544687666>"
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526369544687666>",
+        "MastoFooter": "#FMVGames #Shivers"
     },
     {
         "GameName": "Shivers II: Harvest of Souls",
-        "Notifications": ["stauftopic"],
-        "CustomDiscordMessage": "<@&1114526369544687666>"
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "CustomDiscordMessage": "<@&1114526369544687666>",
+        "MastoFooter": "#FMVGames #Shivers"
     },
 
     {
         "GameName": "Kraven Manor",
-        "Notifications": ["stauftopic"]
+        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "MastoFooter": "#KravenManor"
     }
 ]
