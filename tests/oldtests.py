@@ -1,5 +1,4 @@
 import autoinstaller
-from linecache import clearcache
 from typeguard import typechecked, install_import_hook
 install_import_hook('libStreamDetective')
 import libStreamDetective.twitch
@@ -450,6 +449,3 @@ class TestStreamDetectiveFilters(StreamDetective):
     def assertNotMatch(self, game, streamer, title, tags):
         matched = self.testMatch(game, streamer, title, tags)
         self.test('assertFalse', matched, 'filters assertNotMatch ' + title)
-
-setVerbose(9)
-unittest.main(verbosity=9, warnings="error", failfast=True)
