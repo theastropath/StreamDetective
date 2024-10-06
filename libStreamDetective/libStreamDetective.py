@@ -6,6 +6,7 @@ from hashlib import sha1
 from datetime import datetime
 import re
 
+from libStreamDetective import filters, searches
 from libStreamDetective.twitch import TwitchApi
 from libStreamDetective.searchProviders import AllProviders
 from libStreamDetective.config import validateConfig, validateSearchesConfig
@@ -152,12 +153,12 @@ class StreamDetective:
         for search in self.config.get("Searches",[]):
             if "GameName" in search:
                 try:
-                    self.HandleGame(search)
+                    searches.HandleGame(self, search)
                 except Exception as e:
                     logex(self, e, 'error in', search)
             elif "UserName" in search:
                 try:
-                    self.HandleStreamer(search)
+                    searches.HandleStreamer(self, search)
                 except Exception as e:
                     logex(self, e, 'error in', search)
                 
@@ -195,92 +196,8 @@ class StreamDetective:
             return [self.fetchedStreamers[streamer]]
         return []
 
-    def GetFilter(self, filter, name) -> list:
-        f = filter.get(name, [])
-        if not isinstance(f, list):
-            f = [f]
-        return f
-    
-    def CheckStreamFilter(self, filter, streamer, title, tags, gameName):
-        if not filter.keys():
-            return True
-
-        if not tags:
-            tags = []
-
-        for f in self.GetFilter(filter, 'MatchTag'):
-            if f.lower() not in tags:
-                return False
-        for f in self.GetFilter(filter, 'MatchTagName'):
-            if f.lower() not in tags:
-                return False
-        for f in self.GetFilter(filter, 'MatchTagSubstring'):
-            found=False
-            for tag in tags:
-                if f.lower() in tag:
-                    found=True
-            if not found:
-                return False
-        for f in self.GetFilter(filter, 'MatchString'):
-            if f.lower() not in title.lower():
-                return False
-        for f in self.GetFilter(filter, 'DontMatchTag'):
-            if f.lower() in tags:
-                return False
-        for f in self.GetFilter(filter, 'DontMatchString'):
-            if f.lower() in title.lower():
-                return False
-        for f in self.GetFilter(filter, 'DontMatchTagName'):
-            if f.lower() in tags:
-                return False
-        for f in self.GetFilter(filter, 'DontMatchTagSubstring'):
-            found=False
-            for tag in tags:
-                if f.lower() in tag:
-                    found=True
-            if found:
-                return False
-        for f in self.GetFilter(filter, 'MatchGameName'):
-            if f != gameName:
-                return False
-        for f in self.GetFilter(filter, 'DontMatchGameName'):
-            if f == gameName:
-                return False
-        for f in self.GetFilter(filter, 'DontMatchUser'):
-            if f.lower() == streamer.lower():
-                return False
-            
-        for f in self.GetFilter(filter, 'SearchRegex'):
-            found = False
-            if re.search(f, title, flags=re.IGNORECASE):
-                found = True
-            if not found:
-                return False
-            
-        for f in self.GetFilter(filter, 'DontSearchRegex'):
-            if re.search(f, title, flags=re.IGNORECASE):
-                return False
-
-        return True
-
     def CheckStream(self, entry, streamer, title, tags, gameName):
-        trace("")
-        trace("Name: ", streamer, title, tags, gameName, entry)
-        if not entry.get('filters'):
-            # return True if the filters array is empty, or the key is missing
-            trace("no filters, accepting stream")
-            return True
-        
-        if tags:
-            tags=[x.lower() for x in tags]
-        
-        for filter in entry['filters']:
-            if self.CheckStreamFilter(filter, streamer, title, tags, gameName):
-                print(streamer, title, tags, gameName, "accepted by filter", filter)
-                return True
-            trace(streamer, "not accepted by filter", filter)
-        debug(streamer, "not accepted by any filters")
-        return False
+        return filters.CheckStream(entry, streamer, title, tags, gameName)
 
     def GetCachePath(self, name, profile):
         profileHash = json.dumps(profile)
@@ -324,123 +241,6 @@ class StreamDetective:
         f = open(saveLocation,'w')
         json.dump(streamInfo,f,indent=4)
         f.close()
-
-    def HandleStreamer(self,streamer):
-        print("Handling "+streamer["UserName"])
-      
-        streamInfo = self.ReadStreamerCache(streamer)
-        hadCache = True
-        if streamInfo is None:
-            streamInfo = {}
-            hadCache = False
-        newStreams = []
-
-        allStreams = self.GetAllStreamerStreams(streamer["UserName"])
-        now = datetime.now()
-
-        for stream in allStreams:
-            id = stream['id']
-            userlogin = stream['user_login']
-            title = stream['title']
-            tags = stream['tags']
-            stream['last_seen'] = now.isoformat()
-            matched = self.CheckStream(streamer, userlogin, title, tags, stream["game_name"])
-            if matched:
-                debug("matched "+userlogin)
-                stream['last_matched'] = now.isoformat()
-                if id not in streamInfo:
-                    newStreams.append(stream)
-            else:
-                trace('didn\'t match', userlogin)
- 
-        # All stream info now retrieved
-        if hadCache and newStreams:
-            print("  New Streams: "+str([stream['user_login'] for stream in newStreams]))
-            
-            self.genNotifications(newStreams,streamer)
-            for stream in newStreams:
-                id = stream['id']
-                streamInfo[id] = stream
-        elif not hadCache:
-            newStreams = []
-            print("Old streams cache not found, creating it now")
-            
-        # cleanup old entries in cache
-        toDelete = []
-        for key, val in streamInfo.items():
-            last_seen = fromisoformat(val['last_seen'])
-            if (now - last_seen).total_seconds() > (3600*24):
-                toDelete.append(key)
-
-        for key in toDelete:
-            del streamInfo[key]
-
-        if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
-
-        self.WriteStreamerCache(streamer, streamInfo)
-        debug("\n\n")
-        return newStreams
-
-
-    def HandleGame(self,game):
-        print("Handling "+game["GameName"])
-
-        streamInfo = self.ReadGameCache(game)
-        hadCache = True
-        if streamInfo is None:
-            streamInfo = {}
-            hadCache = False
-        newStreams = []
-        
-        allStreams = self.GetAllGameStreams(game["GameName"])
-
-        now = datetime.now()
-
-        for stream in allStreams:
-            id = stream['id']
-            streamer = stream['user_login']
-            title = stream['title']
-            tags = stream['tags']
-            stream['last_seen'] = now.isoformat()
-            matched = self.CheckStream(game, streamer, title, tags, stream["game_name"])
-            if matched:
-                debug("matched "+streamer)
-                stream['last_matched'] = now.isoformat()
-                if id not in streamInfo:
-                    newStreams.append(stream)
-            else:
-                trace('didn\'t match', streamer)
-                
-        # All stream info now retrieved
-        if hadCache and newStreams:
-            print("  New Streams: "+str([stream['user_login'] for stream in newStreams]))
-            
-            #New style
-            self.genNotifications(newStreams,game)
-            for stream in newStreams:
-                id = stream['id']
-                streamInfo[id] = stream
-        elif not hadCache:
-            newStreams = []
-            print("Old streams cache not found, creating it now")
-            
-        # cleanup old entries in cache
-        toDelete = []
-        for key, val in streamInfo.items():
-            last_seen = fromisoformat(val['last_seen'])
-            if (now - last_seen).total_seconds() > (3600*24):
-                toDelete.append(key)
-
-        for key in toDelete:
-            del streamInfo[key]
-
-        if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
-
-        self.WriteGameCache(game, streamInfo)
-        debug("\n\n")
-        return newStreams
 
 
     def genNotifications(self, newStreams, entry):

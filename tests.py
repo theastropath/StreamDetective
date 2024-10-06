@@ -249,14 +249,14 @@ class TestStreamDetectiveBase(StreamDetective):
 
     def HandleGame(self, game: dict):
         self.cooldownsCaught = 0
-        newStreams = super().HandleGame(game)
+        newStreams = searches.HandleGame(self, game)
         self.totalCooldownsCaught += self.cooldownsCaught
         self.iterations += 1
         return newStreams
 
     def HandleStreamer(self, streamer):
         self.cooldownsCaught = 0
-        newStreams = super().HandleStreamer(streamer)
+        newStreams = searches.HandleStreamer(self, streamer)
         self.totalCooldownsCaught += self.cooldownsCaught
         return newStreams
 
