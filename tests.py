@@ -2,12 +2,95 @@ import autoinstaller
 from linecache import clearcache
 from typeguard import typechecked, install_import_hook
 install_import_hook('libStreamDetective')
+import libStreamDetective.twitch
 from libStreamDetective.libStreamDetective import *
 from libStreamDetective import notifiers
 import shutil
 import unittest
 
 failures = []
+
+currentTester = None
+def MockTwitchApiRequest(url, headers={}):
+    global currentTester
+    self = currentTester
+    self.twitchApiCalls += 1
+    streamsUrl = libStreamDetective.twitch.TwitchApi.streamsUrl
+    print('mocked TwitchApiRequest', self, url, headers)
+    self.tester.assertEqual(type(headers), dict)
+    ret = []
+    if streamsUrl in url and 'game_id=' in url:
+        self.getStreamsApiCalls += 1
+        if 'game_id=Deus Ex' in url:
+            ret.append({
+                "id": str(1000+self.iterations),
+                "user_id": "123",
+                "user_login": "Heinki",
+                "user_name": "Heinki",
+                "game_id": "Deus Ex",
+                "game_name": "Deus Ex",
+                "type": "live",
+                "title": "Deus Ex Randomizer",
+                "viewer_count": 2052,
+                "started_at": "2020-06-22T00:00:00Z",
+                "language": "en",
+                "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
+                "tags": ["StreamDetectiveTest"],
+                "is_mature": True,
+                "last_seen": "2020-06-22T00:00:00Z"
+            })
+        if 'game_id=Fall Guys' in url:
+            ret.append({
+                "id": str(2000+self.iterations),
+                "user_id": "124",
+                "user_login": "thefallguy",
+                "user_name": "thefallguy",
+                "game_id": "Fall Guys",
+                "game_name": "Fall Guys",
+                "type": "live",
+                "title": "Fall Guys Randomizer",
+                "viewer_count": 2052,
+                "started_at": "2020-06-22T00:00:00Z",
+                "language": "en",
+                "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
+                "tags": [],
+                "is_mature": True,
+                "last_seen": "2020-06-22T00:00:00Z"
+            })
+    elif streamsUrl in url and 'user_login=YourFavouriteStreamer' in url:
+        self.getStreamsApiCalls += 1
+        ret = [
+            {
+                "id": str(3000+self.iterations),
+                "user_id": "666",
+                "user_login": "YourFavouriteStreamer",
+                "user_name": "YourFavouriteStreamer",
+                "game_id": "The 7th Guest",
+                "game_name": "The 7th Guest",
+                "type": "live",
+                "title": "The best game of all time!",
+                "viewer_count": 1000000,
+                "started_at": "2020-06-22T00:00:00Z",
+                "language": "en",
+                "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
+                "tags": [],
+                "is_mature": True,
+                "last_seen": "2020-06-22T00:00:00Z"
+            }
+        ]
+    print(ret)
+    print('end mocked TwitchApiRequest', self, url, headers)
+    return { 'data': ret }
+
+def MockGetGameId(gameName=None):
+    print('mocked GetGameId', gameName)
+    gameId = gameName
+    TwitchApi.AddGameIdToCache(gameName,gameId)
+    TwitchApi.AddGameArtToCache(gameName,'boxArt')
+    return gameId
+
+libStreamDetective.twitch.TwitchApi.Request = MockTwitchApiRequest
+libStreamDetective.twitch.TwitchApi.GetGameId = MockGetGameId
 
 @typechecked
 class BetterAssertionError(AssertionError):
@@ -17,13 +100,6 @@ class BetterAssertionError(AssertionError):
         failures.append(self)
         logex(None, self)
 
-@typechecked
-def TestStream(testStream):
-    return {
-        "id": random.randint(1, 999999999), "game_name": testStream['game'],
-        "user_id": "123", "user_login": testStream['user'], "user_name": testStream['user'],
-        "title": testStream['title'], "tags": testStream.get('tags', [])
-    }
 
 @typechecked
 class BaseTestCase(unittest.TestCase):
@@ -118,17 +194,23 @@ class TestStreamDetectiveConfig(StreamDetective):
 
 @typechecked
 class TestNotifier(notifiers.Notifier):
+    def __init__(self, config, parent, name):
+        self.name = name
+        super().__init__(config, parent)
+
     def handleMsgs(self, entry, filteredStreams):
-        pass
+        print(self.name, entry, 'handleMsgs', filteredStreams)
 
     def sendError(self, errMsg):
-        pass
+        print(self.name, 'sendError', errMsg)
 
 
 @typechecked
 class TestStreamDetectiveBase(StreamDetective):
     def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
+        global currentTester
         print('\n\n', type(self), '__init__ starting')
+        currentTester = self
         self.tester = tester
         self.totalCooldownsCaught = 0
         self.twitchApiCalls = 0
@@ -147,7 +229,7 @@ class TestStreamDetectiveBase(StreamDetective):
     def AddNotifier(self, config):
         NotifierName = config['ProfileName']
         assert NotifierName not in self.notifiers
-        self.notifiers[NotifierName] = TestNotifier(config, self)
+        self.notifiers[NotifierName] = TestNotifier(config, self, NotifierName)
         print(repr(self.notifiers))
     
     def ClearCache(self):
@@ -171,12 +253,6 @@ class TestStreamDetectiveBase(StreamDetective):
         self.totalCooldownsCaught += self.cooldownsCaught
         self.iterations += 1
         return newStreams
-
-    def GetAllGameStreams(self,gameId:str):
-        return self.fetchedGames.get(gameId,[]) #TwitchApiRequest always returns game id 123
-
-    def GetAllStreamerStreams(self,streamer) -> list:
-        return super().GetAllStreamerStreams(streamer) #TwitchApiRequest always returns userlogin
 
     def HandleStreamer(self, streamer):
         self.cooldownsCaught = 0
@@ -222,79 +298,6 @@ class TestStreamDetectiveBase(StreamDetective):
 
         self.TestConfig()
     
-    def GetGameId(self, gameName):
-        gameId = gameName
-        self.AddGameIdToCache(gameName,gameId)
-        self.AddGameArtToCache(gameName,'boxArt')
-        return gameId
-    
-    def TwitchApiRequest(self, url, headers={}):
-        self.twitchApiCalls += 1
-        print('mocked TwitchApiRequest', url, headers)
-        self.tester.assertEqual(type(headers), dict)
-        if self.streamsUrl in url and 'game_id=' in url:
-            self.getStreamsApiCalls += 1
-            ret = []
-            if 'game_id=Deus Ex' in url:
-                ret.append({
-                    "id": str(1000+self.iterations),
-                    "user_id": "123",
-                    "user_login": "Heinki",
-                    "user_name": "Heinki",
-                    "game_id": "Deus Ex",
-                    "game_name": "Deus Ex",
-                    "type": "live",
-                    "title": "Deus Ex Randomizer",
-                    "viewer_count": 2052,
-                    "started_at": "2020-06-22T00:00:00Z",
-                    "language": "en",
-                    "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
-                    "tags": ["StreamDetectiveTest"],
-                    "is_mature": True,
-                    "last_seen": "2020-06-22T00:00:00Z"
-                })
-            if 'game_id=Fall Guys' in url:
-                ret.append({
-                    "id": str(2000+self.iterations),
-                    "user_id": "124",
-                    "user_login": "thefallguy",
-                    "user_name": "thefallguy",
-                    "game_id": "Fall Guys",
-                    "game_name": "Fall Guys",
-                    "type": "live",
-                    "title": "Fall Guys Randomizer",
-                    "viewer_count": 2052,
-                    "started_at": "2020-06-22T00:00:00Z",
-                    "language": "en",
-                    "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
-                    "tags": [],
-                    "is_mature": True,
-                    "last_seen": "2020-06-22T00:00:00Z"
-                })
-            return { 'data': ret }
-        elif self.streamsUrl in url and 'user_login=YourFavouriteStreamer' in url:
-            self.getStreamsApiCalls += 1
-            return {'data': [
-                {
-                    "id": str(3000+self.iterations),
-                    "user_id": "666",
-                    "user_login": "YourFavouriteStreamer",
-                    "user_name": "YourFavouriteStreamer",
-                    "game_id": "The 7th Guest",
-                    "game_name": "The 7th Guest",
-                    "type": "live",
-                    "title": "The best game of all time!",
-                    "viewer_count": 1000000,
-                    "started_at": "2020-06-22T00:00:00Z",
-                    "language": "en",
-                    "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_userlogin-{width}x{height}.jpg",
-                    "tags": [],
-                    "is_mature": True,
-                    "last_seen": "2020-06-22T00:00:00Z"
-                }
-            ]}
-        return {}
-    
     
     def ReadGameCache(self, game):
         ret = super().ReadGameCache(game)
@@ -316,17 +319,6 @@ class TestStreamDetectiveBase(StreamDetective):
             return True
         return False
 
-    def sendTweet(self,profile,msg):
-        self.tweetsSent += 1
-    
-    def sendWebhookMsg(self, discordProfile, content, embeds, atUserId, avatarUrl):
-        self.webhooksSent += 1
-        
-    def sendPushBulletMessage(self,apiKey,title,body,emails=None,url=None):
-        self.pushbulletsSent += 1
-
-    def sendToot(self,profile,msg):
-        self.tootsSent += 1
 
 @typechecked
 class TestStreamDetective1(TestStreamDetectiveBase):

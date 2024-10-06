@@ -13,7 +13,7 @@ setVerbose(args.verbose)
 
 if args.title:
     print('using test stream from CLI args:', args)
-    sd = StreamDetective(True, testStream= TestStream({
+    sd = StreamDetective(True, testStream=TestStream({
         'user': args.user, 'game': args.game, 'title': args.title
     }))
     exit(0)

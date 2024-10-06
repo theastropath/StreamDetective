@@ -1,12 +1,21 @@
 
 from libStreamDetective import *
-from libStreamDetective.libStreamDetective import *
+from libStreamDetective.twitch import TwitchApi
+from libStreamDetective.util import *
+import json
+from requests.auth import HTTPBasicAuth
+import requests
+import tweepy
+from mastodon import Mastodon
 
 debug = print
 trace = print
 
-class Notifier:
-    usersUrl='https://api.twitch.tv/helix/users?'
+class Notifier():
+    # override this in subclasses
+    def handleMsgs(self, entry, newStreams):
+        for stream in newStreams:
+            print(stream["title"])
 
     def __init__(self, config, parent):
         self.config = config
@@ -42,9 +51,9 @@ class Notifier:
     
     
     def GetUserProfilePicUrl(self,userId):
-        userUrl = self.usersUrl+"id="+userId
+        userUrl = TwitchApi.usersUrl+"id="+userId
 
-        result = self.parent.TwitchApiRequest(userUrl)
+        result = TwitchApi.Request(userUrl)
         if "data" in result and "profile_image_url" in result["data"][0]:
             return result["data"][0]["profile_image_url"]
             
@@ -148,7 +157,7 @@ class DiscordNotifier(Notifier):
                 gameArtName = gameName
                 if gameArtOverride:
                     gameArtName = gameArtOverride
-                gameArtUrl = self.parent.getGameBoxArt(gameArtName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
+                gameArtUrl = TwitchApi.getGameBoxArt(gameArtName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
             except Exception as e:
                 logex(self.parent, e)
 
