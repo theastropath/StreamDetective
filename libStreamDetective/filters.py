@@ -68,10 +68,10 @@ def CheckStreamFilter(filter, streamer, title, tags, gameName):
         if found:
             return False
     for f in GetFilter(filter, 'MatchGameName'):
-        if f != gameName:
+        if f.lower() != gameName.lower():
             return False
     for f in GetFilter(filter, 'DontMatchGameName'):
-        if f == gameName:
+        if f.lower() == gameName.lower():
             return False
     for f in GetFilter(filter, 'DontMatchUser'):
         if f.lower() == streamer.lower():

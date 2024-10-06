@@ -1,3 +1,4 @@
+import autoinstaller
 import unittest
 from pathlib import Path
 
