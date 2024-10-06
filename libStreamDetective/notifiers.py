@@ -15,7 +15,7 @@ class Notifier():
     # override this in subclasses
     def handleMsgs(self, entry, newStreams):
         for stream in newStreams:
-            print(stream["title"])
+            print(self.ProfileName, ':', stream["title"])
 
     def __init__(self, config, parent):
         self.config = config
