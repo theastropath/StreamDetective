@@ -21,16 +21,16 @@ def fromisoformat(iso):
     return datetime.strptime(iso, "%Y-%m-%dT%H:%M:%S.%f")
 
 
-verbose = 1
+verbose = 0
 debug = print
 trace = print
 
 def setVerbose(v: int):
-    global debug, trace
+    global debug, trace, verbose
     verbose = v
     if verbose:
         debug = print
-        trace = print
+        #trace = print
     else:
         debug = lambda *a: None # do-nothing function
         trace = debug

@@ -5,32 +5,47 @@
             {"MatchString": "7th Guest"}
         ],
         "TitleOverride": "The 7th Guest",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114526820826628177>",
         "MastoFooter": "#DOSGames #FMVGames #RetroGames #The7thGuest"
     },
     {
         "GameName": "The 7th Guest",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114526820826628177>",
         "MastoFooter": "#DOSGames #FMVGames #The7thGuest"
     },
     {
         "GameName": "The 7th Guest: 25th Anniversary Edition",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114526820826628177>",
         "MastoFooter": "#DOSGames #FMVGames #The7thGuest"
     },
     {
         "GameName": "The 7th Guest: Infection",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114526820826628177>",
         "MastoFooter": "#DOSGames #FMVGames #The7thGuest"
     },
 
     {
         "GameName": "The 7th Guest VR",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1134652570984525834>",
         "MastoFooter": "#FMVGames #The7thGuest"
     },
@@ -41,13 +56,19 @@
             {"MatchString": "11th Hour"}
         ],
         "TitleOverride": "The 11th Hour",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527438622433281>",
         "MastoFooter": "#DOSGames #FMVGames #The7thGuest"
     },
     {
         "GameName": "The 11th Hour",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527438622433281>",
         "MastoFooter": "#DOSGames #FMVGames #The7thGuest"
     },
@@ -55,13 +76,19 @@
     
     {
         "GameName": "The 13th Doll",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527551067537408>",
         "MastoFooter": "#FMVGames #The7thGuest"
     },
     {
         "GameName": "The 13th Doll: A Fan Game of The 7th Guest",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527551067537408>",
         "MastoFooter": "#FMVGames #The7thGuest"
     },
@@ -71,7 +98,10 @@
             {"MatchString": "The 13th Doll"}
         ],
         "TitleOverride": "The 13th Doll",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527551067537408>",
         "MastoFooter": "#FMVGames #The7thGuest"
     },
@@ -83,13 +113,19 @@
             {"MatchString": "Clandestiny"}
         ],
         "TitleOverride": "Clandestiny",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527699084517436>",
         "MastoFooter": "#Abandonware #FMVGames #Clandestiny"
     },
     {
         "GameName": "Clandestiny",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527699084517436>",
         "MastoFooter": "#Abandonware #FMVGames #Clandestiny"
     },
@@ -99,7 +135,10 @@
             {"MatchString": "Tender Loving Care"}
         ],
         "TitleOverride": "Tender Loving Care",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114529005501153350>",
         "MastoFooter": "#FMVGames #TenderLovingCare"
     },
@@ -109,13 +148,19 @@
             {"MatchString": "Uncle Henry's Playhouse"}
         ],
         "TitleOverride": "Uncle Henry's Playhouse",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527895067566190>",
         "MastoFooter": "#Abandonware #UncleHenrysPlayhouse"
     },
     {
         "GameName": "Uncle Henry's Playhouse",
-        "Notifications": ["stauf", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 20 }
+        },
         "CustomDiscordMessage": "<@&1114527895067566190>",
         "MastoFooter": "#Abandonware #UncleHenrysPlayhouse"
     }

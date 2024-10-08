@@ -14,7 +14,7 @@ def CheckStream(entry, streamer, title, tags, gameName):
     
     for filter in entry['filters']:
         if CheckStreamFilter(filter, streamer, title, tags, gameName):
-            print(streamer, title, tags, gameName, "accepted by filter", filter)
+            debug(streamer, title, tags, gameName, "accepted by filter", filter)
             return True
         trace(streamer, "not accepted by filter", filter)
     debug(streamer, "not accepted by any filters")
