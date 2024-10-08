@@ -91,9 +91,8 @@ class TestStreamDetectiveBase(StreamDetective):
 
 
 class NotifierTest(Notifier):
-    def __init__(self, parent):
-        self.ProfileName = 'NotifierTest'
-        self.parent = parent
+    def __init__(self, name):
+        self.ProfileName = name
         self.dry_run = False
         self.MessagesSent = 0
         self.ErrorsSent = 0

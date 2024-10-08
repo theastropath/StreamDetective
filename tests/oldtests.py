@@ -193,9 +193,9 @@ class TestStreamDetectiveConfig(StreamDetective):
 
 @typechecked
 class TestNotifier(notifiers.Notifier):
-    def __init__(self, config, parent, name):
+    def __init__(self, config, name):
         self.name = name
-        super().__init__(config, parent)
+        super().__init__(config, False)
 
     def handleMsgs(self, entry, filteredStreams):
         print(self.name, entry, 'handleMsgs', filteredStreams)
@@ -228,7 +228,7 @@ class TestStreamDetectiveBase(StreamDetective):
     def AddNotifier(self, config):
         NotifierName = config['ProfileName']
         assert NotifierName not in self.notifiers
-        self.notifiers[NotifierName] = TestNotifier(config, self, NotifierName)
+        self.notifiers[NotifierName] = TestNotifier(config, NotifierName)
         print(repr(self.notifiers))
     
     def ClearCache(self):

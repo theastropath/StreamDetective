@@ -8,7 +8,10 @@
             {"MatchString": "DOS Game"}
         ],
         "TitleOverride": "a DOS game",
-        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauftopic": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#DOSGames"
     },
     {
@@ -19,7 +22,10 @@
             {"MatchString": "abandon ware"}
         ],
         "TitleOverride": "an abandonware game",
-        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauftopic": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#Abandonware"
     },
     {
@@ -31,7 +37,10 @@
             {"MatchString": "FMV"}
         ],
         "TitleOverride": "an FMV game",
-        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauftopic": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#FMVGames"
     },
     {
@@ -42,7 +51,10 @@
             {"MatchString": "Carmen Sandiego"}
         ],
         "TitleOverride": "Carmen Sandiego",
-        "Notifications": ["stauftopic", "StreamDetectiveMasto"],
+        "Notifications": {
+            "stauftopic": {},
+            "StreamDetectiveMasto": {"chance": 10}
+        },
         "MastoFooter": "#Abandonware #CarmenSandiego"
     }
 ]

@@ -146,7 +146,7 @@ class StreamDetective:
     def AddNotifier(self, config):
         name = config['ProfileName']
         assert name not in self.notifiers
-        self.notifiers[name] = CreateNotifier(config, self)
+        self.notifiers[name] = CreateNotifier(config, self.dry_run)
 
 
     def HandleSearches(self):
@@ -245,16 +245,24 @@ class StreamDetective:
 
     def genNotifications(self, newStreams, entry):
         notifications = entry.get("Notifications",[])
-
         for NotifierName in notifications:
             notifier = self.notifiers.get(NotifierName)
+            notifierData = None
+            if isinstance(notifications, dict):
+                notifierData = notifications.get(NotifierName)
             if notifier:
-                notifier.handleSingleNotificationService(entry, newStreams)
+                self.triggerNotifier(notifier, notifierData, entry, newStreams)
     
+
+    def triggerNotifier(self, notifier, notifierData, entry, newStreams):
+        profileName = notifier.ProfileName
+        toSend = self.filterIgnoredStreams(profileName, newStreams)
+        if toSend:
+            notifier.handleSingleNotificationService(notifierData, entry, toSend)
+
 
     def genErrorMsgs(self,errMsg):
         notifications = self.config.get("ErrorNotifications",[])
-
         for NotifierName in notifications:
             notifier = self.notifiers.get(NotifierName)
             if notifier:
@@ -263,7 +271,6 @@ class StreamDetective:
 
     def filterIgnoredStreams(self,profileName,newStreams):
         IgnoreStreams = self.config.get('IgnoreStreams', [])
-        
         toSend = []
         for stream in newStreams:
             if stream["user_login"].lower() in IgnoreStreams:

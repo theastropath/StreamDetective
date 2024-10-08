@@ -7,6 +7,7 @@ from requests.auth import HTTPBasicAuth
 import requests
 import tweepy
 from mastodon import Mastodon
+import random
 
 debug = print
 trace = print
@@ -17,11 +18,10 @@ class Notifier():
         for stream in newStreams:
             print(self.ProfileName, ':', stream["title"])
 
-    def __init__(self, config, parent):
+    def __init__(self, config, dry_run):
         self.config = config
         self.ProfileName = config['ProfileName']
-        self.parent = parent
-        self.dry_run = parent.dry_run
+        self.dry_run = dry_run
         self.MessagesSent = 0
         self.ErrorsSent = 0
     
@@ -29,8 +29,7 @@ class Notifier():
     def sendError(self, errMsg):
         raise RuntimeError(errMsg)
 
-    def handleSingleNotificationService(self, entry, newStreams):
-        filteredStreams = self.parent.filterIgnoredStreams(self.ProfileName, newStreams)
+    def handleSingleNotificationService(self, notifierData, entry, newStreams):
         if self.dry_run:
             print('\nhandleSingleNotificationService dry-run')
             print('service:')
@@ -40,8 +39,11 @@ class Notifier():
             print("  New Streams: "+str([stream['user_login'] for stream in newStreams]), '\n')
             return
         
-        if filteredStreams:
-            self.handleMsgs(entry, filteredStreams)
+        if notifierData and notifierData.get('chance', 0) < random.randint(1, 100):
+            return
+        
+        if newStreams:
+            self.handleMsgs(entry, newStreams)
             self.MessagesSent += 1
 
 
@@ -159,7 +161,7 @@ class DiscordNotifier(Notifier):
                     gameArtName = gameArtOverride
                 gameArtUrl = TwitchApi.getGameBoxArt(gameArtName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
             except Exception as e:
-                logex(self.parent, e)
+                logex(e)
 
             url="https://twitch.tv/"+stream["user_login"]
             content += url + ' is playing ' + gameName
@@ -251,7 +253,7 @@ class MastodonNotifier(Notifier):
             debug(response)
         except Exception as e:
             if raise_exc:
-                logex(self.parent, e, "Encountered an issue when attempting to toot: ", msg)
+                logex(e, "Encountered an issue when attempting to toot: ", msg)
 
 
 
@@ -298,12 +300,12 @@ class TwitterNotifier(Notifier):
             debug(response)
         except Exception as e:
             if raise_exc:
-                logex(self.parent, e, "Encountered an issue when attempting to tweet: ", msg)
+                logex(e, "Encountered an issue when attempting to tweet: ", msg)
 
 
 
 
-def CreateNotifier(config, parent) -> Notifier:
+def CreateNotifier(config, dry_run) -> Notifier:
     newClass = Notifier
     type = config["Type"]
 
@@ -317,4 +319,4 @@ def CreateNotifier(config, parent) -> Notifier:
         newClass = MastodonNotifier
     else:
         raise RuntimeError("unknown NotificationService type "+type, config)
-    return newClass(config, parent)
+    return newClass(config, dry_run)

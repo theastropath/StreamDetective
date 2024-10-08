@@ -36,7 +36,7 @@ Searches_schema = {
         "GameName": {"type": "string"},
         "UserName": {"type": "string"},
         "filters": {"type": "array", "items":filters_schema},
-        "Notifications": {"type": "array"},
+        "Notifications": {"type": ["array", "object"]},
         "CustomDiscordMessage": {"type": "string"},
         "TitleOverride": {"type": "string"},
         "GameArtOverride": {"type": "string"},
