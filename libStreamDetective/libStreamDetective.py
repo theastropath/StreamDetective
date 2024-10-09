@@ -22,7 +22,7 @@ class StreamDetective:
     cacheFileName="cache.json"
 
     def __init__ (self, dry_run=False, testStream=None, checkUser=None):
-        print(datetime.now().isoformat()+': StreamDetective starting')
+        print('\n\n'+datetime.now().isoformat()+': StreamDetective starting')
         db.connect('sddb.sqlite3')
         
         if dry_run:
@@ -52,6 +52,7 @@ class StreamDetective:
             return
         
         self.HandleSearches()
+        print('')
     
 
     def FetchAllStreams(self):
