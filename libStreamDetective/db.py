@@ -85,4 +85,5 @@ def execmany(sql: str, params=()):
         return c.lastrowid
 
 def tableExists(table):
-    return bool(fetchone("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)))
+    # table names are case-insensitive in SQLite, but values are case-sensistive
+    return bool(fetchone("SELECT name FROM sqlite_master WHERE type='table' AND name=? COLLATE NOCASE", (table,)))

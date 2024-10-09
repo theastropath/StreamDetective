@@ -16,6 +16,6 @@ class TestCooldowns(unittest.TestCase):
         for r in tables:
             print(r)
 
-        self.assertTrue(tableExists('games'), 'games exists')
+        self.assertTrue(tableExists('gAmEs'), 'games exists')
         self.assertFalse(tableExists('boringstuff'), 'boring things do not exist here')
         close()

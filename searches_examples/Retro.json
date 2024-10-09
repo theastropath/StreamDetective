@@ -8,6 +8,7 @@
             {"MatchString": "DOS Game"}
         ],
         "TitleOverride": "a DOS game",
+        "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
             "StreamDetectiveMasto": {"chance": 10}
@@ -22,6 +23,7 @@
             {"MatchString": "abandon ware"}
         ],
         "TitleOverride": "an abandonware game",
+        "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
             "StreamDetectiveMasto": {"chance": 10}
@@ -37,6 +39,7 @@
             {"MatchString": "FMV"}
         ],
         "TitleOverride": "an FMV game",
+        "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
             "StreamDetectiveMasto": {"chance": 10}
@@ -51,6 +54,7 @@
             {"MatchString": "Carmen Sandiego"}
         ],
         "TitleOverride": "Carmen Sandiego",
+        "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
             "StreamDetectiveMasto": {"chance": 15}
