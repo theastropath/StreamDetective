@@ -22,7 +22,7 @@ def HandleFilters(self, search, allStreams):
             
     # All stream info now retrieved
     if newStreams:
-        print("  Matched Streams: "+str([stream['user_login'] for stream in newStreams]))
+        print("   Matched Streams:", [stream['user_login'] for stream in newStreams])
         self.genNotifications(newStreams, search)
     
     debug("\n\n")

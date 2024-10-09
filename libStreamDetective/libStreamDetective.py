@@ -201,13 +201,17 @@ class StreamDetective:
     def filterIgnoredStreams(self,profileName,newStreams):
         IgnoreStreams = self.config.get('IgnoreStreams', [])
         toSend = []
+        onCooldown = []
         for stream in newStreams:
             if stream["user_login"].lower() in IgnoreStreams:
                 debug(stream["user_login"], 'is in IgnoreStreams')
                 continue
             if self.checkIsOnCooldown(stream, profileName):
+                onCooldown.append(stream["user_login"])
                 continue
             toSend.append(stream)
+        if onCooldown:
+            print('On cooldown for', profileName, ':', onCooldown)
         return toSend
 
 
@@ -219,7 +223,7 @@ class StreamDetective:
         res = db.fetchone('SELECT * FROM cooldowns WHERE streamer=? AND notifier=? AND last>?', (user, ProfileName, now-CooldownSeconds))
         db.exec('INSERT INTO cooldowns(streamer, notifier, last) VALUES(?,?,?) ON CONFLICT DO UPDATE SET last=excluded.last', (user, ProfileName, now))
         if res:
-            print(user, 'is on cooldown for', ProfileName)
+            debug(user, 'is on cooldown for', ProfileName)
             return True
         return False
 

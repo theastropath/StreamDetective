@@ -32,11 +32,9 @@ class Notifier():
     def handleSingleNotificationService(self, notifierData, entry, newStreams):
         if self.dry_run:
             print('\nhandleSingleNotificationService dry-run')
-            print('service:')
-            print(self)
-            print('entry:')
-            print(entry)
-            print("  New Streams: "+str([stream['user_login'] for stream in newStreams]), '\n')
+            print('service:', self.ProfileName)
+            print('   entry:', entry)
+            print("   New Streams: ", [stream['user_login'] for stream in newStreams], '\n')
             return
         
         if notifierData and notifierData.get('chance', 100) < random.randint(1, 100):

@@ -42,7 +42,8 @@ class Twitch:
                 gameName = stream["game_name"].lower()
                 if gameName not in fetchedGames:
                     fetchedGames[gameName] = []
-                fetchedGames[gameName].append(stream)
+                if stream not in fetchedGames[gameName]:
+                    fetchedGames[gameName].append(stream)
                 user = stream["user_login"].lower()
                 fetchedStreamers[user] = stream
             
