@@ -10,7 +10,7 @@
         "TitleOverride": "a DOS game",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 5}
+            "StreamDetectiveMasto": {"chance": 10}
         },
         "MastoFooter": "#DOSGames"
     },
@@ -24,7 +24,7 @@
         "TitleOverride": "an abandonware game",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 5}
+            "StreamDetectiveMasto": {"chance": 10}
         },
         "MastoFooter": "#Abandonware"
     },
@@ -39,7 +39,7 @@
         "TitleOverride": "an FMV game",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 5}
+            "StreamDetectiveMasto": {"chance": 10}
         },
         "MastoFooter": "#FMVGames"
     },
@@ -53,7 +53,7 @@
         "TitleOverride": "Carmen Sandiego",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 10}
+            "StreamDetectiveMasto": {"chance": 15}
         },
         "MastoFooter": "#Abandonware #CarmenSandiego"
     }

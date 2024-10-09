@@ -1,27 +1,42 @@
 [
     {
         "GameName":"Zelda's Adventure",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     },
     {
         "GameName":"The Wand of Gamelon Remastered",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     },
     {
         "GameName":"Zelda: The Wand of Gamelon",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     },
     {
         "GameName":"Link: The Faces of Evil",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     },
     {
         "GameName":"The Faces of Evil Remastered",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     },
     {
@@ -30,7 +45,10 @@
             { "MatchString": "Wand of Gamelon" }
         ],
         "TitleOverride": "Zelda: The Wand of Gamelon",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     },
     {
@@ -39,7 +57,10 @@
             { "MatchString": "Faces of Evil" }
         ],
         "TitleOverride": "Link: The Faces of Evil",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     },
     {
@@ -49,7 +70,10 @@
             { "MatchString": "Zeldas Adventure" }
         ],
         "TitleOverride": "Zelda's Adventure",
-        "Notifications":["ZeldaCdi", "StreamDetectiveMasto"],
+        "Notifications":{
+            "ZeldaCdi": {},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
         "MastoFooter": "#ZeldaCdi"
     }
 ]
