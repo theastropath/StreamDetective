@@ -39,7 +39,7 @@ class Twitch:
             fetched = self.GetAllStreams(allGamesUrl)
             for stream in fetched:
                 gameName = stream["game_name"].lower()
-                if stream["game_id"] not in fetchedGames:
+                if gameName not in fetchedGames:
                     fetchedGames[gameName] = []
                 fetchedGames[gameName].append(stream)
                 user = stream["user_login"].lower()
