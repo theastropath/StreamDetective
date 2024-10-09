@@ -27,6 +27,7 @@ trace = print
 
 def setVerbose(v: int):
     global debug, trace, verbose
+    print('setVerbose', v)
     verbose = v
     if verbose:
         debug = print

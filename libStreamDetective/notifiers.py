@@ -39,7 +39,7 @@ class Notifier():
             print("  New Streams: "+str([stream['user_login'] for stream in newStreams]), '\n')
             return
         
-        if notifierData and notifierData.get('chance', 0) < random.randint(1, 100):
+        if notifierData and notifierData.get('chance', 100) < random.randint(1, 100):
             return
         
         if newStreams:

@@ -1,5 +1,5 @@
 import argparse
-from libStreamDetective.libStreamDetective import *
+from libStreamDetective.util import setVerbose
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--verbose', action='count', default=0)
@@ -9,8 +9,9 @@ parser.add_argument('-g', '--game')
 parser.add_argument('-t', '--title')
 parser.add_argument('-s', '--user-status')
 args = parser.parse_args()
-setVerbose(args.verbose)
+setVerbose(args.verbose) # HACK: need to do this before importing everything
 
+from libStreamDetective.libStreamDetective import *
 if args.title:
     print('using test stream from CLI args:', args)
     sd = StreamDetective(True, testStream=TestStream({
