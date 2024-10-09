@@ -5,22 +5,20 @@ import shutil, os, tempfile, json
 from libStreamDetective.config import validateSearchesConfig
 from libStreamDetective.libStreamDetective import StreamDetective, path
 from libStreamDetective.notifiers import Notifier
+from libStreamDetective import db
 
-def GetCacheDir():
-    tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
-    return tempDir
+db.connect(':memory:')
 
 
 class TestStreamDetectiveBase(StreamDetective):
     def __init__(self, clearCache=True, **kargs):
         print('\n\n', type(self), '__init__ starting')
         self.cooldownsCaught = 0
-        self.tempDir = GetCacheDir()
         self.fetchedGames = {}
         self.fetchedStreamers = {}
         if clearCache:
             self.ClearCache()
-        StreamDetective.__init__(self, dry_run=True, tempDir=self.tempDir, **kargs)
+        StreamDetective.__init__(self, dry_run=True, **kargs)
         print('\n', type(self), '__init__ done, cooldownsCaught:', self.cooldownsCaught, '\n')
 
 
@@ -75,11 +73,8 @@ class TestStreamDetectiveBase(StreamDetective):
     
     def ClearCache(self):
         print('Clearing Cache '+str(type(self)))
-        self.tempDir = GetCacheDir()
-        if os.path.isdir(self.tempDir):
-            shutil.rmtree(self.tempDir)
-        if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
+        db.close()
+        db.connect(':memory:')
 
 
     def checkIsOnCooldown(self, stream, webhookUrl):

@@ -27,7 +27,7 @@ trace = print
 
 def setVerbose(v: int):
     global debug, trace, verbose
-    print('setVerbose', v)
+    #print('setVerbose', v)
     verbose = v
     if verbose:
         debug = print
@@ -53,3 +53,6 @@ def TestStream(testStream):
         "user_id": "123", "user_login": testStream['user'], "user_name": testStream['user'],
         "title": testStream['title'], "tags": testStream.get('tags', [])
     }
+
+def unixtime():
+    return datetime.now().timestamp()

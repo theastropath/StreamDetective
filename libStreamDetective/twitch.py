@@ -1,4 +1,5 @@
 import time
+from libStreamDetective import db
 from libStreamDetective.util import *
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -109,56 +110,40 @@ class TwitchApi:
     gameArtCache={}
 
     @staticmethod
+    def GetGameArt(gameName: str) -> str:
+        gameId = TwitchApi.GetGameId(gameName)
+        return "https://static-cdn.jtvnw.net/ttv-boxart/" + gameId + "_IGDB-144x192.jpg" # we use these for the Discord profile pic, Twitch shows them at 285x380
+    
+    @staticmethod
+    def GetStreamerThumbnail(streamer: str) -> str:
+        return "https://static-cdn.jtvnw.net/previews-ttv/live_user_" + streamer + "-320x180.jpg"
+
+    @staticmethod
     def GetGameId(gameName):
         if gameName in TwitchApi.gameIdCache:
             return TwitchApi.gameIdCache[gameName]
+        
+        res = db.fetchone('SELECT id FROM games where name=?', (gameName,))
+        if res:
+            TwitchApi.gameIdCache[gameName] = res[0]
+            return res[0]
 
-        gameIdUrlBase='https://api.twitch.tv/helix/games?'
-        gameIdUrl = gameIdUrlBase+"name="+gameName
-        gameId = 0
-        boxArt = ""
-
-        result = TwitchApi.Request(gameIdUrl)
-
-        if "data" in result and len(result["data"])==1:
-            gameId = result["data"][0]["id"]
-            boxArt = result["data"][0]["box_art_url"].replace("{width}","144").replace("{height}","192")
-        else:
-            raise Exception(gameIdUrl+" response expected 1 game id: ", result)
-
-        if not gameId:
-            raise Exception('gameId is missing')
-            
-        if gameId:
-            TwitchApi.AddGameIdToCache(gameName,gameId)
-            
-        if boxArt:
-            TwitchApi.AddGameArtToCache(gameName,boxArt)
-            
-        return gameId
+        return TwitchApi.fetchGameInfo(gameName)
+    
 
     @staticmethod
-    def getGameBoxArt(gameName,width,height):
-        if gameName in TwitchApi.gameArtCache:
-            return TwitchApi.gameArtCache[gameName]
-
+    def fetchGameInfo(gameName):
         gameUrl = "https://api.twitch.tv/helix/games?name="+gameName
         
         result = TwitchApi.Request(gameUrl)
-        if result.get('data') and result["data"][0].get('box_art_url'):
-            url = result["data"][0]["box_art_url"]
-            url = url.replace("{width}",str(width)).replace("{height}",str(height))
-            TwitchApi.AddGameArtToCache(gameName,url)
-            return url
-        return ""
+        if result.get('data') and result["data"][0].get('id'):
+            gameId = result["data"][0]["id"]
+            TwitchApi.gameIdCache[gameName]=gameId
+            now = unixtime()
+            db.exec('INSERT INTO games(name, id, updated) VALUES(?,?,?)', (gameName, gameId, now))
+            return gameId
+        raise Exception('fetchGameInfo ' + gameUrl + ' failed')
 
-    @staticmethod
-    def AddGameIdToCache(gameName,gameId):
-        TwitchApi.gameIdCache[gameName]=gameId
-
-    @staticmethod
-    def AddGameArtToCache(gameName,artUrl):
-        TwitchApi.gameArtCache[gameName]=artUrl
 
     @staticmethod
     def Request(url, headers={}):

@@ -4,8 +4,11 @@ install_import_hook('libStreamDetective')
 import libStreamDetective.twitch
 from libStreamDetective.libStreamDetective import *
 from libStreamDetective import notifiers
+from libStreamDetective import db
 import shutil
 import unittest
+
+db.connect(':memory:')
 
 failures = []
 
@@ -83,10 +86,7 @@ def MockTwitchApiRequest(url, headers={}):
 
 def MockGetGameId(gameName=None):
     print('mocked GetGameId', gameName)
-    gameId = gameName
-    TwitchApi.AddGameIdToCache(gameName,gameId)
-    TwitchApi.AddGameArtToCache(gameName,'boxArt')
-    return gameId
+    return gameName
 
 libStreamDetective.twitch.TwitchApi.Request = MockTwitchApiRequest
 libStreamDetective.twitch.TwitchApi.GetGameId = MockGetGameId
@@ -166,11 +166,6 @@ class BaseTestCase(unittest.TestCase):
         sd.assertNotMatch('Retro', 'letsplays', 'The Guest', [])
 
 
-def GetCacheDir():
-    tempDir = os.path.join(tempfile.gettempdir(),"streamstests")
-    return tempDir
-
-
 @typechecked
 class TestStreamDetectiveConfig(StreamDetective):
     def __init__(self, tester: BaseTestCase, startIteration=0, **kargs):
@@ -214,12 +209,11 @@ class TestStreamDetectiveBase(StreamDetective):
         self.totalCooldownsCaught = 0
         self.twitchApiCalls = 0
         self.getStreamsApiCalls = 0
-        self.tempDir = GetCacheDir()
         self.iterations = startIteration
         if kargs.get('clearCache'):
             self.ClearCache()
             kargs.pop('clearCache')
-        StreamDetective.__init__(self, dry_run=False, tempDir=self.tempDir, **kargs)
+        StreamDetective.__init__(self, dry_run=False, **kargs)
         print('\n', type(self), '__init__ done\n')
 
     def test(self, testname:str, *args):
@@ -233,11 +227,8 @@ class TestStreamDetectiveBase(StreamDetective):
     
     def ClearCache(self):
         print('Clearing Cache '+str(type(self)))
-        self.tempDir = GetCacheDir()
-        if os.path.isdir(self.tempDir):
-            shutil.rmtree(self.tempDir)
-        if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
+        db.close()
+        db.connect(':memory:')
 
     def HandleSearches(self):# same thing as normal, but without the try/except
         for search in self.config.get("Searches",[]):
@@ -248,14 +239,14 @@ class TestStreamDetectiveBase(StreamDetective):
 
     def HandleGame(self, game: dict):
         self.cooldownsCaught = 0
-        newStreams = searches.HandleGame(self, game)
+        newStreams = searches.HandleFilters(self, game, self.GetAllGameStreams(game["GameName"]))
         self.totalCooldownsCaught += self.cooldownsCaught
         self.iterations += 1
         return newStreams
 
     def HandleStreamer(self, streamer):
         self.cooldownsCaught = 0
-        newStreams = searches.HandleStreamer(self, streamer)
+        newStreams = searches.HandleFilters(self, streamer, self.GetAllStreamerStreams(streamer['UserName']))
         self.totalCooldownsCaught += self.cooldownsCaught
         return newStreams
 

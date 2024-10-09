@@ -159,7 +159,7 @@ class DiscordNotifier(Notifier):
                 gameArtName = gameName
                 if gameArtOverride:
                     gameArtName = gameArtOverride
-                gameArtUrl = TwitchApi.getGameBoxArt(gameArtName,144,192) #144x192 is the value used by Twitch if you open the image in a new tab
+                gameArtUrl = TwitchApi.GetGameArt(gameArtName)
             except Exception as e:
                 logex(e)
 

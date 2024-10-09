@@ -12,7 +12,6 @@ class TestCooldowns(unittest.TestCase):
         self.assertTrue(ret, 'on cooldown second time')
         ret = sd1.checkIsOnCooldown(stream, 'mastodon.social')
         self.assertFalse(ret, 'not on cooldown for mastodon')
-        sd1.SaveCacheFiles()
 
         sd2 = TestStreamDetectiveBase(clearCache=False)
         ret = sd2.checkIsOnCooldown(stream, 'discord.com')
@@ -33,7 +32,6 @@ class TestCooldowns(unittest.TestCase):
         self.assertEqual(len(ret), 0, 'ignored second time')
         ret = sd1.filterIgnoredStreams('Mastodon', streams)
         self.assertEqual(len(ret), 1, 'not ignored for mastodon')
-        sd1.SaveCacheFiles()
 
         sd2 = TestStreamDetectiveBase(clearCache=False)
         ret = sd2.filterIgnoredStreams('Discord', streams)

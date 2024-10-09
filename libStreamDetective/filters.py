@@ -4,6 +4,14 @@ from libStreamDetective.util import *
 def CheckStream(entry, streamer, title, tags, gameName):
     trace("")
     trace("Name: ", streamer, title, tags, gameName, entry)
+
+    if gameName != entry.get('GameName', gameName):
+        trace("did not match GameName")
+        return False
+    if streamer != entry.get('UserName', streamer):
+        trace("did not match UserName")
+        return False
+    
     if not entry.get('filters'):
         # return True if the filters array is empty, or the key is missing
         trace("no filters, accepting stream")

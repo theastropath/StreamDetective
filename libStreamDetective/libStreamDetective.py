@@ -6,7 +6,7 @@ from hashlib import sha1
 from datetime import datetime
 import re
 
-from libStreamDetective import filters, searches
+from libStreamDetective import db, filters, searches
 from libStreamDetective.twitch import TwitchApi
 from libStreamDetective.searchProviders import AllProviders
 from libStreamDetective.config import validateConfig, validateSearchesConfig
@@ -21,24 +21,15 @@ class StreamDetective:
     searchesFolderPath="searches"
     cacheFileName="cache.json"
 
-    def __init__ (self, dry_run=False, tempDir=None, testStream=None, checkUser=None):
+    def __init__ (self, dry_run=False, testStream=None, checkUser=None):
         print(datetime.now().isoformat()+': StreamDetective starting')
-
-        if tempDir:
-            self.tempDir = tempDir
-        else:
-            self.tempDir = os.path.join(tempfile.gettempdir(),"streams")
-        
-        if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
+        db.connect('sddb.sqlite3')
         
         if dry_run:
             print('dry-run is enabled')
         self.dry_run = dry_run
         
-        self.cooldowns={}
         self.notifiers={}
-        self.LoadCacheFiles()
         
         if self.HandleConfigFile():
             print("Created default config.json file")
@@ -61,9 +52,7 @@ class StreamDetective:
             return
         
         self.HandleSearches()
-        
-        self.SaveCacheFiles()
-
+    
 
     def FetchAllStreams(self):
         searchProviders = AllProviders(self.config)
@@ -152,39 +141,15 @@ class StreamDetective:
     def HandleSearches(self):
         for search in self.config.get("Searches",[]):
             if "GameName" in search:
-                try:
-                    searches.HandleGame(self, search)
-                except Exception as e:
-                    logex(self, e, 'error in', search)
+                debug('Handling', search["GameName"])
+                streams = self.GetAllGameStreams(search["GameName"])
             elif "UserName" in search:
-                try:
-                    searches.HandleStreamer(self, search)
-                except Exception as e:
-                    logex(self, e, 'error in', search)
-                
-
-    def SaveCacheFiles(self):
-        cacheFileFullPath = os.path.join(self.tempDir, self.cacheFileName)
-
-        with open(cacheFileFullPath, 'w') as f:
-            cache = {
-                'gameIds': TwitchApi.gameIdCache,
-                'gameArt': TwitchApi.gameArtCache,
-                'cooldowns': self.cooldowns
-            }
-            json.dump(cache,f,indent=4)
-        
-    def LoadCacheFiles(self):
-        cacheFileFullPath = os.path.join(self.tempDir, self.cacheFileName)
-        try:
-            if os.path.exists(cacheFileFullPath):
-                with open(cacheFileFullPath, 'r') as f:
-                    cache = json.load(f)
-                    TwitchApi.gameIdCache = cache.get('gameIds',{})
-                    TwitchApi.gameArtCache = cache.get('gameArt',{})
-                    self.cooldowns = cache.get('cooldowns',{})
-        except Exception as e:
-            logex(self, e, 'error in LoadCacheFile ', cacheFileFullPath)
+                debug('Handling', search['UserName'])
+                streams = self.GetAllStreamerStreams(search['UserName'])
+            try:
+                searches.HandleFilters(self, search, streams)
+            except Exception as e:
+                logex(self, e, 'error in', search)
 
 
     def GetAllGameStreams(self,gameName) -> list:
@@ -198,49 +163,13 @@ class StreamDetective:
 
     def CheckStream(self, entry, streamer, title, tags, gameName):
         return filters.CheckStream(entry, streamer, title, tags, gameName)
+    
 
-    def GetCachePath(self, name, profile):
+    @staticmethod
+    def GetSearchId(profile):
         profileHash = json.dumps(profile)
         profileHash = sha1(profileHash.encode()).hexdigest()
-        cacheName = name + '-' + profileHash
-        cacheName = re.sub('[^\w\d ]', '-', cacheName)
-        return os.path.join(self.tempDir, cacheName)
-    
-    def ReadGameCache(self, game):
-        saveLocation = self.GetCachePath(game["GameName"], game)
-        if os.path.exists(saveLocation):
-            try:
-                f = open(saveLocation,'r')
-                streamInfoOld = json.load(f)
-                f.close()
-                return streamInfoOld
-            except Exception as e:
-                logex(self, e, 'ReadGameCache failed at:', saveLocation, ', with config:', game)
-        return None
-        
-    def ReadStreamerCache(self, streamer):
-        saveLocation = self.GetCachePath(streamer["UserName"], streamer)
-        if os.path.exists(saveLocation):
-            try:
-                f = open(saveLocation,'r')
-                streamInfoOld = json.load(f)
-                f.close()
-                return streamInfoOld
-            except Exception as e:
-                logex(self, e, 'ReadStreamerCache failed at:', saveLocation, ', with config:', streamer)
-        return None
-
-    def WriteGameCache(self, game, streamInfo):
-        saveLocation = self.GetCachePath(game["GameName"], game)
-        f = open(saveLocation,'w')
-        json.dump(streamInfo,f,indent=4)
-        f.close()    
-        
-    def WriteStreamerCache(self, streamer, streamInfo):
-        saveLocation = self.GetCachePath(streamer["UserName"], streamer)
-        f = open(saveLocation,'w')
-        json.dump(streamInfo,f,indent=4)
-        f.close()
+        return profileHash
 
 
     def genNotifications(self, newStreams, entry):
@@ -285,15 +214,12 @@ class StreamDetective:
     def checkIsOnCooldown(self, stream, ProfileName) -> bool:
         user = stream["user_login"].lower()
         key = user + '-' + ProfileName
-        now = datetime.now()
-        cooldown = self.cooldowns.get(key)
-        if not cooldown:
-            self.cooldowns[key] = { 'last_notified': now.isoformat() }
-            return False
-        last_notified = cooldown['last_notified']
-        last_notified = fromisoformat(last_notified)
-        if (now - last_notified).total_seconds() < self.config.get('CooldownSeconds',0):
-            print(stream["user_login"], 'is on cooldown for', ProfileName)
+        CooldownSeconds = self.config.get('CooldownSeconds',0)
+        now = unixtime()
+        res = db.fetchone('SELECT * FROM cooldowns WHERE streamer=? AND notifier=? AND last>?', (user, ProfileName, now-CooldownSeconds))
+        db.exec('INSERT INTO cooldowns(streamer, notifier, last) VALUES(?,?,?) ON CONFLICT DO UPDATE SET last=excluded.last', (user, ProfileName, now))
+        if res:
+            print(user, 'is on cooldown for', ProfileName)
             return True
-        cooldown['last_notified'] = now.isoformat()
         return False
+
