@@ -1,5 +1,5 @@
 [{
-    "SearchTags": ["Randomizer", "Randomiser", "Randomizers", "Randomisers"],
+    "SearchTags": ["Randomizer", "Randomiser", "Randomizers", "Randomisers", "Rando"],
     "filters": [
         {"MatchString": "rando"},
         {"MatchString": "seed"}

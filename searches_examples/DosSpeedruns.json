@@ -1,5 +1,5 @@
 [{
-    "SearchTags": ["DOS"],
+    "SearchTags": ["DOS", "MSDOS", "DOSGaming"],
     "filters": [
         {"MatchTag": "Speedrun"},
         {"MatchTag": "Speedruns"},
@@ -12,5 +12,5 @@
     "Notifications": {
         "DOSSpeedruns": { "chance": 100 }
     },
-    "CustomDiscordMessage": "DOS Speedrun!"
+    "CustomDiscordMessage": "DOS Speedrun! (Mark false positives with the :x: reaction)"
 }]

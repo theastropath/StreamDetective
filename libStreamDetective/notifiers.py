@@ -40,7 +40,7 @@ class Notifier():
         if notifierData and notifierData.get('chance', 100) < 100:
             if notifierData['chance'] < random.randint(1, 100):
                 return
-            newStreams = random.sample(newStreams, 1)
+            newStreams = random.sample(newStreams, 1) # the chance property can be misleading, because even 99% means a maximum of 1 per group
         else:
             random.shuffle(newStreams)
         
