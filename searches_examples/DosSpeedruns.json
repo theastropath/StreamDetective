@@ -6,7 +6,8 @@
         {"MatchTag": "Speedrunner"},
         {"MatchTag": "Speedrunning"},
         {"MatchTag": "PBAttempts"},
-        {"MatchTag": "WRAttempts"}
+        {"MatchTag": "WRAttempts"},
+        {"MatchString": "speedrun"}
     ],
     "Notifications": {
         "DOSSpeedruns": { "chance": 100 }

@@ -1,9 +1,11 @@
 [{
     "SearchTags": ["Randomizer", "Randomiser", "Randomizers", "Randomisers"],
     "filters": [
+        {"MatchString": "rando"},
+        {"MatchString": "seed"}
     ],
     "Notifications": {
-        "StreamDetectiveTest": { "chance": 50 }
+        "StreamDetectiveTest": { "chance": 10 }
     },
     "CustomDiscordMessage": "Randomizers! (Mark false positives with the :x: reaction)"
 }]
