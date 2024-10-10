@@ -1,5 +1,5 @@
 [{
-    "SearchTags": ["DOS", "MSDOS", "DOSGaming"],
+    "SearchTags": ["DOS", "MSDOS", "DOSGaming", "DosBox", "ScummVM"],
     "filters": [
         {"MatchTag": "Speedrun"},
         {"MatchTag": "Speedruns"},

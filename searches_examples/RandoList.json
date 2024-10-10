@@ -5,7 +5,7 @@
         {"MatchString": "seed"}
     ],
     "Notifications": {
-        "StreamDetectiveTest": { "chance": 10 }
+        "RandoList": { "chance": 1 }
     },
     "CustomDiscordMessage": "Randomizers! (Mark false positives with the :x: reaction)"
 }]
