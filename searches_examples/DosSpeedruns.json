@@ -1,0 +1,15 @@
+[{
+    "SearchTags": ["DOS"],
+    "filters": [
+        {"MatchTag": "Speedrun"},
+        {"MatchTag": "Speedruns"},
+        {"MatchTag": "Speedrunner"},
+        {"MatchTag": "Speedrunning"},
+        {"MatchTag": "PBAttempts"},
+        {"MatchTag": "WRAttempts"}
+    ],
+    "Notifications": {
+        "DOSSpeedruns": { "chance": 100 }
+    },
+    "CustomDiscordMessage": "DOS Speedrun!"
+}]

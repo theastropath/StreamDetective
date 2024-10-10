@@ -6,7 +6,7 @@ class AllProviders:
         self.games = set()
         self.users = set()
         self.searches = set()
-        self.tags = set()
+        self.tagsets = dict()
 
     def AddGame(self, game:str):
         self.games.add(game)
@@ -17,16 +17,24 @@ class AllProviders:
     def AddSearch(self, query:str):
         self.searches.add(query)
 
-    def AddTag(self, tag:str):
-        self.tags.add(tag) # TODO: will just be implemented as a search, but also with a filter?
+    def AddTags(self, tags:list):
+        tags.sort()
+        self.tagsets[' '.join(tags).lower()] = tags
     
     def FetchAllStreams(self):
         allGames = {}
+        allTags = {}
         allStreamers = {}
         for p in self.providers:
-            (games, streamers) = p.FetchAllStreams(self.games, self.users)
+            (games, tags, streamers) = p.FetchAllStreams(self.games, self.tagsets, self.users)
+
             for (k,v) in games.items():
                 allGames[k] = v
+
+            for (k,v) in tags.items():
+                allTags[k] = v
+
             for (k,v) in streamers.items():
                 allStreamers[k] = v
-        return (allGames, allStreamers)
+
+        return (allGames, allTags, allStreamers)

@@ -26,7 +26,7 @@ class TestStreamDetectiveBase(StreamDetective):
         pass
 
 
-    def HandleConfigFile(self):
+    def HandleConfigFile(self, globPattern):
         print("Reading default config.json file")
         exampleConfigFileFullPath = os.path.join(path,"config.example.json")
         with open(exampleConfigFileFullPath, 'r') as f:

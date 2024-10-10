@@ -6,8 +6,7 @@
         ],
         "TitleOverride": "Phantasmagoria",
         "Notifications": {
-            "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "stauftopic": {}
         },
         "CustomDiscordMessage": "<@&1114526532208169021>",
         "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
@@ -19,8 +18,7 @@
         ],
         "TitleOverride": "Where in Space Is Carmen Sandiego?",
         "Notifications": {
-            "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "stauftopic": {}
         },
         "CustomDiscordMessage": "<@&1114526004430520403>",
         "MastoFooter": "#DOSGames #Abandonware #CarmenSandiego"
@@ -29,7 +27,7 @@
         "GameName": "Where in Space Is Carmen Sandiego?",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "StreamDetectiveMasto": { "chance": 50 }
         },
         "CustomDiscordMessage": "<@&1114526004430520403>",
         "MastoFooter": "#DOSGames #Abandonware #CarmenSandiego"
@@ -38,7 +36,7 @@
         "GameName": "Where in Space is Carmen Sandiego?: Deluxe Edition",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "StreamDetectiveMasto": { "chance": 50 }
         },
         "CustomDiscordMessage": "<@&1114526004430520403>",
         "MastoFooter": "#DOSGames #Abandonware #CarmenSandiego"
@@ -51,7 +49,7 @@
         ],
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "StreamDetectiveMasto": { "chance": 20 }
         },
         "CustomDiscordMessage": "<@&1114526532208169021>",
         "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
@@ -60,7 +58,7 @@
         "GameName": "Phantasmagoria 2: A Puzzle of Flesh",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "StreamDetectiveMasto": { "chance": 20 }
         },
         "CustomDiscordMessage": "<@&1114526532208169021>",
         "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
@@ -70,7 +68,7 @@
         "GameName": "Shivers",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "StreamDetectiveMasto": { "chance": 20 }
         },
         "CustomDiscordMessage": "<@&1114526369544687666>",
         "MastoFooter": "#FMVGames #Shivers"
@@ -79,7 +77,7 @@
         "GameName": "Shivers II: Harvest of Souls",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "StreamDetectiveMasto": { "chance": 20 }
         },
         "CustomDiscordMessage": "<@&1114526369544687666>",
         "MastoFooter": "#FMVGames #Shivers"
@@ -88,8 +86,7 @@
     {
         "GameName": "Kraven Manor",
         "Notifications": {
-            "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 10 }
+            "stauftopic": {}
         },
         "MastoFooter": "#KravenManor"
     }

@@ -149,7 +149,7 @@ class BaseTestCase(unittest.TestCase):
             'game': "Deus Ex", "user": "Heinki", "title": "Deus Ex Randomizer", "tags": ["StreamDetectiveTest"]
         }))
         sd.test('assertEqual', sd.notifiers['defaultDiscord'].MessagesSent, 1, 'totalWebhooksSent')
-        online = sd.CheckUser('Heinki')
+        online = sd.CheckSingleUser('Heinki')
         self.verboseAssert(self, 'assertEqual', online, True, 'Heinki is online')
 
     def test_config(self):
@@ -250,7 +250,7 @@ class TestStreamDetectiveBase(StreamDetective):
         self.totalCooldownsCaught += self.cooldownsCaught
         return newStreams
 
-    def HandleConfigFile(self):
+    def HandleConfigFile(self, globPattern=None):
         print("Reading default config.json file")
         exampleConfigFileFullPath = os.path.join(path,"config.example.json")
         with open(exampleConfigFileFullPath, 'r') as f:
@@ -331,7 +331,7 @@ class TestCooldown(TestStreamDetectiveBase):
             self.ClearCache()
         TestStreamDetectiveBase.__init__(self, tester, startIteration)
     
-    def HandleConfigFile(self):
+    def HandleConfigFile(self, globPattern=None):
         super().HandleConfigFile()
         if self.iterations == 2:
             self.config['CooldownSeconds'] = -10
@@ -373,7 +373,7 @@ class TestMultiples(TestStreamDetectiveBase):
         self.test('assertEqual', n['defaultDiscord'].MessagesSent, 1, 'totalWebhooksSent')
         self.test('assertEqual', n['defaultTwitter'].MessagesSent, 1, 'totalTweetsSent')
     
-    def HandleConfigFile(self):
+    def HandleConfigFile(self, globPattern=None):
         super().HandleConfigFile()
         self.config['Searches'] = [
             {

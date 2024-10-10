@@ -19,3 +19,26 @@ class TestCooldowns(unittest.TestCase):
         self.assertTrue(tableExists('gAmEs'), 'games exists')
         self.assertFalse(tableExists('boringstuff'), 'boring things do not exist here')
         close()
+
+    def test_upsert(self):
+        connect(':memory:')
+
+        upsert('games', dict(name='Deus Ex', id='0451', updated=1))
+        res = fetchall('select updated from games where name=?', ('Deus Ex',))
+        self.assertEqual(len(res), 1, 'found 1 game')
+        self.assertEqual(res[0][0], 1, 'updated==1')
+
+        upsert('games', dict(name='Deus Ex', id='0451', updated=2))
+        res = fetchall('select updated from games where name=?', ('Deus Ex',))
+        self.assertEqual(len(res), 1, 'found 1 game')
+        self.assertEqual(res[0][0], 2, 'updated==2')
+
+        upsert('games', dict(name='The 7th Guest', id='1993', updated=3))
+        res = fetchall('select updated from games where name=?', ('The 7th Guest',))
+        self.assertEqual(len(res), 1, 'found 1 game')
+        self.assertEqual(res[0][0], 3, 'updated==3')
+
+        res = fetchall('select name from games')
+        self.assertEqual(len(res), 2, 'found 2 games')
+
+        close()

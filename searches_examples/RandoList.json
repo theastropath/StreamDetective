@@ -1,0 +1,9 @@
+[{
+    "SearchTags": ["Randomizer", "Randomiser", "Randomizers", "Randomisers"],
+    "filters": [
+    ],
+    "Notifications": {
+        "StreamDetectiveTest": { "chance": 50 }
+    },
+    "CustomDiscordMessage": "Randomizers! (Mark false positives with the :x: reaction)"
+}]

@@ -37,8 +37,12 @@ class Notifier():
             print("   New Streams: ", [stream['user_login'] for stream in newStreams], '\n')
             return
         
-        if notifierData and notifierData.get('chance', 100) < random.randint(1, 100):
-            return
+        if notifierData and notifierData.get('chance', 100) < 100:
+            if notifierData['chance'] < random.randint(1, 100):
+                return
+            newStreams = random.sample(newStreams, 1)
+        else:
+            random.shuffle(newStreams)
         
         if newStreams:
             self.handleMsgs(entry, newStreams)

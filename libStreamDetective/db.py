@@ -17,7 +17,7 @@ def connect(dbname: str):
         existing_version = existing_version[0]
     else:
         existing_version = 0
-    current_version = 1 # we don't need to bump the version if we just add a new table
+    current_version = 2 # we don't need to bump the version if we just add a new table
     if existing_version < current_version:
         exec('delete from sd_meta')
         exec('insert into sd_meta values (?)', (current_version,))
@@ -28,8 +28,8 @@ def connect(dbname: str):
     # create if not exists all tables
     exec('create table if not exists games (name text PRIMARY KEY, id text, updated integer)')
     exec('create table if not exists cooldowns (streamer text, notifier text, last integer, PRIMARY KEY(streamer, notifier))')
-    exec('create table if not exists streams (id text, streamer text PRIMARY KEY, title text, game text, tags text, updated integer, language text)')
-    exec('create table if not exists queries (baseurl text, cursor text, page integer)')
+    #exec('create table if not exists streams (id text, streamer text PRIMARY KEY, title text, game text, tags text, updated integer, language text)')
+    exec('create table if not exists queries (baseurl text PRIMARY KEY, cursor text, page integer, updated integer)')
     # a table for lotteries? how many times each game/streamer has won?
     # a table for tags? how many times they have been featured in different games or by different streamers?
     # cleanup old rows?
@@ -87,3 +87,13 @@ def execmany(sql: str, params=()):
 def tableExists(table):
     # table names are case-insensitive in SQLite, but values are case-sensistive
     return bool(fetchone("SELECT name FROM sqlite_master WHERE type='table' AND name=? COLLATE NOCASE", (table,)))
+
+def upsert(table:str, values:dict):
+    columnnames = ','.join(values.keys())
+    valuestext = ','.join('?' for v in values.values())
+    sql = 'INSERT INTO '+table+'(' + columnnames + ') VALUES(' + valuestext + ') ON CONFLICT DO UPDATE SET '
+    for (k,v) in values.items():
+        sql += k + '=excluded.' + k + ','
+    sql = sql[:-1]
+    params = tuple(values.values())
+    exec(sql, params)

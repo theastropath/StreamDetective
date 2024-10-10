@@ -21,7 +21,7 @@ class StreamDetective:
     searchesFolderPath="searches"
     cacheFileName="cache.json"
 
-    def __init__ (self, dry_run=False, testStream=None, checkUser=None):
+    def __init__ (self, dry_run=False, testStream=None, checkUser=None, searchFile=None):
         print('\n\n'+datetime.now().isoformat()+': StreamDetective starting')
         db.connect('sddb.sqlite3')
         
@@ -31,7 +31,7 @@ class StreamDetective:
         
         self.notifiers={}
         
-        if self.HandleConfigFile():
+        if self.HandleConfigFile(searchFile):
             print("Created default config.json file")
             exit(0)
 
@@ -48,7 +48,7 @@ class StreamDetective:
             self.FetchAllStreams()
 
         if checkUser:
-            self.CheckUser(checkUser)
+            self.CheckSingleUser(checkUser)
             return
         
         self.HandleSearches()
@@ -62,11 +62,13 @@ class StreamDetective:
                 searchProviders.AddGame(search['GameName'])
             elif 'UserName' in search:
                 searchProviders.AddUser(search['UserName'])
+            elif 'SearchTags' in search:
+                searchProviders.AddTags(search['SearchTags'])
         
-        (self.fetchedGames, self.fetchedStreamers) = searchProviders.FetchAllStreams()
+        (self.fetchedGames, self.fetchedTags, self.fetchedStreamers) = searchProviders.FetchAllStreams()
     
     
-    def CheckUser(self, user):
+    def CheckSingleUser(self, user):# for CLI
         user = user.lower()
         if user in self.fetchedStreamers:
             print('found', user, self.fetchedStreamers[user])
@@ -80,7 +82,7 @@ class StreamDetective:
                 
         searchProviders = AllProviders(self.config)
         searchProviders.AddUser(user)
-        (fetchedGames, fetchedStreamers) = searchProviders.FetchAllStreams()
+        (fetchedGames, fetchedTags, fetchedStreamers) = searchProviders.FetchAllStreams()
 
         if user in fetchedStreamers:
             print('found', user, s)
@@ -94,7 +96,7 @@ class StreamDetective:
             self.config['IgnoreStreams'][i] = self.config['IgnoreStreams'][i].lower()
 
 
-    def HandleConfigFile(self):
+    def HandleConfigFile(self, globPattern='*.json'):
         configFileFullPath = os.path.join(path, self.configFileName)
         if os.path.exists(configFileFullPath):
             with open(configFileFullPath, 'r') as f:
@@ -104,7 +106,9 @@ class StreamDetective:
                 self.config['Searches'] = []
 
             configsFolder = Path(path) / self.searchesFolderPath
-            for f in configsFolder.glob('*.json'):
+            if not globPattern:
+                globPattern='*.json'
+            for f in configsFolder.glob(globPattern):
                 try:
                     data = f.read_text()
                     searches = json.loads(data)
@@ -147,6 +151,12 @@ class StreamDetective:
             elif "UserName" in search:
                 debug('Handling', search['UserName'])
                 streams = self.GetAllStreamerStreams(search['UserName'])
+            elif "SearchTags" in search:
+                debug('Handling', search['SearchTags'])
+                streams = self.GetAllTagsStreams(search['SearchTags'])
+            else:
+                print('unknown search type', search)
+                continue
             try:
                 searches.HandleFilters(self, search, streams)
             except Exception as e:
@@ -155,6 +165,10 @@ class StreamDetective:
 
     def GetAllGameStreams(self,gameName) -> list:
         return self.fetchedGames.get(gameName.lower(),[])
+    
+    def GetAllTagsStreams(self,tags) -> list:
+        tags.sort()
+        return self.fetchedTags.get(' '.join(tags).lower(),[])
     
     def GetAllStreamerStreams(self,streamer) -> list:
         streamer = streamer.lower()
@@ -212,7 +226,7 @@ class StreamDetective:
                 continue
             toSend.append(stream)
         if onCooldown:
-            print('On cooldown for', profileName, ':', onCooldown)
+            print('      On cooldown for', profileName, ':', onCooldown)
         return toSend
 
 
@@ -222,9 +236,9 @@ class StreamDetective:
         CooldownSeconds = self.config.get('CooldownSeconds',0)
         now = unixtime()
         res = db.fetchone('SELECT * FROM cooldowns WHERE streamer=? AND notifier=? AND last>?', (user, ProfileName, now-CooldownSeconds))
-        db.exec('INSERT INTO cooldowns(streamer, notifier, last) VALUES(?,?,?) ON CONFLICT DO UPDATE SET last=excluded.last', (user, ProfileName, now))
+        db.upsert('cooldowns', dict(streamer=user, notifier=ProfileName, last=now))
         if res:
-            debug(user, 'is on cooldown for', ProfileName)
+            debug('      ', user, 'is on cooldown for', ProfileName)
             return True
         return False
 

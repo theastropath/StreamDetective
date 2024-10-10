@@ -11,7 +11,7 @@
         "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 10}
+            "StreamDetectiveMasto": {"chance": 20}
         },
         "MastoFooter": "#DOSGames"
     },
@@ -26,7 +26,7 @@
         "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 10}
+            "StreamDetectiveMasto": {"chance": 20}
         },
         "MastoFooter": "#Abandonware"
     },
@@ -42,7 +42,7 @@
         "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 10}
+            "StreamDetectiveMasto": {"chance": 20}
         },
         "MastoFooter": "#FMVGames"
     },
@@ -57,7 +57,7 @@
         "GameArtOverride": "Retro",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 15}
+            "StreamDetectiveMasto": {"chance": 25}
         },
         "MastoFooter": "#Abandonware #CarmenSandiego"
     }

@@ -1,4 +1,6 @@
 import time
+
+import urllib.parse
 from libStreamDetective import db
 from libStreamDetective.util import *
 from requests import Session
@@ -24,10 +26,11 @@ class Twitch:
         accessToken = config['accessToken']
 
     
-    def FetchAllStreams(self, gameNames:set, streamers:set):
+    def FetchAllStreams(self, gameNames:set, tagsets:dict, streamers:set):
         #print("All Games: "+str(gameNames))
         #print("All Streamers: "+str(streamers))
         fetchedGames = {}
+        fetchedTags = {}
         fetchedStreamers = {}
         
         # TODO: This should be extended to handle more than 100 unique games
@@ -46,6 +49,21 @@ class Twitch:
                     fetchedGames[gameName].append(stream)
                 user = stream["user_login"].lower()
                 fetchedStreamers[user] = stream
+
+        fetched = None # just in case
+        if tagsets:
+            url = TwitchApi.streamsUrl
+            fetched = self.GetAllStreams(url)
+        for (k,v) in tagsets.items():
+            if k not in fetchedTags:
+                fetchedTags[k] = []
+            for stream in fetched:
+                user = stream["user_login"].lower()
+                fetchedStreamers[user] = stream
+                if stream in fetchedTags[k]:
+                    continue
+                if self.MatchAnyTag(v, stream['tags']):
+                    fetchedTags[k].append(stream)
             
         # TODO: This should be extended to handle more than 100 unique streamers
         if streamers:
@@ -59,14 +77,45 @@ class Twitch:
                 fetchedStreamers[user] = stream
 
         self.end()
-        return (fetchedGames, fetchedStreamers)
+        return (fetchedGames, fetchedTags, fetchedStreamers)
 
+
+    @staticmethod
+    def MatchAllTags(desiredTags, actualTags):
+        try:
+            for desiredTag in desiredTags:
+                matched = False
+                for actualTag in actualTags:
+                    if desiredTag.lower() == actualTag.lower():
+                        matched = True
+                        break
+                if not matched:
+                    return False
+            return True
+        except:
+            return False
+        
+    @staticmethod
+    def MatchAnyTag(desiredTags, actualTags):
+        try:
+            for desiredTag in desiredTags:
+                for actualTag in actualTags:
+                    if desiredTag.lower() == actualTag.lower():
+                        return True
+            return False
+        except:
+            return False
     
-    def GetAllStreams(self,lookupUrl):
+    def GetAllStreams(self, lookupUrl, maxPages=100):
         allStreams = []
-        keepGoing = True
         cursor = ""
-        while keepGoing:
+        resume_page = 0
+        res = db.fetchone('SELECT cursor, page FROM queries WHERE baseurl=? AND updated>? AND page<100000', (lookupUrl,unixtime()-3600))
+        if res:
+            cursor = res[0]
+            resume_page = res[1]
+            debug('resuming cursor', cursor, resume_page)
+        for page in range(maxPages):
             url = lookupUrl
             if not lookupUrl.endswith('&'):
                 url += '&'
@@ -74,25 +123,28 @@ class Twitch:
             
             if cursor!="":
                 url+="&after="+cursor
-            
-            result = None
+
             result = TwitchApi.Request(url)
-            # Twitch API doesn't always return full pages, so we need to load the next page no matter what
-            if "pagination" in result and "cursor" in result["pagination"]:
-                keepGoing = True
-                cursor = result["pagination"]["cursor"]
-            else:
-                keepGoing = False
-                cursor = ""
-                
-                
+            
             for stream in result['data']:
                 allStreams.append(stream)
-                #print(stream["user_login"])
-                
-            if keepGoing:
-                time.sleep(0.1) # pace yourself a little bit
             
+            # Twitch API doesn't always return full pages, so we need to load the next page no matter what
+            if "pagination" in result and "cursor" in result["pagination"]:
+                cursor = result["pagination"]["cursor"]
+                time.sleep(0.01) # pace yourself a little bit
+            else:
+                cursor = ""
+                break
+        
+        if cursor:
+            debug('pausing on cursor', cursor)
+            db.upsert('queries', dict(baseurl=lookupUrl, cursor=cursor, page=page+resume_page, updated=unixtime()))
+        else:
+            if resume_page:
+                print('finished pass through', lookupUrl, 'after', page+resume_page, 'pages')
+            db.exec('DELETE FROM queries WHERE baseurl=?', (lookupUrl,))
+
         return allStreams
     
 
@@ -105,8 +157,9 @@ class Twitch:
 
 
 class TwitchApi:
-    streamsUrl='https://api.twitch.tv/helix/streams?'
+    streamsUrl='https://api.twitch.tv/helix/streams?type=live&'
     usersUrl='https://api.twitch.tv/helix/users?'
+    queryUrl='https://api.twitch.tv/helix/search/channels?' # doesn't even work https://github.com/theastropath/StreamDetective/issues/34#issuecomment-2403683986
     gameIdCache={}
     gameArtCache={}
 
