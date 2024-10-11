@@ -8,9 +8,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: cd ${{ github.workspace }}
-      - run: python3 -m venv .venv
-      - run: source .venv/bin/activate
-      - run: python3 -m pip install -r requirements.txt 2>&1
+      - run: pip3 install --break-system-packages -r requirements.txt 2>&1
       - run: python -m compileall -q .
       - run: python3 runtests.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
