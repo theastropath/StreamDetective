@@ -39,10 +39,10 @@ class Notifier():
         
         if notifierData and notifierData.get('chance', 100) < 100:
             if notifierData['chance'] < random.randint(1, 100):
-                print(self.ProfileName, 'lost the lottery:', newStreams)
+                print(self.ProfileName, 'lost the lottery:', [stream['user_login'] for stream in newStreams])
                 return
             winners = random.sample(newStreams, 1) # the chance property can be misleading, because even 99% means a maximum of 1 per group
-            print(self.ProfileName, winners, 'won out of', newStreams)
+            print(self.ProfileName, [stream['user_login'] for stream in winners], 'won out of', [stream['user_login'] for stream in newStreams])
             newStreams = winners
         else:
             random.shuffle(newStreams)
