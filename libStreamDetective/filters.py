@@ -2,19 +2,24 @@ import re
 from libStreamDetective.util import *
 
 def CheckStream(entry, streamer, title, tags, gameName):
-    trace("")
-    trace("Name: ", streamer, title, tags, gameName, entry)
+    if 'SearchAll' in entry:
+        ttrace=trace
+    else:
+        ttrace = lambda *a: None # do-nothing function
+    
+    ttrace("")
+    ttrace("Name: ", streamer, title, tags, gameName, entry)
 
     if gameName != entry.get('GameName', gameName):
-        trace("did not match GameName")
+        ttrace("did not match GameName")
         return False
     if streamer != entry.get('UserName', streamer):
-        trace("did not match UserName")
+        ttrace("did not match UserName")
         return False
     
     if not entry.get('filters'):
         # return True if the filters array is empty, or the key is missing
-        trace("no filters, accepting stream")
+        ttrace("no filters, accepting stream")
         return True
     
     if tags:
@@ -24,8 +29,8 @@ def CheckStream(entry, streamer, title, tags, gameName):
         if CheckStreamFilter(filter, streamer, title, tags, gameName):
             debug(streamer, title, tags, gameName, "accepted by filter", filter)
             return True
-        trace(streamer, "not accepted by filter", filter)
-    debug(streamer, "not accepted by any filters")
+        ttrace(streamer, "not accepted by filter", filter)
+    ttrace(streamer, "not accepted by any filters")
     return False
 
 

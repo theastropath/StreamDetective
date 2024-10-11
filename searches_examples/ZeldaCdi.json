@@ -45,6 +45,7 @@
             { "MatchString": "Wand of Gamelon" }
         ],
         "TitleOverride": "Zelda: The Wand of Gamelon",
+        "GameArtOverride": "Zelda: The Wand of Gamelon",
         "Notifications":{
             "ZeldaCdi": {},
             "StreamDetectiveMasto": {"chance": 5}
@@ -57,6 +58,7 @@
             { "MatchString": "Faces of Evil" }
         ],
         "TitleOverride": "Link: The Faces of Evil",
+        "GameArtOverride": "Link: The Faces of Evil",
         "Notifications":{
             "ZeldaCdi": {},
             "StreamDetectiveMasto": {"chance": 5}
@@ -70,6 +72,7 @@
             { "MatchString": "Zeldas Adventure" }
         ],
         "TitleOverride": "Zelda's Adventure",
+        "GameArtOverride": "Zelda's Adventure",
         "Notifications":{
             "ZeldaCdi": {},
             "StreamDetectiveMasto": {"chance": 5}

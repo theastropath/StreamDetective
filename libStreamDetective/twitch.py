@@ -26,87 +26,87 @@ class Twitch:
         accessToken = config['accessToken']
 
     
-    def FetchAllStreams(self, gameNames:set, tagsets:dict, streamers:set):
-        #print("All Games: "+str(gameNames))
-        #print("All Streamers: "+str(streamers))
+    def FetchAllStreams(self, gameNames:set, searchAll:bool, streamers:set):
         fetchedGames = {}
-        fetchedTags = {}
+        fetchedAll = []
         fetchedStreamers = {}
-        
-        # TODO: This should be extended to handle more than 100 unique games
-        if gameNames:
-            allGamesUrl = TwitchApi.streamsUrl
-            for game in gameNames:
-                gameId = TwitchApi.GetGameId(game)
-                allGamesUrl += "game_id="+gameId+"&"
-            #print("All games: "+allGamesUrl)
-            fetched = self.GetAllStreams(allGamesUrl)
-            for stream in fetched:
-                gameName = stream["game_name"].lower()
-                if gameName not in fetchedGames:
-                    fetchedGames[gameName] = []
-                if stream not in fetchedGames[gameName]:
-                    fetchedGames[gameName].append(stream)
-                user = stream["user_login"].lower()
-                fetchedStreamers[user] = stream
 
-        fetched = None # just in case
-        if tagsets:
-            url = TwitchApi.streamsUrl
-            fetched = self.GetAllStreams(url)
+        bigGames = set(('Retro', 'StarCraft II'))
+        gameNames = gameNames.difference(bigGames)
+
+        if gameNames:
+            fetchedGames = self.FetchAllGames(gameNames)
+        if searchAll:
+            fetchedAll = self.FetchAll()
+        if streamers:
+            fetchedStreamers = self.FetchAllStreamers(streamers)
+        
+        lowerBigGames = set()
+        for GAME in bigGames:
+            g = GAME.lower()
+            lowerBigGames.add(g)
+            if g not in fetchedGames:
+                fetchedGames[g] = []
+        for stream in fetchedAll: # grab large games from the fetchAll
+            game = stream["game_name"].lower()
+            if game not in lowerBigGames:
+                continue
+            fetchedGames[game].append(stream)
+
+        self.end() # print some text
+        return (fetchedGames, fetchedAll, fetchedStreamers)
+
+
+    def FetchAllGames(self, names:set):
+        fetched:dict[str,list] = {}
+        allGamesUrl = TwitchApi.streamsUrl
+        # TODO: This should be extended to handle more than 100 unique games
+        for game in names:
+            gameId = TwitchApi.GetGameId(game)
+            allGamesUrl += "game_id="+gameId+"&"
+        #print("All games: "+allGamesUrl)
+        res = self.GetAllPages(allGamesUrl)
+        for stream in res:
+            game = stream["game_name"].lower()
+            if game not in fetched:
+                fetched[game] = []
+            if stream not in fetched[game]:
+                fetched[game].append(stream)
+        return fetched
+    
+    def FetchAll(self):
+        url = TwitchApi.streamsUrl
+        res = self.GetAllPages(url)
+        return res
+
+    def FetchAllTags(self, tagsets:dict):
+        fetched:dict[str,list] = {}
+        url = TwitchApi.streamsUrl
+        res = self.GetAllPages(url)
         for (k,v) in tagsets.items():
-            if k not in fetchedTags:
-                fetchedTags[k] = []
-            for stream in fetched:
-                user = stream["user_login"].lower()
-                fetchedStreamers[user] = stream
-                if stream in fetchedTags[k]:
+            if k not in fetched:
+                fetched[k] = []
+            for stream in res:
+                if stream in fetched[k]:
                     continue
                 if self.MatchAnyTag(v, stream['tags']):
-                    fetchedTags[k].append(stream)
-            
+                    fetched[k].append(stream)
+        return fetched
+
+    def FetchAllStreamers(self, streamers:set):
+        fetched = {}
         # TODO: This should be extended to handle more than 100 unique streamers
-        if streamers:
-            allStreamersUrl = TwitchApi.streamsUrl
-            for streamer in streamers:
-                if streamer.lower() not in fetchedStreamers: # don't need to fetch them if we found them above
-                    allStreamersUrl += "user_login="+streamer+"&"
-            fetched = self.GetAllStreams(allStreamersUrl)
-            for stream in fetched:
-                user = stream["user_login"].lower()
-                fetchedStreamers[user] = stream
+        allStreamersUrl = TwitchApi.streamsUrl
+        for streamer in streamers:
+            allStreamersUrl += "user_login="+streamer+"&"
+        res = self.GetAllPages(allStreamersUrl)
+        for stream in res:
+            user = stream["user_login"].lower()
+            fetched[user] = stream
+        return fetched
 
-        self.end()
-        return (fetchedGames, fetchedTags, fetchedStreamers)
-
-
-    @staticmethod
-    def MatchAllTags(desiredTags, actualTags):
-        try:
-            for desiredTag in desiredTags:
-                matched = False
-                for actualTag in actualTags:
-                    if desiredTag.lower() == actualTag.lower():
-                        matched = True
-                        break
-                if not matched:
-                    return False
-            return True
-        except:
-            return False
-        
-    @staticmethod
-    def MatchAnyTag(desiredTags, actualTags):
-        try:
-            for desiredTag in desiredTags:
-                for actualTag in actualTags:
-                    if desiredTag.lower() == actualTag.lower():
-                        return True
-            return False
-        except:
-            return False
     
-    def GetAllStreams(self, lookupUrl, maxPages=100):
+    def GetAllPages(self, lookupUrl, maxPages=100):
         allStreams = []
         cursor = ""
         resume_page = 0

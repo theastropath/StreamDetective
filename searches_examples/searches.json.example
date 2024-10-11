@@ -15,6 +15,7 @@
             { "MatchString": "7th Guest" }
         ],
         "TitleOverride": "The 7th Guest",
+        "GameArtOverride": "The 7th Guest",
         "Notifications":["defaultDiscord"]
     },
     {

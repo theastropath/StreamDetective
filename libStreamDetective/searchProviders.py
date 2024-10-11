@@ -7,6 +7,7 @@ class AllProviders:
         self.users = set()
         self.searches = set()
         self.tagsets = dict()
+        self.searchAll = False
 
     def AddGame(self, game:str):
         self.games.add(game)
@@ -16,25 +17,29 @@ class AllProviders:
 
     def AddSearch(self, query:str):
         self.searches.add(query)
+        self.searchAll = True
 
     def AddTags(self, tags:list):
         tags.sort()
         self.tagsets[' '.join(tags).lower()] = tags
+        self.searchAll = True
+
+    def SearchAll(self):
+        self.searchAll = True
     
     def FetchAllStreams(self):
         allGames = {}
-        allTags = {}
+        all = []
         allStreamers = {}
         for p in self.providers:
-            (games, tags, streamers) = p.FetchAllStreams(self.games, self.tagsets, self.users)
+            (games, all_temp, streamers) = p.FetchAllStreams(self.games, self.searchAll, self.users)
 
             for (k,v) in games.items():
                 allGames[k] = v
 
-            for (k,v) in tags.items():
-                allTags[k] = v
+            all += all_temp
 
             for (k,v) in streamers.items():
                 allStreamers[k] = v
 
-        return (allGames, allTags, allStreamers)
+        return (allGames, all, allStreamers)

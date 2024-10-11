@@ -62,10 +62,10 @@ class StreamDetective:
                 searchProviders.AddGame(search['GameName'])
             elif 'UserName' in search:
                 searchProviders.AddUser(search['UserName'])
-            elif 'SearchTags' in search:
-                searchProviders.AddTags(search['SearchTags'])
+            elif search.get('SearchAll') or search.get('SearchTags'): # this one is a boolean
+                searchProviders.SearchAll()
         
-        (self.fetchedGames, self.fetchedTags, self.fetchedStreamers) = searchProviders.FetchAllStreams()
+        (self.fetchedGames, self.fetchedAll, self.fetchedStreamers) = searchProviders.FetchAllStreams()
     
     
     def CheckSingleUser(self, user):# for CLI
@@ -82,7 +82,7 @@ class StreamDetective:
                 
         searchProviders = AllProviders(self.config)
         searchProviders.AddUser(user)
-        (fetchedGames, fetchedTags, fetchedStreamers) = searchProviders.FetchAllStreams()
+        (fetchedGames, fetchedAll, fetchedStreamers) = searchProviders.FetchAllStreams()
 
         if user in fetchedStreamers:
             print('found', user, s)
@@ -153,7 +153,10 @@ class StreamDetective:
                 streams = self.GetAllStreamerStreams(search['UserName'])
             elif "SearchTags" in search:
                 debug('Handling', search['SearchTags'])
-                streams = self.GetAllTagsStreams(search['SearchTags'])
+                streams = self.GetAllStreams()
+            elif search.get('SearchAll'): # this one is a boolean
+                debug('Handling search all', search.get('filters'))
+                streams = self.GetAllStreams()
             else:
                 print('unknown search type', search)
                 continue
@@ -166,9 +169,8 @@ class StreamDetective:
     def GetAllGameStreams(self,gameName) -> list:
         return self.fetchedGames.get(gameName.lower(),[])
     
-    def GetAllTagsStreams(self,tags) -> list:
-        tags.sort()
-        return self.fetchedTags.get(' '.join(tags).lower(),[])
+    def GetAllStreams(self) -> list:
+        return self.fetchedAll
     
     def GetAllStreamerStreams(self,streamer) -> list:
         streamer = streamer.lower()

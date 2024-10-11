@@ -5,6 +5,7 @@
             {"MatchString": "7th Guest"}
         ],
         "TitleOverride": "The 7th Guest",
+        "GameArtOverride": "The 7th Guest",
         "Notifications": {
             "stauf": {},
             "StreamDetectiveMasto": { "chance": 20 }
@@ -56,6 +57,7 @@
             {"MatchString": "11th Hour"}
         ],
         "TitleOverride": "The 11th Hour",
+        "GameArtOverride": "The 11th Hour",
         "Notifications": {
             "stauf": {},
             "StreamDetectiveMasto": { "chance": 20 }
@@ -98,6 +100,7 @@
             {"MatchString": "The 13th Doll"}
         ],
         "TitleOverride": "The 13th Doll",
+        "GameArtOverride": "The 13th Doll",
         "Notifications": {
             "stauf": {},
             "StreamDetectiveMasto": { "chance": 20 }
@@ -113,6 +116,7 @@
             {"MatchString": "Clandestiny"}
         ],
         "TitleOverride": "Clandestiny",
+        "GameArtOverride": "Clandestiny",
         "Notifications": {
             "stauf": {},
             "StreamDetectiveMasto": { "chance": 20 }
@@ -135,6 +139,7 @@
             {"MatchString": "Tender Loving Care"}
         ],
         "TitleOverride": "Tender Loving Care",
+        "GameArtOverride": "Tender Loving Care",
         "Notifications": {
             "stauf": {},
             "StreamDetectiveMasto": { "chance": 20 }
@@ -148,6 +153,7 @@
             {"MatchString": "Uncle Henry's Playhouse"}
         ],
         "TitleOverride": "Uncle Henry's Playhouse",
+        "GameArtOverride": "Uncle Henry's Playhouse",
         "Notifications": {
             "stauf": {},
             "StreamDetectiveMasto": { "chance": 20 }

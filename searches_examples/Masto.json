@@ -1,64 +1,69 @@
 [
     {
-        "GameName": "Retro",
+        "SearchAll": true,
         "filters": [
             {"MatchTag": "DOS"},
             {"MatchTag": "DOSGame"},
             {"MatchTag": "DOSGames"},
             {"MatchString": "DOS Game"}
         ],
-        "TitleOverride": "a DOS game",
-        "GameArtOverride": "Retro",
         "Notifications": {
-            "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 20}
+            "stauftopic": {"chance": 5},
+            "StreamDetectiveMasto": {"chance": 5}
         },
         "MastoFooter": "#DOSGames"
     },
     {
-        "GameName": "Retro",
+        "SearchAll": true,
+        "filters": [
+            {"MatchTag": "ScummVM"},
+            {"MatchString": "ScummVM"},
+            {"MatchString": "Scumm VM"}
+        ],
+        "Notifications": {
+            "stauftopic": {"chance": 5},
+            "StreamDetectiveMasto": {"chance": 5}
+        },
+        "MastoFooter": "#ScummVM"
+    },
+    {
+        "SearchAll": true,
         "filters": [
             {"MatchTag": "abandonware"},
             {"MatchString": "abandonware"},
             {"MatchString": "abandon ware"}
         ],
-        "TitleOverride": "an abandonware game",
-        "GameArtOverride": "Retro",
         "Notifications": {
-            "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 20}
+            "stauftopic": {"chance": 5},
+            "StreamDetectiveMasto": {"chance": 5}
         },
         "MastoFooter": "#Abandonware"
     },
     {
-        "GameName": "Retro",
+        "SearchAll": true,
         "filters": [
             {"MatchTag": "FMV"},
             {"MatchTag": "FMVGame"},
             {"MatchTag": "FMVGames"},
             {"MatchString": "FMV"}
         ],
-        "TitleOverride": "an FMV game",
-        "GameArtOverride": "Retro",
         "Notifications": {
-            "stauftopic": {},
-            "StreamDetectiveMasto": {"chance": 20}
+            "stauftopic": {"chance": 5},
+            "StreamDetectiveMasto": {"chance": 5}
         },
         "MastoFooter": "#FMVGames"
     },
     {
-        "GameName": "Retro",
+        "SearchAll": true,
         "filters": [
             {"MatchTag": "CarmenSandiego"},
             {"MatchString": "CarmenSandiego"},
             {"MatchString": "Carmen Sandiego"}
         ],
-        "TitleOverride": "Carmen Sandiego",
-        "GameArtOverride": "Retro",
         "Notifications": {
-            "stauftopic": {},
+            "stauftopic": {"chance": 25},
             "StreamDetectiveMasto": {"chance": 25}
         },
-        "MastoFooter": "#Abandonware #CarmenSandiego"
+        "MastoFooter": "#CarmenSandiego"
     }
 ]

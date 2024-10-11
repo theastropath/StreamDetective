@@ -13,6 +13,7 @@
             { "MatchString": "Unreal Championship" }
         ],
         "TitleOverride": "Unreal Championship",
+        "GameArtOverride": "Unreal Championship",
         "Notifications":["KOJAK", "UCDark1"]
     },
 

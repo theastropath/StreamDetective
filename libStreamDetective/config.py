@@ -36,6 +36,7 @@ Searches_schema = {
         "GameName": {"type": "string"},
         "UserName": {"type": "string"},
         "SearchTags": {"type": "array"},
+        "SearchAll": {"type": "boolean"},
         "filters": {"type": "array", "items":filters_schema},
         "Notifications": {"type": ["array", "object"]},
         "CustomDiscordMessage": {"type": "string"},
@@ -82,8 +83,9 @@ def validateConfig(conf):
     assert conf.get('NotificationServices'), 'config has NotificationServices'
 
     for search in conf.get('Searches',[]):
-        # Must have one but not both
-        assert ("GameName" in search) ^ ("UserName" in search) ^ ("SearchTags" in search), 'testing config for search: ' + repr(search)
+        # Must have only one type
+        type = set(('GameName','UserName','SearchTags','SearchAll')).intersection(search)
+        assert len(type)==1, 'testing config for search: ' + repr(search)
         
     for service in conf.get('NotificationServices',[]):
         assert service.get("ProfileName"), 'testing notification service for: ' + repr(service)

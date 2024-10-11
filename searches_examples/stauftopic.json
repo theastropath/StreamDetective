@@ -5,6 +5,7 @@
             {"MatchString": "Phantasmagoria"}
         ],
         "TitleOverride": "Phantasmagoria",
+        "GameArtOverride": "Phantasmagoria",
         "Notifications": {
             "stauftopic": {}
         },
@@ -17,6 +18,7 @@
             {"MatchString": "Where in Space Is Carmen Sandiego"}
         ],
         "TitleOverride": "Where in Space Is Carmen Sandiego?",
+        "GameArtOverride": "Where in Space Is Carmen Sandiego?",
         "Notifications": {
             "stauftopic": {}
         },
