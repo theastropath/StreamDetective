@@ -1,5 +1,5 @@
 # feel free to delete this file if you want to do a big refactor
-import autoinstaller
+#import autoinstaller
 from typeguard import typechecked, install_import_hook
 install_import_hook('libStreamDetective')
 import libStreamDetective.twitch
