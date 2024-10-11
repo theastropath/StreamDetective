@@ -24,7 +24,7 @@ def check_requirement(r):
 
 def install(r):
     print('need to install:', r, file=sys.stderr)
-    subprocess.run(['pipx', 'install', r], check=True)#, capture_output=True)
+    subprocess.run(["pip3", "install", '--user', '--upgrade', r], check=True, capture_output=True)
     invalidate_caches()
 
 

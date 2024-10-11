@@ -5,4 +5,4 @@ if sys.version_info[0] < 3:
 if sys.version_info[0] == 3 and sys.version_info[1] < 6:
     raise ImportError('Python < 3.6 is unsupported.')
 
-import autoinstaller
+#import autoinstaller
