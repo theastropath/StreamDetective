@@ -1,11 +1,15 @@
 import unittest
 from libStreamDetective.filters import CheckStream
+from pathlib import Path
+import json
 
 all_filters = {
     'MatchTag': 'Randomizer',
     'MatchTagName': 'Randomizer',
     'MatchTagSubstring': 'Rando',
     'MatchString': 'Randomi',
+    'MatchWord': 'Randomizer',
+    'DontMatchWord': 'Random',
     'DontMatchTag': 'Sega',
     'DontMatchString': 'Sonic',
     'DontMatchTagName': 'Sega',
@@ -18,6 +22,26 @@ all_filters = {
 }
 
 class TestFilters(unittest.TestCase):
+    def test_example_configs(self):
+        entry = {'filters': GetFilters('DosSpeedruns.json', 0)}
+        ret = CheckStream(entry, 'Die4Ever', 'DOS game speedruns', ['speedrun'], 'The 7th Guest')
+        self.assertTrue(ret)
+        ret = CheckStream(entry, 'Die4Ever', 'MSDOS game speedrun', ['speedrun'], 'The 7th Guest')
+        self.assertTrue(ret)
+        ret = CheckStream(entry, 'Die4Ever', 'Daily DOSe of DXRando', ['speedrun'], 'Deus Ex Randomizer')
+        self.assertFalse(ret)
+
+    def test_match_words(self):
+        filters = [{'MatchWord': 'Deus Ex Randomizer'}]
+        entry = {'filters': filters}
+        ret = CheckStream(entry, 'Die4Ever', 'Deus Ex RaNdomizer Halloween speedruns', ['RaNdomizer', 'Speedrun'], 'dEUS eX')
+        self.assertTrue(ret)
+
+        filters = [{'DontMatchWord': 'Deus Ex Random'}]
+        entry = {'filters': filters}
+        ret = CheckStream(entry, 'Die4Ever', 'Deus Ex RaNdomizer Halloween speedruns', ['RaNdomizer', 'Speedrun'], 'dEUS eX')
+        self.assertTrue(ret)
+
     def test_single_filters(self):
         for (k,v) in all_filters.items():
             with self.subTest(k+':'+v):
@@ -47,5 +71,14 @@ class TestFilters(unittest.TestCase):
 
     def negative(self, filters):
         entry = {'filters': filters}
-        ret = CheckStream(entry, 'Bob Page', 'playing some Sonic and then rule the world', ['Sega'], 'sONIC')
+        ret = CheckStream(entry, 'Bob Page', 'playing some Sonic and other random games and then rule the world', ['Sega'], 'sONIC')
         self.assertFalse(ret, 'negative')
+
+
+def GetFilters(name, num):
+    root = Path(__file__).parent.parent
+    search:Path = root/'searches_examples'/name
+    text = search.read_text()
+    data = json.loads(text)
+    return data[num]['filters']
+

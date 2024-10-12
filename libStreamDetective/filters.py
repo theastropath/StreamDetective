@@ -64,6 +64,12 @@ def CheckStreamFilter(filter, streamer, title, tags, gameName):
     for f in GetFilter(filter, 'MatchString'):
         if f.lower() not in title.lower():
             return False
+    for f in GetFilter(filter, 'MatchWord'):
+        if not re.search(r'\b' + f + r'\b', title, flags=re.IGNORECASE):
+            return False
+    for f in GetFilter(filter, 'DontMatchWord'):
+        if re.search(r'\b' + f + r'\b', title, flags=re.IGNORECASE):
+            return False
     for f in GetFilter(filter, 'DontMatchTag'):
         if f.lower() in tags:
             return False
@@ -91,10 +97,7 @@ def CheckStreamFilter(filter, streamer, title, tags, gameName):
             return False
         
     for f in GetFilter(filter, 'SearchRegex'):
-        found = False
-        if re.search(f, title, flags=re.IGNORECASE):
-            found = True
-        if not found:
+        if not re.search(f, title, flags=re.IGNORECASE):
             return False
         
     for f in GetFilter(filter, 'DontSearchRegex'):

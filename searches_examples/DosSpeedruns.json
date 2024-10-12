@@ -1,13 +1,22 @@
 [{
-    "SearchTags": ["DOS", "MSDOS", "DOSGaming", "DosBox", "ScummVM"],
+    "SearchTags": ["Speedrun", "Speedruns", "Speedrunner", "Speedrunning", "PBAttempts", "WRAttempts", "DOSSpeedrun", "DOSSpeedruns", "DOSSpeedrunning"],
     "filters": [
-        {"MatchTag": "Speedrun"},
-        {"MatchTag": "Speedruns"},
-        {"MatchTag": "Speedrunner"},
-        {"MatchTag": "Speedrunning"},
-        {"MatchTag": "PBAttempts"},
-        {"MatchTag": "WRAttempts"},
-        {"MatchString": "speedrun"}
+        {"MatchTag": "DOS"},
+        {"MatchTag": "MSDOS"},
+        {"MatchTag": "DOSGame"},
+        {"MatchTag": "DOSGames"},
+        {"MatchTag": "DOSSpeedrun"},
+        {"MatchTag": "DOSGaming"},
+        {"MatchTag": "DosBox"},
+        {"MatchTag": "ScummVM"},
+        {"MatchTag": "DOSSpeedrun"},
+        {"MatchTag": "DOSSpeedruns"},
+        {"MatchTag": "DOSSpeedrunning"},
+        {"MatchWord": "DOS"},
+        {"MatchWord": "MSDOS"},
+        {"MatchWord": "FreeDOS"},
+        {"MatchWord": "DOSBox"},
+        {"MatchString": "DOScember"}
     ],
     "Notifications": {
         "DOSSpeedruns": { "chance": 100 }
