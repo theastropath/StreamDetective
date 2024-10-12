@@ -12,7 +12,7 @@
         {"MatchTag": "DOSSpeedrun"},
         {"MatchTag": "DOSSpeedruns"},
         {"MatchTag": "DOSSpeedrunning"},
-        {"MatchWord": "DOS"},
+        {"MatchWord": "MS-DOS"},
         {"MatchWord": "MSDOS"},
         {"MatchWord": "FreeDOS"},
         {"MatchWord": "DOSBox"},

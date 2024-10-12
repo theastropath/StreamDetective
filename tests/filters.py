@@ -24,7 +24,9 @@ all_filters = {
 class TestFilters(unittest.TestCase):
     def test_example_configs(self):
         entry = {'filters': GetFilters('DosSpeedruns.json', 0)}
-        ret = CheckStream(entry, 'Die4Ever', 'DOS game speedruns', ['speedrun'], 'The 7th Guest')
+        ret = CheckStream(entry, 'Die4Ever', 'T7G speedruns', ['speedrun','dos'], 'The 7th Guest')
+        self.assertTrue(ret)
+        ret = CheckStream(entry, 'Die4Ever', 'MS-DOS game speedruns', ['speedrun'], 'The 7th Guest')
         self.assertTrue(ret)
         ret = CheckStream(entry, 'Die4Ever', 'MSDOS game speedrun', ['speedrun'], 'The 7th Guest')
         self.assertTrue(ret)
