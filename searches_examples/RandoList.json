@@ -1,11 +1,17 @@
 [{
     "SearchTags": ["Randomizer", "Randomiser", "Randomizers", "Randomisers", "Rando"],
     "filters": [
-        {"MatchString": "rando"},
+        {"SearchRegex": "rando\\b"},
+        {"MatchWord": "randomizer"},
+        {"MatchWord": "randomiser"},
         {"MatchString": "seed"}
     ],
     "Notifications": {
-        "RandoList": { "chance": 10 }
+        "RandoList": {
+            "chance": 3,
+            "minTime": 64800,
+            "maxTime": 86400
+        }
     },
     "CustomDiscordMessage": "Randomizers! (Mark false positives with the :x: reaction)"
 }]

@@ -6,7 +6,9 @@
             {"MatchTag": "Randomiser"},
             {"MatchTag": "Crowd Control"},
             {"MatchTag": "CrowdControl"},
-            {"MatchString": "rando"},
+            {"SearchRegex": "rando\\b"},
+            {"MatchWord": "randomizer"},
+            {"MatchWord": "randomiser"},
             {"MatchString": "crowd control"},
             {"MatchString": "crowdcontrol"},
             {"MatchString": "bingo"}

@@ -1,10 +1,7 @@
 import json
 import os.path
 from pathlib import Path
-import tempfile
-from hashlib import sha1
 from datetime import datetime
-import re
 
 from libStreamDetective import db, filters, searches
 from libStreamDetective.twitch import TwitchApi
@@ -181,13 +178,6 @@ class StreamDetective:
     def CheckStream(self, entry, streamer, title, tags, gameName):
         return filters.CheckStream(entry, streamer, title, tags, gameName)
     
-
-    @staticmethod
-    def GetSearchId(profile):
-        profileHash = json.dumps(profile)
-        profileHash = sha1(profileHash.encode()).hexdigest()
-        return profileHash
-
 
     def genNotifications(self, newStreams, entry):
         notifications = entry.get("Notifications",[])

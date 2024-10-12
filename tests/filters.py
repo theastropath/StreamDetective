@@ -22,27 +22,35 @@ all_filters = {
 }
 
 class TestFilters(unittest.TestCase):
+    def accept(self, entry, streamer=None, title=None, tags=None, game=None):
+        name = dictToString(locals())
+        ret = CheckStream(entry, streamer, title, tags, game)
+        self.assertTrue(ret, 'was supposed to accept: ' + name)
+    
+    def deny(self, entry, streamer=None, title=None, tags=None, game=None):
+        name = dictToString(locals())
+        ret = CheckStream(entry, streamer, title, tags, game)
+        self.assertFalse(ret, 'was supposed to deny: ' + name)
+
     def test_example_configs(self):
         entry = {'filters': GetFilters('DosSpeedruns.json', 0)}
-        ret = CheckStream(entry, 'Die4Ever', 'T7G speedruns', ['speedrun','dos'], 'The 7th Guest')
-        self.assertTrue(ret)
-        ret = CheckStream(entry, 'Die4Ever', 'MS-DOS game speedruns', ['speedrun'], 'The 7th Guest')
-        self.assertTrue(ret)
-        ret = CheckStream(entry, 'Die4Ever', 'MSDOS game speedrun', ['speedrun'], 'The 7th Guest')
-        self.assertTrue(ret)
-        ret = CheckStream(entry, 'Die4Ever', 'Daily DOSe of DXRando', ['speedrun'], 'Deus Ex Randomizer')
-        self.assertFalse(ret)
+        self.accept(entry, title='T7G speedruns', tags=['speedrun','dos'])
+        self.accept(entry, title='MS-DOS game speedruns', tags=['speedrun'])
+        self.accept(entry, title='MSDOS game speedrun', tags=['speedrun'])
+        self.deny(entry, title='Daily DOSe of DXRando', tags=['speedrun'])
+
+        entry = {'filters': GetFilters('DXRando.json', 0)}
+        self.accept(entry, title='playing DXRando')
+        self.deny(entry, title='playing random games', tags=[])
 
     def test_match_words(self):
         filters = [{'MatchWord': 'Deus Ex Randomizer'}]
         entry = {'filters': filters}
-        ret = CheckStream(entry, 'Die4Ever', 'Deus Ex RaNdomizer Halloween speedruns', ['RaNdomizer', 'Speedrun'], 'dEUS eX')
-        self.assertTrue(ret)
+        self.accept(entry, title='Deus Ex RaNdomizer Halloween speedruns')
 
         filters = [{'DontMatchWord': 'Deus Ex Random'}]
         entry = {'filters': filters}
-        ret = CheckStream(entry, 'Die4Ever', 'Deus Ex RaNdomizer Halloween speedruns', ['RaNdomizer', 'Speedrun'], 'dEUS eX')
-        self.assertTrue(ret)
+        self.accept(entry, title='Deus Ex RaNdomizer Halloween speedruns')
 
     def test_single_filters(self):
         for (k,v) in all_filters.items():
@@ -68,13 +76,11 @@ class TestFilters(unittest.TestCase):
 
     def positive(self, filters):
         entry = {'filters': filters}
-        ret = CheckStream(entry, 'Die4Ever', 'Deus Ex RaNdomizer Halloween speedruns', ['RaNdomizer', 'Speedrun'], 'dEUS eX')
-        self.assertTrue(ret, 'positive')
+        self.accept(entry, streamer='Die4Ever', title='Deus Ex RaNdomizer Halloween speedruns', tags=['RaNdomizer', 'Speedrun'], game='dEUS eX')
 
     def negative(self, filters):
         entry = {'filters': filters}
-        ret = CheckStream(entry, 'Bob Page', 'playing some Sonic and other random games and then rule the world', ['Sega'], 'sONIC')
-        self.assertFalse(ret, 'negative')
+        self.deny(entry, streamer='Bob Page', title='playing some Sonic and other random games and then rule the world', tags=['Sega'], game='sONIC')
 
 
 def GetFilters(name, num):
@@ -84,3 +90,15 @@ def GetFilters(name, num):
     data = json.loads(text)
     return data[num]['filters']
 
+
+def dictToString(d:dict) -> str:
+    d = d.copy()
+    d.pop('self', None)
+    entry = d.pop('entry')
+    d2 = {}
+    for (k,v) in d.items():
+        if v is not None:
+            d2[k] = v
+    text = repr(d2)
+    text += ' --- with filters: ' + repr(entry['filters'])
+    return text

@@ -18,9 +18,21 @@ class TestCooldowns(unittest.TestCase):
 
         self.assertTrue(tableExists('gAmEs'), 'games exists')
         self.assertFalse(tableExists('boringstuff'), 'boring things do not exist here')
+
+    def test_insert(self):
         close()
+        connect(':memory:')
+
+        insert('games', dict(name='Deus Ex', id='0451', updated=1))
+        res = fetchall('select updated from games where name=?', ('Deus Ex',))
+        self.assertEqual(len(res), 1, 'found 1 game')
+        self.assertEqual(res[0][0], 1, 'updated==1')
+        with self.assertRaises(sqlite3.IntegrityError):
+            insert('games', dict(name='Deus Ex', id='0451', updated=1))
+
 
     def test_upsert(self):
+        close()
         connect(':memory:')
 
         upsert('games', dict(name='Deus Ex', id='0451', updated=1))
@@ -40,5 +52,3 @@ class TestCooldowns(unittest.TestCase):
 
         res = fetchall('select name from games')
         self.assertEqual(len(res), 2, 'found 2 games')
-
-        close()

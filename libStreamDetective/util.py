@@ -1,3 +1,5 @@
+from hashlib import sha1
+import json
 import random
 import traceback
 from datetime import datetime
@@ -56,3 +58,9 @@ def TestStream(testStream):
 
 def unixtime():
     return datetime.now().timestamp()
+
+
+def GetSearchId(profile):
+        profileHash = json.dumps(profile)
+        profileHash = sha1(profileHash.encode()).hexdigest()
+        return profileHash

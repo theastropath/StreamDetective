@@ -1,5 +1,6 @@
 
 from libStreamDetective import *
+from libStreamDetective import db
 from libStreamDetective.twitch import TwitchApi
 from libStreamDetective.util import *
 import json
@@ -37,8 +38,15 @@ class Notifier():
             print("   New Streams: ", [stream['user_login'] for stream in newStreams], '\n')
             return
         
-        if notifierData and notifierData.get('chance', 100) < 100:
-            if notifierData['chance'] < random.randint(1, 100):
+        search_id = GetSearchId(entry)
+        chance = 100
+        maxTime = 0
+        if notifierData:
+            chance = notifierData.get('chance', 100)
+            chance *= GetTimeMult(self.ProfileName, search_id, notifierData)
+
+        if chance < 100:
+            if chance < random.uniform(0, 100):
                 print(self.ProfileName, 'lost the lottery:', [stream['user_login'] for stream in newStreams])
                 return
             winners = random.sample(newStreams, 1) # the chance property can be misleading, because even 99% means a maximum of 1 per group
@@ -48,6 +56,7 @@ class Notifier():
             random.shuffle(newStreams)
         
         if newStreams:
+            db.upsert('notifiers_searches', dict(notifier=self.ProfileName, search_id=search_id, last=unixtime()))
             self.handleMsgs(entry, newStreams)
             self.MessagesSent += 1
 
@@ -67,6 +76,20 @@ class Notifier():
         return ""
         
 
+
+def GetTimeMult(ProfileName, search_id, notifierData):
+    if not notifierData:
+        return 1
+    minTime = notifierData.get('minTime', 0)
+    maxTime = notifierData.get('maxTime', 0)
+    if not maxTime:
+        return 1
+    time = db.fetchone('SELECT last FROM notifiers_searches WHERE notifier=? AND search_id=?', (ProfileName, search_id))
+    timeMult = 1
+    if time and time[0]:
+        age = unixtime() - time[0]
+        timeMult = (age - minTime) / (maxTime - minTime)
+    return 0 if timeMult < 0 else 1 if timeMult > 1 else timeMult # clamp to 0 through 1
 
 
 class PushbulletNotifier(Notifier):

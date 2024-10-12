@@ -27,7 +27,12 @@ NotificationServices_schema = {
 
 filters_schema = {
     "type": "object",
-    # TODO: lots of properties...
+    "properties": {
+        'MatchTag':{}, 'MatchTagName':{}, 'MatchTagSubstring':{}, 'MatchString':{}, 'MatchWord':{}, 'DontMatchWord':{},
+        'DontMatchTag':{}, 'DontMatchString':{}, 'DontMatchTagName':{}, 'DontMatchTagSubstring':{}, 'MatchGameName':{},
+        'DontMatchGameName':{}, 'DontMatchUser':{}, 'SearchRegex':{}, 'DontSearchRegex':{}
+    },
+    "additionalProperties": False
 }
 
 Searches_schema = {

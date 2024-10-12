@@ -193,8 +193,7 @@ class TwitchApi:
         if result.get('data') and result["data"][0].get('id'):
             gameId = result["data"][0]["id"]
             TwitchApi.gameIdCache[gameName]=gameId
-            now = unixtime()
-            db.exec('INSERT INTO games(name, id, updated) VALUES(?,?,?)', (gameName, gameId, now))
+            db.insert('games', dict(name=gameName, id=gameId, updated=unixtime()))
             return gameId
         raise Exception('fetchGameInfo ' + gameUrl + ' failed')
 

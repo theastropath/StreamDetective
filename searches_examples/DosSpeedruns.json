@@ -16,6 +16,7 @@
         {"MatchWord": "MSDOS"},
         {"MatchWord": "FreeDOS"},
         {"MatchWord": "DOSBox"},
+        {"MatchString": "DOS game"},
         {"MatchString": "DOScember"}
     ],
     "Notifications": {
