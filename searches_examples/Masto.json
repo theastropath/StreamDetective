@@ -3,9 +3,18 @@
         "SearchAll": true,
         "filters": [
             {"MatchTag": "DOS"},
+            {"MatchTag": "MSDOS"},
             {"MatchTag": "DOSGame"},
             {"MatchTag": "DOSGames"},
-            {"MatchString": "DOS Game"}
+            {"MatchTag": "DOSSpeedrun"},
+            {"MatchTag": "DOSGaming"},
+            {"MatchTag": "DosBox"},
+            {"MatchWord": "MS-DOS"},
+            {"MatchWord": "MSDOS"},
+            {"MatchWord": "FreeDOS"},
+            {"MatchWord": "DOSBox"},
+            {"MatchString": "DOS game"},
+            {"MatchString": "DOScember"}
         ],
         "Notifications": {
             "stauftopic": {"chance": 5},
