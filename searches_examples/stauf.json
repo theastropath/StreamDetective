@@ -45,7 +45,7 @@
         "GameName": "The 7th Guest VR",
         "Notifications": {
             "stauf": {},
-            "StreamDetectiveMasto": { "chance": 20 }
+            "StreamDetectiveMasto": { "chance": 10 }
         },
         "CustomDiscordMessage": "<@&1134652570984525834>",
         "MastoFooter": "#FMVGames #The7thGuest"

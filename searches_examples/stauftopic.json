@@ -51,7 +51,7 @@
         ],
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 20 }
+            "StreamDetectiveMasto": { "chance": 10 }
         },
         "CustomDiscordMessage": "<@&1114526532208169021>",
         "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
@@ -60,7 +60,7 @@
         "GameName": "Phantasmagoria 2: A Puzzle of Flesh",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 20 }
+            "StreamDetectiveMasto": { "chance": 10 }
         },
         "CustomDiscordMessage": "<@&1114526532208169021>",
         "MastoFooter": "#DOSGames #FMVGames #Phantasmagoria"
@@ -70,7 +70,7 @@
         "GameName": "Shivers",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 20 }
+            "StreamDetectiveMasto": { "chance": 10 }
         },
         "CustomDiscordMessage": "<@&1114526369544687666>",
         "MastoFooter": "#FMVGames #Shivers"
@@ -79,7 +79,7 @@
         "GameName": "Shivers II: Harvest of Souls",
         "Notifications": {
             "stauftopic": {},
-            "StreamDetectiveMasto": { "chance": 20 }
+            "StreamDetectiveMasto": { "chance": 10 }
         },
         "CustomDiscordMessage": "<@&1114526369544687666>",
         "MastoFooter": "#FMVGames #Shivers"

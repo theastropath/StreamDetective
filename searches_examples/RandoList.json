@@ -8,9 +8,9 @@
     ],
     "Notifications": {
         "RandoList": {
-            "chance": 3,
-            "minTime": 64800,
-            "maxTime": 86400
+            "chance": 2,
+            "minTime": 86400,
+            "maxTime": 172800
         }
     },
     "CustomDiscordMessage": "Randomizers! (Mark false positives with the :x: reaction)"
