@@ -12,12 +12,15 @@
         {"MatchTag": "DOSSpeedrun"},
         {"MatchTag": "DOSSpeedruns"},
         {"MatchTag": "DOSSpeedrunning"},
+        {"MatchTag": "DOScember"},
+        {"MatchTag": "DOSember"},
         {"MatchWord": "MS-DOS"},
         {"MatchWord": "MSDOS"},
         {"MatchWord": "FreeDOS"},
         {"MatchWord": "DOSBox"},
         {"MatchString": "DOS game"},
-        {"MatchString": "DOScember"}
+        {"MatchString": "DOScember"},
+        {"MatchString": "DOSember"}
     ],
     "Notifications": {
         "DOSSpeedruns": { "chance": 100 }
