@@ -1,0 +1,43 @@
+[
+    {
+        "GameName": "Deus Ex",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Retro",
+        "filters": [
+            {"MatchString": "Deus Ex"}
+        ],
+        "TitleOverride": "Deus Ex",
+        "GameArtOverride": "Deus Ex",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Deus Ex: Human Revolution - Director's Cut",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Deus Ex: Human Revolution",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Deus Ex: Mankind Divided",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Deus Ex: Invisible War",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Deus Ex: The Fall",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Deus Ex: Human Revolution - The Missing Link",
+        "Notifications": ["dxhq"]
+    },
+    {
+        "GameName": "Deus Ex: Breach",
+        "Notifications": ["dxhq"]
+    }
+]
