@@ -48,5 +48,10 @@
         "GameName": "Deus Ex: Breach",
         "Notifications": ["dxhq"],
         "CustomDiscordMessage": "<@&1345848674269266051>"
+    },
+    {
+        "GameName": "Deus Ex GO",
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1345848674269266051>"
     }
 ]
