@@ -1,7 +1,13 @@
 [
     {
         "GameName": "Deus Ex",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1357462708316012735>"
+    },
+    {
+        "GameName": "Deus Ex: Invisible War",
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1357462708316012735>"
     },
     {
         "GameName": "Retro",
@@ -10,34 +16,37 @@
         ],
         "TitleOverride": "Deus Ex",
         "GameArtOverride": "Deus Ex",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1357462708316012735>"
     },
     {
         "GameName": "Deus Ex: Human Revolution - Director's Cut",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1345848674269266051>"
     },
     {
         "GameName": "Deus Ex: Human Revolution",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1345848674269266051>"
     },
     {
         "GameName": "Deus Ex: Mankind Divided",
-        "Notifications": ["dxhq"]
-    },
-    {
-        "GameName": "Deus Ex: Invisible War",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1345848674269266051>"
     },
     {
         "GameName": "Deus Ex: The Fall",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1345848674269266051>"
     },
     {
         "GameName": "Deus Ex: Human Revolution - The Missing Link",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1345848674269266051>"
     },
     {
         "GameName": "Deus Ex: Breach",
-        "Notifications": ["dxhq"]
+        "Notifications": ["dxhq"],
+        "CustomDiscordMessage": "<@&1345848674269266051>"
     }
 ]
