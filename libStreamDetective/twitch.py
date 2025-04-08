@@ -31,7 +31,7 @@ class Twitch:
         fetchedAll = []
         fetchedStreamers = {}
 
-        bigGames = set(('Retro', 'StarCraft II'))
+        bigGames = set(('Retro', 'StarCraft II', "Deus Ex: Human Revolution", "Deus Ex: Human Revolution - Director's Cut", "Deus Ex: Mankind Divided"))
         gameNames = gameNames.difference(bigGames)
 
         if gameNames:
@@ -106,7 +106,7 @@ class Twitch:
         return fetched
 
     
-    def GetAllPages(self, lookupUrl, maxPages=100):
+    def GetAllPages(self, lookupUrl, maxPages=400):
         allStreams = []
         cursor = ""
         resume_page = 0
@@ -132,7 +132,7 @@ class Twitch:
             # Twitch API doesn't always return full pages, so we need to load the next page no matter what
             if "pagination" in result and "cursor" in result["pagination"]:
                 cursor = result["pagination"]["cursor"]
-                time.sleep(0.01) # pace yourself a little bit
+                #time.sleep(0.01) # pace yourself a little bit
             else:
                 cursor = ""
                 break
@@ -204,7 +204,7 @@ class TwitchApi:
         debug('TwitchApiRequest', url, headers)
         response = None
 
-        if apiCalls > 200:
+        if apiCalls > 800: # 800 is what they claim the limit to be
             raise Exception('too many Twitch API calls', apiCalls)
         if rateLimitRemaining is not None and rateLimitRemaining < 10:
             raise Exception('rate limit remaining is too low', rateLimitRemaining)
