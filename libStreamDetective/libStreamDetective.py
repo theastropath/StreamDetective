@@ -49,6 +49,7 @@ class StreamDetective:
             return
         
         self.HandleSearches()
+        print('\n\n'+datetime.now().isoformat()+': StreamDetective ending')
         print('')
     
 

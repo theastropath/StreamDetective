@@ -6,6 +6,7 @@ from libStreamDetective.util import *
 from requests import Session
 from requests.adapters import HTTPAdapter
 import json
+from datetime import datetime, timedelta
 
 clientId=None
 accessToken=None
@@ -115,6 +116,8 @@ class Twitch:
             cursor = res[0]
             resume_page = res[1]
             debug('resuming cursor', cursor, resume_page)
+        
+        start = datetime.now()
         for page in range(maxPages):
             url = lookupUrl
             if not lookupUrl.endswith('&'):
@@ -135,6 +138,8 @@ class Twitch:
                 #time.sleep(0.01) # pace yourself a little bit
             else:
                 cursor = ""
+                break
+            if datetime.now() - start > timedelta(seconds=50):
                 break
         
         if cursor:
