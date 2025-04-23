@@ -77,15 +77,6 @@
 
     
     {
-        "GameName": "The 13th Doll",
-        "Notifications": {
-            "stauf": {},
-            "StreamDetectiveMasto": { "chance": 20 }
-        },
-        "CustomDiscordMessage": "<@&1114527551067537408>",
-        "MastoFooter": "#FMVGames #The7thGuest"
-    },
-    {
         "GameName": "The 13th Doll: A Fan Game of The 7th Guest",
         "Notifications": {
             "stauf": {},
