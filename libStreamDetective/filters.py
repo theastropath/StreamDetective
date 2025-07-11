@@ -10,10 +10,10 @@ def CheckStream(entry, streamer, title, tags, gameName):
     ttrace("")
     ttrace("Name: ", streamer, title, tags, gameName, entry)
 
-    if gameName != entry.get('GameName', gameName):
+    if gameName.casefold() != entry.get('GameName', gameName).casefold():
         ttrace("did not match GameName")
         return False
-    if streamer != entry.get('UserName', streamer):
+    if streamer.casefold() != entry.get('UserName', streamer).casefold():
         ttrace("did not match UserName")
         return False
     
