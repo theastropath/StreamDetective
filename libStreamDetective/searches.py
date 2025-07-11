@@ -38,7 +38,7 @@ def MatchAllTags(desiredTags, actualTags):
         for desiredTag in desiredTags:
             matched = False
             for actualTag in actualTags:
-                if desiredTag.lower() == actualTag.lower():
+                if desiredTag.casefold() == actualTag.casefold():
                     matched = True
                     break
             if not matched:
@@ -51,7 +51,7 @@ def MatchAnyTag(desiredTags, actualTags):
     try:
         for desiredTag in desiredTags:
             for actualTag in actualTags:
-                if desiredTag.lower() == actualTag.lower():
+                if desiredTag.casefold() == actualTag.casefold():
                     return True
         return False
     except:

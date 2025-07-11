@@ -21,7 +21,7 @@ class AllProviders:
 
     def AddTags(self, tags:list):
         tags.sort()
-        self.tagsets[' '.join(tags).lower()] = tags
+        self.tagsets[' '.join(tags).casefold()] = tags
         self.searchAll = True
 
     def SearchAll(self):

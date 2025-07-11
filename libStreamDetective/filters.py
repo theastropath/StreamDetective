@@ -23,7 +23,7 @@ def CheckStream(entry, streamer, title, tags, gameName):
         return True
     
     if tags:
-        tags=[x.lower() for x in tags]
+        tags=[x.casefold() for x in tags]
     
     for filter in entry['filters']:
         if CheckStreamFilter(filter, streamer, title, tags, gameName):
@@ -49,20 +49,20 @@ def CheckStreamFilter(filter, streamer, title, tags, gameName):
         tags = []
 
     for f in GetFilter(filter, 'MatchTag'):
-        if f.lower() not in tags:
+        if f.casefold() not in tags:
             return False
     for f in GetFilter(filter, 'MatchTagName'):
-        if f.lower() not in tags:
+        if f.casefold() not in tags:
             return False
     for f in GetFilter(filter, 'MatchTagSubstring'):
         found=False
         for tag in tags:
-            if f.lower() in tag:
+            if f.casefold() in tag:
                 found=True
         if not found:
             return False
     for f in GetFilter(filter, 'MatchString'):
-        if f.lower() not in title.lower():
+        if f.casefold() not in title.casefold():
             return False
     for f in GetFilter(filter, 'MatchWord'):
         if not re.search(r'\b' + f + r'\b', title, flags=re.IGNORECASE):
@@ -71,29 +71,29 @@ def CheckStreamFilter(filter, streamer, title, tags, gameName):
         if re.search(r'\b' + f + r'\b', title, flags=re.IGNORECASE):
             return False
     for f in GetFilter(filter, 'DontMatchTag'):
-        if f.lower() in tags:
+        if f.casefold() in tags:
             return False
     for f in GetFilter(filter, 'DontMatchString'):
-        if f.lower() in title.lower():
+        if f.casefold() in title.casefold():
             return False
     for f in GetFilter(filter, 'DontMatchTagName'):
-        if f.lower() in tags:
+        if f.casefold() in tags:
             return False
     for f in GetFilter(filter, 'DontMatchTagSubstring'):
         found=False
         for tag in tags:
-            if f.lower() in tag:
+            if f.casefold() in tag:
                 found=True
         if found:
             return False
     for f in GetFilter(filter, 'MatchGameName'):
-        if f.lower() != gameName.lower():
+        if f.casefold() != gameName.casefold():
             return False
     for f in GetFilter(filter, 'DontMatchGameName'):
-        if f.lower() == gameName.lower():
+        if f.casefold() == gameName.casefold():
             return False
     for f in GetFilter(filter, 'DontMatchUser'):
-        if f.lower() == streamer.lower():
+        if f.casefold() == streamer.casefold():
             return False
         
     for f in GetFilter(filter, 'SearchRegex'):

@@ -38,9 +38,9 @@ class StreamDetective:
         if testStream:
             print("\n\nUsing testStream", testStream)
             self.fetchedStreamers = {}
-            self.fetchedStreamers[testStream['user_login'].lower()] = testStream
+            self.fetchedStreamers[testStream['user_login'].casefold()] = testStream
             self.fetchedGames = {}
-            self.fetchedGames[testStream["game_name"].lower()] = [testStream]
+            self.fetchedGames[testStream["game_name"].casefold()] = [testStream]
         else:
             self.FetchAllStreams()
 
@@ -67,7 +67,7 @@ class StreamDetective:
     
     
     def CheckSingleUser(self, user):# for CLI
-        user = user.lower()
+        user = user.casefold()
         if user in self.fetchedStreamers:
             print('found', user, self.fetchedStreamers[user])
             return True
@@ -91,7 +91,7 @@ class StreamDetective:
     def TestConfig(self):
         validateConfig(self.config)
         for i in range(len(self.config.get('IgnoreStreams', []))):
-            self.config['IgnoreStreams'][i] = self.config['IgnoreStreams'][i].lower()
+            self.config['IgnoreStreams'][i] = self.config['IgnoreStreams'][i].casefold()
 
 
     def HandleConfigFile(self, globPattern='*.json'):
@@ -165,13 +165,13 @@ class StreamDetective:
 
 
     def GetAllGameStreams(self,gameName) -> list:
-        return self.fetchedGames.get(gameName.lower(),[])
+        return self.fetchedGames.get(gameName.casefold(),[])
     
     def GetAllStreams(self) -> list:
         return self.fetchedAll
     
     def GetAllStreamerStreams(self,streamer) -> list:
-        streamer = streamer.lower()
+        streamer = streamer.casefold()
         if streamer in self.fetchedStreamers:
             return [self.fetchedStreamers[streamer]]
         return []
@@ -211,7 +211,7 @@ class StreamDetective:
         toSend = []
         onCooldown = []
         for stream in newStreams:
-            if stream["user_login"].lower() in IgnoreStreams:
+            if stream["user_login"].casefold() in IgnoreStreams:
                 debug(stream["user_login"], 'is in IgnoreStreams')
                 continue
             if self.checkIsOnCooldown(stream, profileName):
@@ -224,7 +224,7 @@ class StreamDetective:
 
 
     def checkIsOnCooldown(self, stream, ProfileName) -> bool:
-        user = stream["user_login"].lower()
+        user = stream["user_login"].casefold()
         key = user + '-' + ProfileName
         CooldownSeconds = self.config.get('CooldownSeconds',0)
         now = unixtime()

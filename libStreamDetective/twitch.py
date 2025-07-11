@@ -44,12 +44,12 @@ class Twitch:
         
         lowerBigGames = set()
         for GAME in bigGames:
-            g = GAME.lower()
+            g = GAME.casefold()
             lowerBigGames.add(g)
             if g not in fetchedGames:
                 fetchedGames[g] = []
         for stream in fetchedAll: # grab large games from the fetchAll
-            game = stream["game_name"].lower()
+            game = stream["game_name"].casefold()
             if game not in lowerBigGames:
                 continue
             fetchedGames[game].append(stream)
@@ -68,7 +68,7 @@ class Twitch:
         #print("All games: "+allGamesUrl)
         res = self.GetAllPages(allGamesUrl)
         for stream in res:
-            game = stream["game_name"].lower()
+            game = stream["game_name"].casefold()
             if game not in fetched:
                 fetched[game] = []
             if stream not in fetched[game]:
@@ -102,7 +102,7 @@ class Twitch:
             allStreamersUrl += "user_login="+streamer+"&"
         res = self.GetAllPages(allStreamersUrl)
         for stream in res:
-            user = stream["user_login"].lower()
+            user = stream["user_login"].casefold()
             fetched[user] = stream
         return fetched
 
