@@ -192,7 +192,7 @@ class TwitchApi:
 
     @staticmethod
     def fetchGameInfo(gameName):
-        gameUrl = "https://api.twitch.tv/helix/games?name="+gameName
+        gameUrl = "https://api.twitch.tv/helix/games?name="+urllib.parse.quote_plus(gameName)
         
         result = TwitchApi.Request(gameUrl)
         if result.get('data') and result["data"][0].get('id'):
