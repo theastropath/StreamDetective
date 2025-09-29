@@ -22,15 +22,23 @@ all_filters = {
 }
 
 class TestFilters(unittest.TestCase):
-    def accept(self, entry, streamer=None, title=None, tags=None, game=None):
-        name = dictToString(locals())
-        ret = CheckStream(entry, streamer, title, tags, game)
-        self.assertTrue(ret, 'was supposed to accept: ' + name)
+    def accept(self, entry, streamer='die4ever2011', title=None, tags=None, game=''):
+        try:
+            name = dictToString(locals())
+            ret = CheckStream(entry, streamer, title, tags, game)
+            self.assertTrue(ret, 'was supposed to accept: ' + name)
+        except Exception as e:
+            print('accept failed', e, entry, streamer, title, tags, game)
+            raise
     
-    def deny(self, entry, streamer=None, title=None, tags=None, game=None):
-        name = dictToString(locals())
-        ret = CheckStream(entry, streamer, title, tags, game)
-        self.assertFalse(ret, 'was supposed to deny: ' + name)
+    def deny(self, entry, streamer='die4ever2011', title=None, tags=None, game=''):
+        try:
+            name = dictToString(locals())
+            ret = CheckStream(entry, streamer, title, tags, game)
+            self.assertFalse(ret, 'was supposed to deny: ' + name)
+        except Exception as e:
+            print('deny failed', e, entry, streamer, title, tags, game)
+            raise
 
     def test_example_configs(self):
         entry = {'filters': GetFilters('DosSpeedruns.json', 0)}
