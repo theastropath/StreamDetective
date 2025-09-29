@@ -11,7 +11,9 @@
             {"MatchWord": "randomiser"},
             {"MatchString": "crowd control"},
             {"MatchString": "crowdcontrol"},
-            {"MatchString": "bingo"}
+            {"MatchString": "bingo"},
+            {"MatchString": "WaltonWare"},
+            {"MatchString": "Walton Ware"}
         ],
         "TitleOverride": "Deus Ex Randomizer",
         "GameArtOverride": "Deus Ex",
@@ -23,7 +25,9 @@
         "GameName": "Retro",
         "filters": [
             {"MatchString": "Deus Ex Randomizer"},
-            {"MatchString": "Deus Ex Randomiser"}
+            {"MatchString": "Deus Ex Randomiser"},
+            {"MatchString": "WaltonWare"},
+            {"MatchString": "Walton Ware"}
         ],
         "TitleOverride": "Deus Ex Randomizer",
         "GameArtOverride": "Deus Ex",
