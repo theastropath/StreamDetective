@@ -42,6 +42,18 @@
     },
 
     {
+        "GameName": "the-7th-guest-2024",
+        "GameID": 746320331,
+        "TitleOverride": "The 7th Guest",
+        "GameArtOverride": "The 7th Guest",
+        "Notifications": {
+            "stauf": {},
+            "StreamDetectiveMasto": { "chance": 5 }
+        },
+        "CustomDiscordMessage": "<@&1114526820826628177>",
+        "MastoFooter": "#FMVGames #The7thGuest #The7thGuestRemake"
+    },
+    {
         "GameName": "The 7th Guest VR",
         "Notifications": {
             "stauf": {},

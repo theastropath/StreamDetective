@@ -179,6 +179,9 @@ class TwitchApi:
 
     @staticmethod
     def GetGameId(gameName):
+        if gameName == 'the-7th-guest-2024':
+            return 746320331 # HACK: TODO: should use the GameID from the config
+
         if gameName in TwitchApi.gameIdCache:
             return TwitchApi.gameIdCache[gameName]
         
