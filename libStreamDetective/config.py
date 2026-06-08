@@ -39,6 +39,7 @@ Searches_schema = {
     "type": "object",
     "properties": {
         "GameName": {"type": "string"},
+        "GameID": {"type": "number"},
         "UserName": {"type": "string"},
         "SearchTags": {"type": "array"},
         "SearchAll": {"type": "boolean"},

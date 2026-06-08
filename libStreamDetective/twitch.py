@@ -194,7 +194,7 @@ class TwitchApi:
     
 
     @staticmethod
-    def fetchGameInfo(gameName):
+    def fetchGameInfo(gameName): # TODO: handle game url?
         gameUrl = "https://api.twitch.tv/helix/games?name="+urllib.parse.quote_plus(gameName)
         
         result = TwitchApi.Request(gameUrl)
