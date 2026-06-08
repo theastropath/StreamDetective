@@ -178,9 +178,9 @@ class TwitchApi:
         return "https://static-cdn.jtvnw.net/previews-ttv/live_user_" + streamer + "-320x180.jpg"
 
     @staticmethod
-    def GetGameId(gameName):
+    def GetGameId(gameName) -> str:
         if gameName == 'the-7th-guest-2024':
-            return 746320331 # HACK: TODO: should use the GameID from the config
+            return "746320331" # HACK: TODO: should use the GameID from the config
 
         if gameName in TwitchApi.gameIdCache:
             return TwitchApi.gameIdCache[gameName]
