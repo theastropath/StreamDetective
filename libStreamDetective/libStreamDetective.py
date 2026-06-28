@@ -176,9 +176,17 @@ class StreamDetective:
             return [self.fetchedStreamers[streamer]]
         return []
 
-    def CheckStream(self, entry, streamer, title, tags, gameName):
-        return filters.CheckStream(entry, streamer, title, tags, gameName)
+    def CheckStream(self, entry, streamer, title, tags, gameName, sharedChat):
+        return filters.CheckStream(entry, streamer, title, tags, gameName, sharedChat)
     
+    def HasSharedChatFilter(self, search):
+        if "filters" not in search:
+            return False
+
+        for f in search["filters"]:
+            if filters.IsSharedChatFilter(f):
+                return True
+        return False
 
     def genNotifications(self, newStreams, entry):
         notifications = entry.get("Notifications",[])

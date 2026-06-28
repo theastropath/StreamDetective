@@ -30,7 +30,7 @@ filters_schema = {
     "properties": {
         'MatchTag':{}, 'MatchTagName':{}, 'MatchTagSubstring':{}, 'MatchString':{}, 'MatchWord':{}, 'DontMatchWord':{},
         'DontMatchTag':{}, 'DontMatchString':{}, 'DontMatchTagName':{}, 'DontMatchTagSubstring':{}, 'MatchGameName':{},
-        'DontMatchGameName':{}, 'DontMatchUser':{}, 'SearchRegex':{}, 'DontSearchRegex':{}
+        'DontMatchGameName':{}, 'DontMatchUser':{}, 'SearchRegex':{}, 'DontSearchRegex':{}, 'SharedChat':{}
     },
     "additionalProperties": False
 }

@@ -28,6 +28,7 @@ def connect(dbname: str):
     
     # create if not exists all tables
     exec('create table if not exists games (name text PRIMARY KEY, id text, updated integer)') # TODO: igdb_id integer, platforms text
+    exec('create table if not exists streamers (broadcaster_id integer PRIMARY KEY, user_login text, updated integer)')
     exec('create table if not exists cooldowns (streamer text, notifier text, last integer, PRIMARY KEY(streamer, notifier))')
     #exec('create table if not exists streams (id text, streamer text PRIMARY KEY, title text, game text, tags text, updated integer, language text)')
     exec('create table if not exists queries (baseurl text PRIMARY KEY, cursor text, page integer, updated integer)')
@@ -38,6 +39,7 @@ def connect(dbname: str):
     # cleanup old rows
     old = unixtime() - 86400*5
     exec('DELETE FROM games WHERE updated<?', (old,))
+    exec('DELETE FROM streamers WHERE updated<?', (old,))
     exec('DELETE FROM cooldowns WHERE last<?', (old,))
     exec('DELETE FROM queries WHERE updated<?', (old,))
 
@@ -46,6 +48,7 @@ def upgrade(existing_version, current_version):
     print('upgrading db from:', existing_version, 'to:', current_version)
     # drop tansient tables
     exec('drop table if exists games')
+    exec('drop table if exists streamers')
     exec('drop table if exists queries')
     # TODO: do some if statements for specific upgrades based on version numbers
     if existing_version < 100:

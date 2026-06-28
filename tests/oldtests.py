@@ -19,6 +19,8 @@ def MockTwitchApiRequest(url, headers={}):
     self = currentTester
     self.twitchApiCalls += 1
     streamsUrl = libStreamDetective.twitch.TwitchApi.streamsUrl
+    sharedChatUrl = libStreamDetective.twitch.TwitchApi.sharedChatUrl
+    channelUrl = libStreamDetective.twitch.TwitchApi.channelUrl
     print('mocked TwitchApiRequest', self, url, headers)
     self.tester.assertEqual(type(headers), dict)
     ret = []
@@ -81,6 +83,51 @@ def MockTwitchApiRequest(url, headers={}):
                 "last_seen": "2020-06-22T00:00:00Z"
             }
         ]
+    elif sharedChatUrl in url and "broadcaster_id=1" in url:
+        self.getSharedChatApiCalls += 1
+        ret = [
+            {
+                "session_id": str(3000+self.iterations),
+                "host_broadcaster_id": "1",
+                "participants": [
+                    {"broadcaster_id":"1"},
+                    {"broadcaster_id":"2"},
+                    {"broadcaster_id":"3"}
+                ],
+                "created_at": "2020-06-22T00:00:00Z",
+                "updated_at": "2020-06-22T01:00:00Z",
+            }
+        ]
+    elif channelUrl in url:
+        self.getChannelApiCalls += 1
+        ret = [
+            {
+                "broadcaster_id": "1",
+                "broadcaster_login": "blank",
+                "broadcaster_name": "blank",
+                "broadcaster_language": "en",
+                "game_id": "The 7th Guest",
+                "game_name": "The 7th Guest",
+                "title": "The best game of all time!",
+                "delay": 0,
+                "tags": [],
+                "content_classification_labels": [],
+                "is_branded_content": False,
+            }
+        ]
+        if "broadcaster_id=1" in url:
+            ret[0]["broadcaster_id"]="1"
+            ret[0]["broadcaster_login"]="Bob Page"
+            ret[0]["broadcaster_name"]="Bob Page"
+        elif "broadcaster_id=2" in url:
+            ret[0]["broadcaster_id"]="2"
+            ret[0]["broadcaster_login"]="Walton Simons"
+            ret[0]["broadcaster_name"]="Walton Simons"
+        elif "broadcaster_id=3" in url:
+            ret[0]["broadcaster_id"]="3"
+            ret[0]["broadcaster_login"]="Howard Strong"
+            ret[0]["broadcaster_name"]="Howard Strong"
+
     print(ret)
     print('end mocked TwitchApiRequest', self, url, headers)
     return { 'data': ret }
@@ -158,14 +205,14 @@ class BaseTestCase(unittest.TestCase):
     
     def test_example_configs(self):
         sd = TestStreamDetectiveFilters(self)
-        sd.assertMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Randomizer speedruns', [])
-        sd.assertMatch('Deus Ex', 'Die4Ever2011', 'dEUS eX rAndomiZer speedruns', [])
-        #sd.assertNotMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Rnadomizer speedruns', [])
-        sd.assertMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer', [])
-        sd.assertNotMatch('StarCraft II', 'zergbonjwa', 'SC2 Rnadomizer', [])
-        sd.assertNotMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer Archipelago', [])
-        sd.assertMatch('Retro', 'letsplays', 'The 7th Guest', [])
-        sd.assertNotMatch('Retro', 'letsplays', 'The Guest', [])
+        sd.assertMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Randomizer speedruns', [], [])
+        sd.assertMatch('Deus Ex', 'Die4Ever2011', 'dEUS eX rAndomiZer speedruns', [], [])
+        #sd.assertNotMatch('Deus Ex', 'Die4Ever2011', 'Deus Ex Rnadomizer speedruns', [], [])
+        sd.assertMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer', [], [])
+        sd.assertNotMatch('StarCraft II', 'zergbonjwa', 'SC2 Rnadomizer', [], [])
+        sd.assertNotMatch('StarCraft II', 'zergbonjwa', 'SC2 Randomizer Archipelago', [], [])
+        sd.assertMatch('Retro', 'letsplays', 'The 7th Guest', [], [])
+        sd.assertNotMatch('Retro', 'letsplays', 'The Guest', [], [])
 
 
 @typechecked
@@ -211,6 +258,8 @@ class TestStreamDetectiveBase(StreamDetective):
         self.totalCooldownsCaught = 0
         self.twitchApiCalls = 0
         self.getStreamsApiCalls = 0
+        self.getSharedChatApiCalls = 0
+        self.getChannelApiCalls = 0
         self.iterations = startIteration
         if kargs.get('clearCache'):
             self.ClearCache()
@@ -423,22 +472,22 @@ class TestStreamDetectiveFilters(StreamDetective):
         }]
         super().TestConfig()
 
-    def testMatch(self, game, streamer, title, tags):
+    def testMatch(self, game, streamer, title, tags, sharedChat):
         count = 0
         for search in self.config.get("Searches",[]):
             if search.get('GameName') == game or search.get('UserName') == streamer:
                 count += 1
-                matched = self.CheckStream(search, streamer, title, tags, game)
+                matched = self.CheckStream(search, streamer, title, tags, game, sharedChat)
                 if matched:
                     return True
         if count == 0:
             print("testMatch no filters checked?", game, streamer, title, tags, self.config.get("Searches"))
         return False
     
-    def assertMatch(self, game, streamer, title, tags):
-        matched = self.testMatch(game, streamer, title, tags)
+    def assertMatch(self, game, streamer, title, tags, sharedChat):
+        matched = self.testMatch(game, streamer, title, tags, sharedChat)
         self.test('assertTrue', matched, 'filters assertMatch ' + title)
 
-    def assertNotMatch(self, game, streamer, title, tags):
-        matched = self.testMatch(game, streamer, title, tags)
+    def assertNotMatch(self, game, streamer, title, tags, sharedChat):
+        matched = self.testMatch(game, streamer, title, tags, sharedChat)
         self.test('assertFalse', matched, 'filters assertNotMatch ' + title)

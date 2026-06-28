@@ -1,7 +1,7 @@
 import re
 from libStreamDetective.util import *
 
-def CheckStream(entry, streamer, title, tags, gameName):
+def CheckStream(entry, streamer, title, tags, gameName, sharedChat):
     if 'SearchAll' in entry:
         ttrace=trace
     else:
@@ -26,13 +26,15 @@ def CheckStream(entry, streamer, title, tags, gameName):
         tags=[x.casefold() for x in tags]
     
     for filter in entry['filters']:
-        if CheckStreamFilter(filter, streamer, title, tags, gameName):
+        if CheckStreamFilter(filter, streamer, title, tags, gameName, sharedChat):
             debug(streamer, title, tags, gameName, "accepted by filter", filter)
             return True
         ttrace(streamer, "not accepted by filter", filter)
     ttrace(streamer, "not accepted by any filters")
     return False
 
+def IsSharedChatFilter(filter):
+    return len(GetFilter(filter,'SharedChat'))>0
 
 def GetFilter(filter, name) -> list:
     f = filter.get(name, [])
@@ -41,7 +43,7 @@ def GetFilter(filter, name) -> list:
     return f
 
 
-def CheckStreamFilter(filter, streamer, title, tags, gameName):
+def CheckStreamFilter(filter, streamer, title, tags, gameName, sharedChat):
     if not filter.keys():
         return True
 
@@ -103,5 +105,12 @@ def CheckStreamFilter(filter, streamer, title, tags, gameName):
     for f in GetFilter(filter, 'DontSearchRegex'):
         if re.search(f, title, flags=re.IGNORECASE):
             return False
+        
+    for f in GetFilter(filter, 'SharedChat'):
+        if sharedChat==None: #No shared chat info available
+            return False
+        if f.casefold() not in sharedChat:
+            return False
+
 
     return True

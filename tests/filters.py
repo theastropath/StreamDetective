@@ -19,22 +19,23 @@ all_filters = {
     'DontMatchUser': 'Bob Page',
     'SearchRegex': 'Randomi(z|s)er',
     'DontSearchRegex': 'Sonic .* rule the world',
+    'SharedChat': 'Bob Page'
 }
 
 class TestFilters(unittest.TestCase):
-    def accept(self, entry, streamer='die4ever2011', title=None, tags=None, game=''):
+    def accept(self, entry, streamer='die4ever2011', title=None, tags=None, game='', sharedChat=[]):
         try:
             name = dictToString(locals())
-            ret = CheckStream(entry, streamer, title, tags, game)
+            ret = CheckStream(entry, streamer, title, tags, game, sharedChat)
             self.assertTrue(ret, 'was supposed to accept: ' + name)
         except Exception as e:
             print('accept failed', e, entry, streamer, title, tags, game)
             raise
     
-    def deny(self, entry, streamer='die4ever2011', title=None, tags=None, game=''):
+    def deny(self, entry, streamer='die4ever2011', title=None, tags=None, game='', sharedChat=[]):
         try:
             name = dictToString(locals())
-            ret = CheckStream(entry, streamer, title, tags, game)
+            ret = CheckStream(entry, streamer, title, tags, game, sharedChat)
             self.assertFalse(ret, 'was supposed to deny: ' + name)
         except Exception as e:
             print('deny failed', e, entry, streamer, title, tags, game)
@@ -84,11 +85,11 @@ class TestFilters(unittest.TestCase):
 
     def positive(self, filters):
         entry = {'filters': filters}
-        self.accept(entry, streamer='Die4Ever', title='Deus Ex RaNdomizer Halloween speedruns', tags=['RaNdomizer', 'Speedrun'], game='dEUS eX')
+        self.accept(entry, streamer='Die4Ever', title='Deus Ex RaNdomizer Halloween speedruns', tags=['RaNdomizer', 'Speedrun'], game='dEUS eX', sharedChat=["bob page", "walton simons"])
 
     def negative(self, filters):
         entry = {'filters': filters}
-        self.deny(entry, streamer='Bob Page', title='playing some Sonic and other random games and then rule the world', tags=['Sega'], game='sONIC')
+        self.deny(entry, streamer='Bob Page', title='playing some Sonic and other random games and then rule the world', tags=['Sega'], game='sONIC', sharedChat=["paul denton","morgan everett"])
 
 
 def GetFilters(name, num):

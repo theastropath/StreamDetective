@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from libStreamDetective.util import *
+from libStreamDetective.twitch import TwitchApi
 
 
 def HandleFilters(self, search, allStreams):
@@ -14,9 +15,17 @@ def HandleFilters(self, search, allStreams):
         title = stream['title']
         tags = stream['tags']
         stream['last_seen'] = now.isoformat()
+        sharedChat = []
         if searchTags and not MatchAnyTag(searchTags, tags): # for now, this makes it easier to require different combos of tags, as seen in DosSpeedruns.json
             continue
-        matched = self.CheckStream(search, streamer, title, tags, stream["game_name"])
+
+ 
+        #Only do this explicitly when we have a shared chat filter set up,
+        #since this lookup can only be done one streamer at a time
+        if self.HasSharedChatFilter(search):
+            sharedChat = TwitchApi.GetSharedChatParticipants(stream["user_id"])
+
+        matched = self.CheckStream(search, streamer, title, tags, stream["game_name"], sharedChat)
         if matched:
             debug("matched "+streamer)
             stream['last_matched'] = now.isoformat()

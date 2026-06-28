@@ -164,9 +164,12 @@ class Twitch:
 class TwitchApi:
     streamsUrl='https://api.twitch.tv/helix/streams?type=live&'
     usersUrl='https://api.twitch.tv/helix/users?'
+    channelUrl='https://api.twitch.tv/helix/channels?'
     queryUrl='https://api.twitch.tv/helix/search/channels?' # doesn't even work https://github.com/theastropath/StreamDetective/issues/34#issuecomment-2403683986
+    sharedChatUrl='https://api.twitch.tv/helix/shared_chat/session?'
     gameIdCache={}
     gameArtCache={}
+    streamerCache={}
 
     @staticmethod
     def GetGameArt(gameName: str) -> str:
@@ -191,7 +194,52 @@ class TwitchApi:
             return res[0]
 
         return TwitchApi.fetchGameInfo(gameName)
-    
+
+    @staticmethod
+    def GetStreamerName(broadcaster_id):
+        if broadcaster_id in TwitchApi.streamerCache:
+            return TwitchApi.streamerCache[broadcaster_id]
+        
+        res = db.fetchone('SELECT user_login FROM streamers where broadcaster_id=?', (broadcaster_id,))
+        if res:
+            TwitchApi.streamerCache[broadcaster_id] = res[0]
+            return res[0]
+
+        url = TwitchApi.channelUrl + "broadcaster_id=" + broadcaster_id
+        result = TwitchApi.Request(url)
+        data = result.get("data")
+        if (data==None):
+            return ""
+        if (len(data)<1):
+            return ""
+        
+        name = data[0].get("broadcaster_login","")
+
+        TwitchApi.streamerCache[broadcaster_id]=name
+        db.insert('streamers', dict(broadcaster_id=broadcaster_id, user_login=name, updated=unixtime()))
+
+        return name
+
+    @staticmethod
+    def GetSharedChatParticipants(broadcaster_id):
+        url = TwitchApi.sharedChatUrl + "broadcaster_id=" + broadcaster_id
+        people = []
+
+        result = TwitchApi.Request(url)
+        data = result.get("data")
+        if (data==None):
+            return people
+        if (len(data)<1):
+            return people
+
+        participants = data[0].get('participants',[])
+        for p in participants:
+            name = TwitchApi.GetStreamerName(p.get("broadcaster_id",""))
+            if (name!=""):
+                #Pre-emptively lowercase the shared chat names
+                people.append(name.casefold())
+        return people
+
 
     @staticmethod
     def fetchGameInfo(gameName): # TODO: handle game url?
