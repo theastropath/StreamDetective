@@ -49,6 +49,7 @@ Searches_schema = {
         "TitleOverride": {"type": "string"},
         "GameArtOverride": {"type": "string"},
         "MastoFooter": {"type": "string"},
+        "RenotifyMode": {"enum": ["Title", "Category", "TitleAndCategory", "TitleOrCategory"]},
     },
 
     "required": ["Notifications"], # can this do conditional requirements?

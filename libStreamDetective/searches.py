@@ -9,6 +9,7 @@ def HandleFilters(self, search, allStreams):
     now = datetime.now()
     searchAll = 'SearchAll' in search
     searchTags = search.get('SearchTags')
+    renotifyMode = search.get('RenotifyMode',"")
 
     for stream in allStreams:
         streamer = stream['user_login']
@@ -29,6 +30,7 @@ def HandleFilters(self, search, allStreams):
         if matched:
             debug("matched "+streamer)
             stream['last_matched'] = now.isoformat()
+            stream['renotify'] = renotifyMode #Stick this information in with the stream so we can use it later
             newStreams.append(stream)
         elif not searchAll:
             trace('didn\'t match', streamer)

@@ -158,6 +158,7 @@ class StreamDetective:
             else:
                 print('unknown search type', search)
                 continue
+
             try:
                 searches.HandleFilters(self, search, streams)
             except Exception as e:
@@ -218,18 +219,91 @@ class StreamDetective:
         IgnoreStreams = self.config.get('IgnoreStreams', [])
         toSend = []
         onCooldown = []
+        renotifying = []
         for stream in newStreams:
             if stream["user_login"].casefold() in IgnoreStreams:
                 debug(stream["user_login"], 'is in IgnoreStreams')
                 continue
-            if self.checkIsOnCooldown(stream, profileName):
+
+            renotify = self.checkRenotify(stream,profileName,stream["renotify"])
+            cooldown = self.checkIsOnCooldown(stream, profileName)
+
+            if (renotify):
+                renotifying.append(stream["user_login"])
+
+            if cooldown and not renotify:
                 onCooldown.append(stream["user_login"])
                 continue
+
+            self.StoreStreamInfo(stream,profileName)
             toSend.append(stream)
         if onCooldown:
             print('      On cooldown for', profileName, ':', onCooldown)
+        if renotifying:
+            print('      Renotifying for', profileName, ':', renotifying)
         return toSend
 
+
+    def checkRenotify(self, stream, ProfileName, renotify) -> bool:
+
+        curTitle = ""
+        curCategory = ""
+        lastTitle = ""
+        lastCategory = ""
+
+
+        if (renotify!=""):
+            (lastTitle,lastCategory) = self.FindLastNotifyInfo(stream,ProfileName)
+            curTitle = stream["title"].casefold()
+            curCategory = stream["game_name"].casefold()
+
+        if renotify == "Title":
+            if (lastTitle==""):
+                return False
+            if curTitle!=lastTitle:
+                return True
+
+        elif renotify == "Category":
+            if (lastCategory==""):
+                return False
+            if curCategory!=lastCategory:
+                return True
+
+        elif renotify == "TitleAndCategory":
+            if (lastTitle=="") or (lastCategory==""):
+                return False
+            if (curTitle!=lastTitle) and (curCategory!=lastCategory):
+                return True
+
+        elif renotify == "TitleOrCategory":
+            if (lastTitle=="") or (lastCategory==""):
+                return False
+            if (curTitle!=lastTitle) or (curCategory!=lastCategory):
+                return True
+
+        return False
+
+    def StoreStreamInfo(self, stream, ProfileName):
+        user = stream["user_login"].casefold()
+        now = unixtime()
+        newtitle = stream["title"].casefold()
+        newcategory = stream["game_name"].casefold()
+        newstart = stream["started_at"]
+
+        db.upsert('notifier_streaminfo', dict(streamer=user, notifier=ProfileName, title=newtitle, category=newcategory, starttime=newstart, last=now))
+
+
+    def FindLastNotifyInfo(self, stream, ProfileName) -> tuple[str,str]:
+        user = stream["user_login"].casefold()
+
+        res = db.fetchone('SELECT * FROM notifier_streaminfo WHERE streamer=? AND notifier=?', (user, ProfileName))
+        lastTitle = ""
+        lastCat = ""
+        if res:
+            lastTitle = res[3]
+            lastCat = res[2]
+
+        return (lastTitle,lastCat)
 
     def checkIsOnCooldown(self, stream, ProfileName) -> bool:
         user = stream["user_login"].casefold()

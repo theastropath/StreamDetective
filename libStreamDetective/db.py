@@ -33,6 +33,7 @@ def connect(dbname: str):
     #exec('create table if not exists streams (id text, streamer text PRIMARY KEY, title text, game text, tags text, updated integer, language text)')
     exec('create table if not exists queries (baseurl text PRIMARY KEY, cursor text, page integer, updated integer)')
     exec('create table if not exists notifiers_searches (notifier text, search_id text, last integer, PRIMARY KEY(notifier, search_id))')
+    exec('create table if not exists notifier_streaminfo (streamer text, notifier text, category text, title text, last integer, starttime text, PRIMARY KEY(streamer, notifier))')
     # a table for lotteries? how many times each game/streamer has won?
     # a table for tags? how many times they have been featured in different games or by different streamers?
     
@@ -42,6 +43,7 @@ def connect(dbname: str):
     exec('DELETE FROM streamers WHERE updated<?', (old,))
     exec('DELETE FROM cooldowns WHERE last<?', (old,))
     exec('DELETE FROM queries WHERE updated<?', (old,))
+    exec('DELETE FROM notifier_streaminfo WHERE last<?', (old,))
 
 
 def upgrade(existing_version, current_version):
@@ -50,6 +52,7 @@ def upgrade(existing_version, current_version):
     exec('drop table if exists games')
     exec('drop table if exists streamers')
     exec('drop table if exists queries')
+    exec('drop table if exists notifier_streaminfo')
     # TODO: do some if statements for specific upgrades based on version numbers
     if existing_version < 100:
         exec('drop table if exists streams')
