@@ -173,6 +173,8 @@ class TwitchApi:
 
     @staticmethod
     def GetGameArt(gameName: str) -> str:
+        if gameName=="":
+            return "" #There's no game art for no game
         gameId = TwitchApi.GetGameId(gameName)
         return "https://static-cdn.jtvnw.net/ttv-boxart/" + gameId + "_IGDB-144x192.jpg" # we use these for the Discord profile pic, Twitch shows them at 285x380
     

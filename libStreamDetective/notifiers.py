@@ -176,15 +176,18 @@ class DiscordNotifier(Notifier):
         if customMessage:
             content += customMessage + '\n'
         for stream in toSend:
+            # It's possible for the game name to legitimately be blank,
+            # if the streamer is streaming without a category.
+            plainGameName = stream.get("game_name","")
         
             if titleOverride:
                 gameName = titleOverride
             else:
-                gameName = stream["game_name"]
+                gameName = plainGameName
                        
             gameArtUrl = ''
             try:
-                gameArtName = stream["game_name"]
+                gameArtName = plainGameName
                 if gameArtOverride:
                     gameArtName = gameArtOverride
                 gameArtUrl = TwitchApi.GetGameArt(gameArtName)
@@ -192,7 +195,7 @@ class DiscordNotifier(Notifier):
                 logex(e)
 
             url="https://twitch.tv/"+stream["user_login"]
-            content += url + ' is playing ' + gameName
+            content += url + ' is streaming ' + gameName
             #content += ', VOD will probably be here '
             #content += 'https://www.twitch.tv/'+stream["user_login"]+'/videos?filter=archives&sort=time'
             content += '\n'
@@ -205,6 +208,10 @@ class DiscordNotifier(Notifier):
                         
             image = self.GetUserProfilePicUrl(stream["user_id"])
             image = {"url":image}
+
+            #If We didn't get any game art URL, use the user profile pic instead
+            if gameArtUrl=='':
+                gameArtUrl = image["url"]
             
             fields = []
 
